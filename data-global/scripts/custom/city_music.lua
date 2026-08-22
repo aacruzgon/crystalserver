@@ -37,8 +37,22 @@ local CITY_MUSIC = {
 	["feyrist"] = 15, -- Feyrist
 }
 
--- How far from a temple still counts as "in the city", in tiles.
-local CITY_RADIUS = 50
+-- How far from a temple starts a theme, in tiles. Per-town overrides go in
+-- CITY_RADIUS_OVERRIDE for the sprawling ones.
+local CITY_RADIUS = 60
+
+-- How far you must get before a theme that is already playing stops. Keeping
+-- this well above CITY_RADIUS gives the boundary hysteresis: without it, walking
+-- along the edge of a city silences and restarts the track repeatedly, which
+-- sounds like the music cutting out at random.
+local CITY_KEEP_RADIUS = 110
+
+local CITY_RADIUS_OVERRIDE = {
+	["thais"] = 90,
+	["venore"] = 80,
+	["yalahar"] = 90,
+	["kazordoon"] = 80,
+}
 
 -- The client dedupes repeated ids, so this only has to be fast enough to feel
 -- immediate on foot; it is not a per-step hook.
@@ -67,6 +81,7 @@ local function getMusicTowns()
 				name = name,
 				musicId = musicId,
 				position = town:getTemplePosition(),
+				radius = CITY_RADIUS_OVERRIDE[name:lower()] or CITY_RADIUS,
 			}
 			matched[#matched + 1] = name
 		else
@@ -82,15 +97,18 @@ local function getMusicTowns()
 	return musicTowns
 end
 
-local function musicForPosition(position)
+local function musicForPosition(position, currentMusicId)
 	for _, town in ipairs(getMusicTowns()) do
 		local temple = town.position
-		if math.abs(position.x - temple.x) <= CITY_RADIUS and math.abs(position.y - temple.y) <= CITY_RADIUS then
-			return town.musicId
+		-- a theme already playing holds on out to the larger radius
+		local radius = town.musicId == currentMusicId and math.max(town.radius, CITY_KEEP_RADIUS) or town.radius
+
+		if math.abs(position.x - temple.x) <= radius and math.abs(position.y - temple.y) <= radius then
+			return town.musicId, town.name
 		end
 	end
 
-	return MUSIC_NONE
+	return MUSIC_NONE, nil
 end
 
 local cityMusicTick = GlobalEvent("CityMusicTick")
@@ -101,11 +119,15 @@ function cityMusicTick.onThink(interval)
 
 	for _, player in ipairs(Game.getPlayers()) do
 		local guid = player:getGuid()
-		local wanted = musicForPosition(player:getPosition())
+		local current = lastSent[guid]
+		local wanted, townName = musicForPosition(player:getPosition(), current)
 
-		if lastSent[guid] ~= wanted then
+		if current ~= wanted then
 			lastSent[guid] = wanted
 			player:sendMusicSoundEffect(wanted)
+
+			local position = player:getPosition()
+			logger.info("[city_music] {} -> {} ({}) at {},{},{}", player:getName(), wanted, townName or "no town", position.x, position.y, position.z)
 		end
 	end
 
