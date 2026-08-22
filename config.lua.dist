@@ -538,8 +538,10 @@ logPlayersStatements = false
 -- Store
 -- NOTE: storeCombinedCoins = true uses transferable coins first, then regular coins for store purchases.
 -- NOTE: When storeCombinedCoins = false, storeCoinType selects which coin type is used (0 = regular, 1 = transferable).
+-- NOTE: coinImagesURL is sent to the client at login as the base URL it downloads store category icons, offer icons and home banners from.
+-- NOTE: Leave it empty to have the client use the images bundled in its own game_store module. Only set a URL if you actually serve that image tree, otherwise every store icon renders as a "?" placeholder.
 coinPacketSize = 25
-coinImagesURL = "http://127.0.0.1/images/store/"
+coinImagesURL = ""
 storeCombinedCoins = true
 storeCoinType = 0
 
