@@ -45,6 +45,7 @@
 #include "creatures/players/wheel/player_wheel.hpp"
 #include "enums/player_icons.hpp"
 #include "game/game.hpp"
+#include "game/sound_trace.hpp"
 #include "game/modal_window/modal_window.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "game/scheduling/save_manager.hpp"
@@ -10568,6 +10569,12 @@ void ProtocolGame::sendSingleSoundEffect(const Position &pos, SoundEffect_t id, 
 	msg.addByte(static_cast<uint8_t>(source)); // Sound source type
 	msg.add<uint16_t>(static_cast<uint16_t>(id)); // Sound id
 	msg.addByte(0x00); // Breaking the effects loop
+	if (player) {
+		SoundParityTrace::instance().soundEffect(
+			player->getID(), player->getName(), pos.x, pos.y, pos.z,
+			static_cast<uint16_t>(id), static_cast<uint8_t>(source)
+		);
+	}
 	writeToOutputBuffer(msg);
 }
 
@@ -10598,6 +10605,13 @@ void ProtocolGame::sendDoubleSoundEffect(
 	msg.add<uint16_t>(static_cast<uint16_t>(secondarySoundId)); // Sound id
 
 	msg.addByte(0x00); // Breaking the effects loop
+	if (player) {
+		SoundParityTrace::instance().soundEffect(
+			player->getID(), player->getName(), pos.x, pos.y, pos.z,
+			static_cast<uint16_t>(mainSoundId), static_cast<uint8_t>(mainSource),
+			static_cast<uint16_t>(secondarySoundId), static_cast<uint8_t>(secondarySource)
+		);
+	}
 	writeToOutputBuffer(msg);
 }
 
@@ -10610,6 +10624,9 @@ void ProtocolGame::sendAmbientSoundEffect(const SoundAmbientEffect_t id) {
 	msg.addByte(0x85);
 	msg.addByte(0x00);
 	msg.add<uint16_t>(id);
+	if (player) {
+		SoundParityTrace::instance().anthem(player->getID(), player->getName(), "ambience", static_cast<uint16_t>(id));
+	}
 	writeToOutputBuffer(msg);
 }
 
@@ -10622,6 +10639,9 @@ void ProtocolGame::sendMusicSoundEffect(const SoundMusicEffect_t id) {
 	msg.addByte(0x85);
 	msg.addByte(0x01);
 	msg.add<uint16_t>(id);
+	if (player) {
+		SoundParityTrace::instance().anthem(player->getID(), player->getName(), "music", static_cast<uint16_t>(id));
+	}
 	writeToOutputBuffer(msg);
 }
 
