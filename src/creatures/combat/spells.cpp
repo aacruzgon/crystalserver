@@ -838,6 +838,10 @@ void Spell::setSpellId(uint16_t id) {
 }
 
 void Spell::postCastSpell(const std::shared_ptr<Player> &player, bool finishedCast /*= true*/, bool payCost /*= true*/) const {
+	postCastSpell(player, player->getPosition(), finishedCast, payCost);
+}
+
+void Spell::postCastSpell(const std::shared_ptr<Player> &player, const Position &soundPosition, bool finishedCast /*= true*/, bool payCost /*= true*/) const {
 	if (finishedCast) {
 		if (!player->hasFlag(PlayerFlags_t::HasNoExhaustion)) {
 			applyCooldownConditions(player);
@@ -849,7 +853,7 @@ void Spell::postCastSpell(const std::shared_ptr<Player> &player, bool finishedCa
 		}
 
 		if (player && soundCastEffect != SoundEffect_t::SILENCE) {
-			g_game().sendDoubleSoundEffect(player->getPosition(), soundCastEffect, soundImpactEffect, player);
+			g_game().sendDoubleSoundEffect(soundPosition, soundCastEffect, soundImpactEffect, player);
 		}
 	}
 
@@ -1523,11 +1527,21 @@ bool RuneSpell::executeUse(const std::shared_ptr<Player> &player, const std::sha
 		var.pos = toPosition;
 	}
 
+	Position soundPosition = player->getPosition();
+	if (var.type == VARIANT_POSITION) {
+		soundPosition = var.pos;
+	} else if (var.type == VARIANT_NUMBER) {
+		const auto &soundTarget = g_game().getCreatureByID(var.number);
+		if (soundTarget) {
+			soundPosition = soundTarget->getPosition();
+		}
+	}
+
 	if (!internalCastSpell(player, var, isHotkey)) {
 		return false;
 	}
 
-	postCastSpell(player);
+	postCastSpell(player, soundPosition);
 	if (hasCharges && item) {
 		if (g_configManager().getBoolean(REMOVE_RUNE_CHARGES) || removeOnUse) {
 			int32_t newCount = std::max<int32_t>(0, item->getItemCount() - 1);

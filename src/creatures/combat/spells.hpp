@@ -136,6 +136,7 @@ public:
 	void setSpellId(uint16_t id);
 
 	void postCastSpell(const std::shared_ptr<Player> &player, bool finishedCast = true, bool payCost = true) const;
+	void postCastSpell(const std::shared_ptr<Player> &player, const Position &soundPosition, bool finishedCast = true, bool payCost = true) const;
 	static void postCastSpell(const std::shared_ptr<Player> &player, uint32_t manaCost, uint32_t soulCost, uint8_t harmonyCost);
 	[[nodiscard]] virtual bool isInstant() const = 0;
 	[[nodiscard]] bool isLearnable() const;
