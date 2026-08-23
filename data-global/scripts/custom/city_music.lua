@@ -29,12 +29,22 @@ local CITY_MUSIC = {
 	["farmine"] = 14, -- Zao
 	["rathleton"] = 18, -- Oramond (Rathleton)
 	["issavi"] = 26, -- Kilmaresh
+	["cobra bastion"] = 26, -- Kilmaresh
 	["rookgaard"] = 27, -- Dawnport / Rookgaard
 	["dawnport"] = 27, -- Dawnport / Rookgaard
+	["dawnport tutorial"] = 27, -- Dawnport / Rookgaard
+	["island of destiny"] = 27, -- Dawnport / Rookgaard
 	["marapur"] = 29, -- Marapur
 	["silvertides"] = 29, -- Marapur
+	["moonfall"] = 29, -- Marapur
 	["gray beach"] = 16, -- Quirefang and More
+	["krailos"] = 16, -- Quirefang and More
+	["roshamuul"] = 16, -- Quirefang and More
 	["feyrist"] = 15, -- Feyrist
+	["gnomprona"] = 30, -- Podzilla's Biosphere
+	["blue valley"] = 31, -- Blue Valley
+	["newhaven"] = 33, -- Newhaven
+	["targuna"] = 34, -- Targuna
 }
 
 -- How far from a temple starts a theme, in tiles. Per-town overrides go in
@@ -46,6 +56,7 @@ local CITY_RADIUS = 60
 -- along the edge of a city silences and restarts the track repeatedly, which
 -- sounds like the music cutting out at random.
 local CITY_KEEP_RADIUS = 110
+local MAX_FLOOR_DISTANCE = 2
 
 local CITY_RADIUS_OVERRIDE = {
 	["thais"] = 90,
@@ -58,9 +69,19 @@ local CITY_RADIUS_OVERRIDE = {
 -- immediate on foot; it is not a per-step hook.
 local CHECK_INTERVAL = 2000
 
+-- Signature tracks start shortly after entering their region, play once, and
+-- return after a long randomized pause. This mirrors the cadence documented by
+-- CipSoft instead of turning a two-minute signature track into background-loop
+-- music. Combat postpones (rather than discards) a scheduled play.
+local ENTRY_DELAY_MIN = 3
+local ENTRY_DELAY_MAX = 8
+local REPLAY_DELAY_MIN = 10 * 60
+local REPLAY_DELAY_MAX = 20 * 60
+local COMBAT_RETRY_DELAY = 30
+
 local MUSIC_NONE = 0
 
--- guid -> music id last sent, so we only emit on an actual change
+-- guid -> { musicId, townName, nextPlayAt }
 local lastSent = {}
 
 local musicTowns = nil
@@ -97,13 +118,16 @@ local function getMusicTowns()
 	return musicTowns
 end
 
-local function musicForPosition(position, currentMusicId)
+local function musicForPosition(position, currentTownName)
 	for _, town in ipairs(getMusicTowns()) do
 		local temple = town.position
 		-- a theme already playing holds on out to the larger radius
-		local radius = town.musicId == currentMusicId and math.max(town.radius, CITY_KEEP_RADIUS) or town.radius
+		local radius = town.name == currentTownName and math.max(town.radius, CITY_KEEP_RADIUS) or town.radius
 
-		if math.abs(position.x - temple.x) <= radius and math.abs(position.y - temple.y) <= radius then
+		if math.abs(position.z - temple.z) <= MAX_FLOOR_DISTANCE
+			and math.abs(position.x - temple.x) <= radius
+			and math.abs(position.y - temple.y) <= radius
+		then
 			return town.musicId, town.name
 		end
 	end
@@ -120,14 +144,30 @@ function cityMusicTick.onThink(interval)
 	for _, player in ipairs(Game.getPlayers()) do
 		local guid = player:getGuid()
 		local current = lastSent[guid]
-		local wanted, townName = musicForPosition(player:getPosition(), current)
+		local wanted, townName = musicForPosition(player:getPosition(), current and current.townName)
+		local now = os.time()
 
-		if current ~= wanted then
-			lastSent[guid] = wanted
-			player:sendMusicSoundEffect(wanted)
+		if not current or current.musicId ~= wanted or current.townName ~= townName then
+			if current and current.musicId ~= MUSIC_NONE then
+				player:sendMusicSoundEffect(MUSIC_NONE)
+			end
+
+			current = {
+				musicId = wanted,
+				townName = townName,
+				nextPlayAt = wanted ~= MUSIC_NONE and now + math.random(ENTRY_DELAY_MIN, ENTRY_DELAY_MAX) or nil,
+			}
+			lastSent[guid] = current
 
 			local position = player:getPosition()
 			logger.info("[city_music] {} -> {} ({}) at {},{},{}", player:getName(), wanted, townName or "no town", position.x, position.y, position.z)
+		elseif wanted ~= MUSIC_NONE and current.nextPlayAt and now >= current.nextPlayAt then
+			if player:getCondition(CONDITION_INFIGHT, CONDITIONID_DEFAULT) then
+				current.nextPlayAt = now + COMBAT_RETRY_DELAY
+			else
+				player:sendMusicSoundEffect(wanted)
+				current.nextPlayAt = now + math.random(REPLAY_DELAY_MIN, REPLAY_DELAY_MAX)
+			end
 		end
 	end
 

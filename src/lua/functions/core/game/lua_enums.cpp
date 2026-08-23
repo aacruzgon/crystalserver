@@ -1366,6 +1366,13 @@ void LuaEnums::initBosstiaryEnums(lua_State* L) {
 
 // "SOUND_EFFECT_TYPE_" is the sound lua namespace
 void LuaEnums::initSoundEnums(lua_State* L) {
+	for (const auto value : magic_enum::enum_values<SoundMusicEffect_t>()) {
+		registerEnumNamespace(L, soundNamespace, value);
+	}
+	for (const auto value : magic_enum::enum_values<SoundAmbientEffect_t>()) {
+		registerEnumNamespace(L, soundNamespace, value);
+	}
+
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::SILENCE);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::HUMAN_CLOSE_ATK_FIST);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::MONSTER_CLOSE_ATK_FIST);
