@@ -8980,6 +8980,9 @@ void Game::addMagicEffect(const CreatureVector &spectators, const Position &pos,
 				source = OWN;
 			} else if (actor->getPlayer()) {
 				source = OTHERS;
+			} else if (const auto &monster = actor->getMonster();
+					   monster && monster->getMonsterType() && monster->getMonsterType()->isBoss()) {
+				source = BOSS;
 			}
 			tmpPlayer->sendMagicEffect(pos, effect, source);
 		}
@@ -9028,6 +9031,9 @@ void Game::addDistanceEffect(const CreatureVector &spectators, const Position &f
 				source = OWN;
 			} else if (actor->getPlayer()) {
 				source = OTHERS;
+			} else if (const auto &monster = actor->getMonster();
+					   monster && monster->getMonsterType() && monster->getMonsterType()->isBoss()) {
+				source = BOSS;
 			}
 			tmpPlayer->sendDistanceShoot(fromPos, toPos, effect, source);
 		}

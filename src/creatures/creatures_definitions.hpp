@@ -1477,7 +1477,11 @@ enum class SourceEffect_t : uint8_t {
 	GLOBAL = 0,
 	OWN = 1,
 	OTHERS = 2,
-	CREATURES = 3
+	CREATURES = 3,
+	// The client separates boss effects from ordinary creature effects so the
+	// player can dim them independently ("Boss Area Creature Spell Effects").
+	// Without this the client's fourth opacity slider has nothing to act on.
+	BOSS = 4
 };
 
 enum class CreatureIconCategory_t {
