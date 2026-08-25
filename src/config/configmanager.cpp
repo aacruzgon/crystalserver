@@ -431,7 +431,7 @@ bool ConfigManager::load() {
 	loadIntConfig(L, WHITE_SKULL_TIME, "whiteSkullTime", 15 * 60 * 1000);
 	loadIntConfig(L, WORLD_LIGHT_COLOR, "worldLightColor", 215);
 	loadIntConfig(L, WORLD_LIGHT_LEVEL_DAY, "worldLightLevelDay", 250);
-	loadIntConfig(L, WORLD_LIGHT_LEVEL_NIGHT, "worldLightLevelNight", 140);
+	loadIntConfig(L, WORLD_LIGHT_LEVEL_NIGHT, "worldLightLevelNight", 40);
 
 	loadStringConfig(L, CORE_DIRECTORY, "coreDirectory", "data");
 	loadStringConfig(L, DATA_DIRECTORY, "dataPackDirectory", "data-global");

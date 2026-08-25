@@ -955,11 +955,10 @@ private:
 	// Fallbacks only - the live values are lightLevelDay/lightLevelNight below, seeded from
 	// worldLightLevelDay / worldLightLevelNight at boot.
 	static constexpr int32_t LIGHT_LEVEL_DAY = 250;
-	// 140 rather than the upstream 40 because the client's ambient is palette_rgb *
-	// (level/255): at 40 the colour scales to ~16% and no hue survives it, so a tinted night
-	// could not read at all. It only matters while worldLightColorCycle is on - with the
-	// neutral light that ships by default, 40 is the darker, more faithful night.
-	static constexpr int32_t LIGHT_LEVEL_NIGHT = 140;
+	// Upstream's value, and the one that suits the neutral light shipped by default. A tinted
+	// night needs it raised (140 works): the client's ambient is palette_rgb * (level/255), so
+	// at 40 the colour scales to ~16% and almost no hue survives it.
+	static constexpr int32_t LIGHT_LEVEL_NIGHT = 40;
 	// 1080 = game 18:00. gameIsDay() already calls day "6*60 .. 18*60", and a full Tibia
 	// day is one real hour, so this puts dusk at real minute 45 and dawn at minute 15,
 	// which is what the day/night table describes. 1050 disagreed with both.

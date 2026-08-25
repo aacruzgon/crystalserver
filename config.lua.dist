@@ -39,12 +39,13 @@ worldLocation = "South America"
 --       deep blue (89) at night. It casts that tint over everything on screen, and it needs a
 --       high worldLightLevelNight to read at all, because the client scales the palette colour
 --       by level/255 - at level 40 nothing of the hue survives.
--- NOTE: worldLightLevelNight is 140 to suit that tinted cycle. With the neutral light above,
---       40 is the darker and more faithful night.
+-- NOTE: worldLightLevelNight is 40, which is upstream's value and the one that suits the
+--       neutral light above. Raise it (140 works) if you turn the tinted cycle on - the
+--       client scales the palette colour by level/255, so at 40 almost no hue survives.
 worldLightColor = 215
 worldLightColorCycle = false
 worldLightLevelDay = 250
-worldLightLevelNight = 140
+worldLightLevelNight = 40
 
 -- Combat settings
 -- NOTE: removeBeginningWeaponAmmunition: spears, arrows, bolt have endless ammo (allows training for paladins)
