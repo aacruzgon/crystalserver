@@ -2112,8 +2112,11 @@ void Game::playerMoveItem(const std::shared_ptr<Player> &player, const Position 
 	const auto ret = internalMoveItem(fromCylinder, toCylinder, toIndex, item, count, nullptr, moveFlags, player);
 	if (ret != RETURNVALUE_NOERROR) {
 		player->sendCancelMessage(ret);
-	} else if (toCylinder->getContainer() && fromCylinder->getContainer() && fromCylinder->getContainer()->countsToLootAnalyzerBalance() && toCylinder->getContainer()->getTopParent() == player) {
-		player->sendLootStats(item, count);
+	} else if (toContainer && fromContainer && item->getIsLootTrackeable() && toContainer->getTopParent() == player) {
+		const auto rootContainer = fromContainer->getRootContainer();
+		if (fromContainer->countsToLootAnalyzerBalance() || (rootContainer && rootContainer->countsToLootAnalyzerBalance())) {
+			player->sendLootStats(item, count);
+		}
 	}
 
 	player->cancelPush();
@@ -3254,10 +3257,13 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 		}
 
 		bool success = ret == RETURNVALUE_NOERROR;
+		const uint16_t lootedCount = success ? baseCount : baseCount - item->getItemCount();
 		if (worth != 0) {
 			missedAnyGold = missedAnyGold || !success;
+			if (lootedCount > 0) {
+				player->sendLootStats(item, static_cast<uint8_t>(lootedCount));
+			}
 			if (success) {
-				player->sendLootStats(item, baseCount);
 				totalLootedGold += worth;
 			} else {
 				// item is not completely moved
@@ -3265,9 +3271,9 @@ void Game::playerQuickLootCorpse(const std::shared_ptr<Player> &player, const st
 			}
 		} else {
 			missedAnyItem = missedAnyItem || !success;
-			if (success || item->getItemCount() != baseCount) {
+			if (lootedCount > 0) {
 				totalLootedItems++;
-				player->sendLootStats(item, item->getItemCount());
+				player->sendLootStats(item, static_cast<uint8_t>(lootedCount));
 			}
 		}
 	}
@@ -7862,8 +7868,8 @@ bool Game::combatChangeHealth(const std::shared_ptr<Creature> &attacker, const s
 			if (damage.critical) {
 				addMagicEffect(targetPos, CONST_ME_CRITICAL_DAMAGE, attacker);
 			}
-			if (targetPlayer) {
-				targetPlayer->updateImpactTracker(COMBAT_HEALING, realHealthChange);
+			if (attackerPlayer) {
+				attackerPlayer->updateImpactTracker(COMBAT_HEALING, realHealthChange);
 			}
 
 			// Party hunt analyzer
@@ -8099,6 +8105,21 @@ bool Game::combatChangeHealth(const std::shared_ptr<Creature> &attacker, const s
 			return true;
 		}
 
+		auto updateDamageAnalyzers = [&](CombatType_t type, int32_t amount) {
+			if (amount <= 0) {
+				return;
+			}
+
+			if (attackerPlayer) {
+				attackerPlayer->updateImpactTracker(type, amount);
+			}
+
+			if (targetPlayer) {
+				const std::string cause = attacker ? attacker->getName() : "(other)";
+				targetPlayer->updateInputAnalyzer(type, amount, cause);
+			}
+		};
+
 		auto spectators = Spectators().find<Player>(targetPos, true);
 
 		if (targetPlayer && attackerMonster) {
@@ -8248,25 +8269,17 @@ bool Game::combatChangeHealth(const std::shared_ptr<Creature> &attacker, const s
 					tmpPlayer->sendTextMessage(message);
 				}
 
+				const int32_t primaryBeforeAbsorption = damage.primary.value;
+				const int32_t secondaryBeforeAbsorption = damage.secondary.value;
+
 				damage.primary.value -= absorbedDamage;
 				if (damage.primary.value < 0) {
 					damage.secondary.value = std::max<int32_t>(0, damage.secondary.value + damage.primary.value);
 					damage.primary.value = 0;
 				}
 
-				if (attackerPlayer) {
-					attackerPlayer->updateImpactTracker(damage.primary.type, damage.primary.value);
-					if (damage.secondary.type != COMBAT_NONE) {
-						attackerPlayer->updateImpactTracker(damage.secondary.type, damage.secondary.value);
-					}
-				}
-
-				if (targetPlayer) {
-					targetPlayer->updateImpactTracker(damage.primary.type, manaDamage);
-					if (damage.secondary.type != COMBAT_NONE) {
-						targetPlayer->updateImpactTracker(damage.secondary.type, damage.secondary.value);
-					}
-				}
+				updateDamageAnalyzers(damage.primary.type, primaryBeforeAbsorption - damage.primary.value);
+				updateDamageAnalyzers(damage.secondary.type, secondaryBeforeAbsorption - damage.secondary.value);
 			}
 		}
 
@@ -8305,10 +8318,11 @@ bool Game::combatChangeHealth(const std::shared_ptr<Creature> &attacker, const s
 		}
 
 		target->drainHealth(attacker, realDamage);
+		const int32_t trackedPrimaryDamage = std::min<int32_t>(damage.primary.value, realDamage);
+		const int32_t trackedSecondaryDamage = std::min<int32_t>(damage.secondary.value, realDamage - trackedPrimaryDamage);
+		updateDamageAnalyzers(damage.primary.type, trackedPrimaryDamage);
+		updateDamageAnalyzers(damage.secondary.type, trackedSecondaryDamage);
 		if (realDamage > 0 && targetMonster) {
-			if (attackerPlayer && attackerPlayer->getPlayer()) {
-				attackerPlayer->updateImpactTracker(damage.secondary.type, damage.secondary.value);
-			}
 
 			if (targetMonster->israndomStepping()) {
 				targetMonster->setIgnoreFieldDamage(true);
@@ -8385,25 +8399,6 @@ void Game::sendMessages(
 	const Position &targetPos, const std::shared_ptr<Player> &attackerPlayer, const std::shared_ptr<Player> &targetPlayer,
 	TextMessage &message, const CreatureVector &spectators, int32_t realDamage
 ) const {
-	if (attackerPlayer) {
-		attackerPlayer->updateImpactTracker(damage.primary.type, damage.primary.value);
-		if (damage.secondary.type != COMBAT_NONE) {
-			attackerPlayer->updateImpactTracker(damage.secondary.type, damage.secondary.value);
-		}
-	}
-	if (targetPlayer) {
-		std::string cause = "(other)";
-		if (attacker) {
-			cause = attacker->getName();
-		}
-
-		targetPlayer->updateInputAnalyzer(damage.primary.type, damage.primary.value, cause);
-		if (attackerPlayer) {
-			if (damage.secondary.type != COMBAT_NONE) {
-				attackerPlayer->updateInputAnalyzer(damage.secondary.type, damage.secondary.value, cause);
-			}
-		}
-	}
 	std::stringstream ss;
 
 	ss << realDamage << (realDamage != 1 ? " hitpoints" : " hitpoint");

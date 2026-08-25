@@ -2519,7 +2519,11 @@ void Monster::updateLookDirection() {
 }
 
 void Monster::dropLoot(const std::shared_ptr<Container> &corpse, const std::shared_ptr<Creature> &) {
-	if (corpse && lootDrop) {
+	if (!corpse) {
+		return;
+	}
+
+	if (lootDrop) {
 		// Only fiendish drops sliver
 		if (ForgeClassifications_t classification = getMonsterForgeClassification();
 		    // Condition
@@ -2561,9 +2565,12 @@ void Monster::dropLoot(const std::shared_ptr<Container> &corpse, const std::shar
 
 		if (!this->isRewardBoss() && g_configManager().getFloat(RATE_LOOT) > 0) {
 			g_callbacks().executeCallback(EventCallback_t::monsterOnDropLoot, &EventCallback::monsterOnDropLoot, getMonster(), corpse);
-			g_callbacks().executeCallback(EventCallback_t::monsterPostDropLoot, &EventCallback::monsterPostDropLoot, getMonster(), corpse);
 		}
 	}
+
+	// Kill tracking must not depend on whether loot generation is enabled. Keep
+	// this after loot creation so drop-tracker consumers still receive the corpse.
+	g_callbacks().executeCallback(EventCallback_t::monsterPostDropLoot, &EventCallback::monsterPostDropLoot, getMonster(), corpse);
 }
 
 void Monster::setNormalCreatureLight() {
