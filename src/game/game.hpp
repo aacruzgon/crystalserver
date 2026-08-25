@@ -529,6 +529,7 @@ public:
 	void checkCreatureAttack(uint32_t creatureId);
 	void checkCreatures();
 	void checkLight();
+	uint8_t getWorldLightColor() const;
 	void checkImbuementsAndSereneStatus();
 
 	bool combatBlockHit(CombatDamage &damage, const std::shared_ptr<Creature> &attacker, const std::shared_ptr<Creature> &target, bool checkDefense, bool checkArmor, bool field);
@@ -951,9 +952,18 @@ private:
 
 	static constexpr int32_t DAY_LENGTH_SECONDS = 3600;
 	static constexpr int32_t LIGHT_DAY_LENGTH = 1440;
+	// Fallbacks only - the live values are lightLevelDay/lightLevelNight below, seeded from
+	// worldLightLevelDay / worldLightLevelNight at boot.
 	static constexpr int32_t LIGHT_LEVEL_DAY = 250;
-	static constexpr int32_t LIGHT_LEVEL_NIGHT = 40;
-	static constexpr int32_t SUNSET = 1050;
+	// 140 rather than the upstream 40 because the client's ambient is palette_rgb *
+	// (level/255): at 40 the colour scales to ~16% and no hue survives it, so a tinted night
+	// could not read at all. It only matters while worldLightColorCycle is on - with the
+	// neutral light that ships by default, 40 is the darker, more faithful night.
+	static constexpr int32_t LIGHT_LEVEL_NIGHT = 140;
+	// 1080 = game 18:00. gameIsDay() already calls day "6*60 .. 18*60", and a full Tibia
+	// day is one real hour, so this puts dusk at real minute 45 and dawn at minute 15,
+	// which is what the day/night table describes. 1050 disagreed with both.
+	static constexpr int32_t SUNSET = 1080;
 	static constexpr int32_t SUNRISE = 360;
 
 	bool isDay = false;
@@ -964,6 +974,8 @@ private:
 	LightState_t lightState = LIGHT_STATE_DAY;
 	LightState_t currentLightState = lightState;
 	uint8_t lightLevel = LIGHT_LEVEL_DAY;
+	int32_t lightLevelDay = LIGHT_LEVEL_DAY;
+	int32_t lightLevelNight = LIGHT_LEVEL_NIGHT;
 	int32_t lightHour = SUNRISE + (SUNSET - SUNRISE) / 2;
 	// (1440 total light of tibian day)/(3600 real seconds each tibian day) * 10 seconds event interval
 	int32_t lightHourDelta = (LIGHT_DAY_LENGTH * (EVENT_LIGHTINTERVAL_MS / 1000)) / DAY_LENGTH_SECONDS;

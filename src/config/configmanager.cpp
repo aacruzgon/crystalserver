@@ -196,6 +196,7 @@ bool ConfigManager::load() {
 	loadBoolConfig(L, WALK_THROUGH_PLAYERS, "walkThroughPlayers", true);
 	loadBoolConfig(L, WARN_UNSAFE_SCRIPTS, "warnUnsafeScripts", true);
 	loadBoolConfig(L, WEEKLY_TASKS_ENABLED, "weeklyTasksEnabled", true);
+	loadBoolConfig(L, WORLD_LIGHT_COLOR_CYCLE, "worldLightColorCycle", false);
 	loadBoolConfig(L, XP_DISPLAY_MODE, "experienceDisplayRates", true);
 
 	loadFloatConfig(L, ANIMUS_MASTERY_MAX_MONSTER_XP_MULTIPLIER, "animusMasteryMaxMonsterXpMultiplier", 4.0);
@@ -428,6 +429,9 @@ bool ConfigManager::load() {
 	loadIntConfig(L, WHEEL_ATELIER_ROTATE_REGULAR_COST, "wheelAtelierRotateRegularCost", 250000);
 	loadIntConfig(L, WHEEL_POINTS_PER_LEVEL, "wheelPointsPerLevel", 1);
 	loadIntConfig(L, WHITE_SKULL_TIME, "whiteSkullTime", 15 * 60 * 1000);
+	loadIntConfig(L, WORLD_LIGHT_COLOR, "worldLightColor", 215);
+	loadIntConfig(L, WORLD_LIGHT_LEVEL_DAY, "worldLightLevelDay", 250);
+	loadIntConfig(L, WORLD_LIGHT_LEVEL_NIGHT, "worldLightLevelNight", 140);
 
 	loadStringConfig(L, CORE_DIRECTORY, "coreDirectory", "data");
 	loadStringConfig(L, DATA_DIRECTORY, "dataPackDirectory", "data-global");

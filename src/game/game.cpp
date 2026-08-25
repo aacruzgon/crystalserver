@@ -609,10 +609,39 @@ void Game::start(ServiceManager* manager) {
 
 	serviceManager = manager;
 
+	// The day/night endpoints are configurable, so read them before anything derives from
+	// them. Clamped because the protocol carries the level as a byte and the ramp below
+	// divides by their span.
+	lightLevelDay = std::clamp<int32_t>(g_configManager().getNumber(WORLD_LIGHT_LEVEL_DAY), 0, 255);
+	lightLevelNight = std::clamp<int32_t>(g_configManager().getNumber(WORLD_LIGHT_LEVEL_NIGHT), 0, lightLevelDay);
+
 	const auto now = getTimeNow();
 	const tm* tms = localtime(&now);
 	int minutes = tms->tm_min;
 	lightHour = (minutes * LIGHT_DAY_LENGTH) / 60;
+
+	// Derive the starting level and state from the hour we just seeded. Left at their
+	// LIGHT_STATE_DAY / LIGHT_LEVEL_DAY member defaults, a server booted during game-night
+	// serves full daylight until the next sunset boundary - up to ~40 real minutes of the
+	// clock and the sky disagreeing, with no way to correct itself in between.
+	if (lightHour >= SUNRISE && lightHour <= SUNSET) {
+		lightLevel = lightLevelDay;
+		lightState = LIGHT_STATE_DAY;
+	} else {
+		lightLevel = lightLevelNight;
+		lightState = LIGHT_STATE_NIGHT;
+	}
+
+	// Keep the period-change bookkeeping in step, or the first checkLight() tick fires a
+	// GLOBALEVENT_PERIODCHANGE for a transition that never happened.
+	currentLightState = lightState;
+
+	g_logger().info(
+		"World light seeded at Tibian {:02d}:{:02d} ({}), level {}, colour {}.",
+		lightHour / 60, lightHour % 60,
+		lightState == LIGHT_STATE_DAY ? "day" : "night",
+		lightLevel, getWorldLightColor()
+	);
 
 	g_dispatcher().scheduleEvent(
 		EVENT_MS + 1000, [this] { createFiendishMonsters(); }, "Game::createFiendishMonsters"
@@ -9087,12 +9116,12 @@ void Game::checkLight() {
 
 	switch (lightState) {
 		case LIGHT_STATE_SUNRISE: {
-			newLightLevel += (LIGHT_LEVEL_DAY - LIGHT_LEVEL_NIGHT) / 30;
+			newLightLevel += (lightLevelDay - lightLevelNight) / 30;
 			lightChange = true;
 			break;
 		}
 		case LIGHT_STATE_SUNSET: {
-			newLightLevel -= (LIGHT_LEVEL_DAY - LIGHT_LEVEL_NIGHT) / 30;
+			newLightLevel -= (lightLevelDay - lightLevelNight) / 30;
 			lightChange = true;
 			break;
 		}
@@ -9100,11 +9129,11 @@ void Game::checkLight() {
 			break;
 	}
 
-	if (newLightLevel <= LIGHT_LEVEL_NIGHT) {
-		lightLevel = LIGHT_LEVEL_NIGHT;
+	if (newLightLevel <= lightLevelNight) {
+		lightLevel = lightLevelNight;
 		lightState = LIGHT_STATE_NIGHT;
-	} else if (newLightLevel >= LIGHT_LEVEL_DAY) {
-		lightLevel = LIGHT_LEVEL_DAY;
+	} else if (newLightLevel >= lightLevelDay) {
+		lightLevel = lightLevelDay;
 		lightState = LIGHT_STATE_DAY;
 	} else {
 		lightLevel = newLightLevel;
@@ -9147,8 +9176,52 @@ ItemClassification* Game::getItemsClassification(uint8_t id, bool create) {
 	return nullptr;
 }
 
+// Palette indices are 6x6x6 cube entries, r * 36 + g * 6 + b, each channel 0..5 mapping to
+// 0/51/102/153/204/255. The stock server sends 215 (pure white) at every hour, so the world
+// only ever got darker, never warmer.
+//
+// The client's ambient is palette_rgb * (level / 255), so the level and the palette entry
+// multiply. Index 131 is (153, 153, 255), which at the night level lands near (108, 108, 180)
+// - the moonlit blue the official client shows, rather than the near-black a dark palette
+// entry at a low level produces.
+//
+// Bands are taken on the position within the day..night ramp rather than on the raw level, so
+// they survive retuning either endpoint.
+uint8_t Game::getWorldLightColor() const {
+	// Off by default. The client multiplies the entire scene by palette_rgb * (level/255), so
+	// a tinted world light is a colour cast over everything on screen rather than a mood on
+	// top of it - at colour 89 the red and green channels are cut to 40% while blue stays at
+	// 100%. Upstream canary sends a flat 0xD7 (white) and does day/night by level alone, which
+	// is what worldLightColor restores.
+	if (!g_configManager().getBoolean(WORLD_LIGHT_COLOR_CYCLE)) {
+		return static_cast<uint8_t>(std::clamp<int32_t>(g_configManager().getNumber(WORLD_LIGHT_COLOR), 0, 215));
+	}
+
+	const auto span = static_cast<float>(lightLevelDay - lightLevelNight);
+	const float t = span > 0.f
+		? std::clamp((static_cast<float>(lightLevel) - lightLevelNight) / span, 0.f, 1.f)
+		: 1.f;
+
+	if (t >= 0.90f) {
+		return 215; // (255, 255, 255) full day - the client skips the light pass here anyway
+	}
+	if (t >= 0.72f) {
+		return 208; // (255, 204, 204) first blush
+	}
+	if (t >= 0.54f) {
+		return 207; // (255, 204, 153) warm cream
+	}
+	if (t >= 0.36f) {
+		return 200; // (255, 153, 102) golden hour
+	}
+	if (t >= 0.18f) {
+		return 123; // (153, 102, 153) dusky mauve
+	}
+	return 89; // (102, 102, 255) deep night blue
+}
+
 LightInfo Game::getWorldLightInfo() const {
-	return { lightLevel, 0xD7 };
+	return { lightLevel, getWorldLightColor() };
 }
 
 bool Game::gameIsDay() {

@@ -32,6 +32,20 @@ worldId = 1
 worldType = "pvp"
 worldLocation = "South America"
 
+-- World light (the day/night ambience the client multiplies the whole scene by)
+-- NOTE: worldLightColor is an 8-bit Tibia palette index, 0-215. 215 is white, which is what
+--       upstream and the official client use: the cycle is carried by the level alone.
+-- NOTE: worldLightColorCycle ramps the colour through six tinted bands instead, ending at a
+--       deep blue (89) at night. It casts that tint over everything on screen, and it needs a
+--       high worldLightLevelNight to read at all, because the client scales the palette colour
+--       by level/255 - at level 40 nothing of the hue survives.
+-- NOTE: worldLightLevelNight is 140 to suit that tinted cycle. With the neutral light above,
+--       40 is the darker and more faithful night.
+worldLightColor = 215
+worldLightColorCycle = false
+worldLightLevelDay = 250
+worldLightLevelNight = 140
+
 -- Combat settings
 -- NOTE: removeBeginningWeaponAmmunition: spears, arrows, bolt have endless ammo (allows training for paladins)
 -- NOTE: refundManaOnBeginningWeapons: wand of vortex and snakebite refund mana used (allows training for mages)
