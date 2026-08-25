@@ -6099,21 +6099,23 @@ void Player::onFollowCreature(const std::shared_ptr<Creature> &creature) {
 }
 
 void Player::setChaseMode(bool mode) {
-	const bool prevChaseMode = chaseMode;
 	chaseMode = mode;
 	const auto &attackedCreature = getAttackedCreature();
 	const auto &followCreature = getFollowCreature();
 
-	if (prevChaseMode != chaseMode) {
-		if (chaseMode) {
-			if (!followCreature && attackedCreature) {
-				// chase opponent
-				setFollowCreature(attackedCreature);
-			}
-		} else if (attackedCreature) {
-			setFollowCreature(nullptr);
-			cancelNextWalk = true;
+	if (chaseMode) {
+		if (attackedCreature && followCreature != attackedCreature) {
+			setFollowCreature(attackedCreature);
 		}
+	} else if (attackedCreature) {
+		if (followCreature) {
+			setFollowCreature(nullptr);
+		}
+
+		// Fight-mode packets describe the desired state, not just a transition.
+		// Clear an already queued chase path even if chaseMode was false before
+		// this packet (for example after client/server state desynchronization).
+		resetMovementState();
 	}
 }
 
