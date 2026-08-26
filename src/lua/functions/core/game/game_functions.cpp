@@ -17,6 +17,7 @@
 
 #include "lua/functions/core/game/game_functions.hpp"
 
+#include "config/configmanager.hpp"
 #include "core.hpp"
 #include "creatures/monsters/monster.hpp"
 #include "creatures/monsters/monsters.hpp"
@@ -46,6 +47,7 @@ void GameFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Game", "createMonsterType", GameFunctions::luaGameCreateMonsterType);
 
 	Lua::registerMethod(L, "Game", "getSpectators", GameFunctions::luaGameGetSpectators);
+	Lua::registerMethod(L, "Game", "sendMagicEffects", GameFunctions::luaGameSendMagicEffects);
 
 	Lua::registerMethod(L, "Game", "getBoostedCreature", GameFunctions::luaGameGetBoostedCreature);
 	Lua::registerMethod(L, "Game", "getBestiaryList", GameFunctions::luaGameGetBestiaryList);
@@ -203,6 +205,74 @@ int GameFunctions::luaGameCreateMonsterType(lua_State* L) {
 
 int GameFunctions::luaGameCreateNpcType(lua_State* L) {
 	return NpcTypeFunctions::luaNpcTypeCreate(L);
+}
+
+int GameFunctions::luaGameSendMagicEffects(lua_State* L) {
+	// Game.sendMagicEffects({ {position = pos, type = effect[, delay = 0]}, ... }[, actor])
+	// One packet for the whole batch: the entries may sit on different tiles and each may be
+	// held back in time, which a sendMagicEffect per tile cannot express.
+	if (!Lua::isTable(L, 1)) {
+		Lua::reportErrorFunc("a table of effect entries is required");
+		Lua::pushBoolean(L, false);
+		return 1;
+	}
+
+	const auto &actor = lua_gettop(L) >= 2 ? Lua::getCreature(L, 2) : nullptr;
+
+	std::vector<MagicEffectEntry> effects;
+	const auto entryCount = lua_objlen(L, 1);
+	effects.reserve(entryCount);
+
+	for (size_t i = 1; i <= entryCount; ++i) {
+		lua_rawgeti(L, 1, static_cast<int>(i));
+		const int entryIndex = lua_gettop(L);
+		if (!Lua::isTable(L, entryIndex)) {
+			lua_pop(L, 1);
+			Lua::reportErrorFunc(fmt::format("effect entry {} is not a table", i));
+			Lua::pushBoolean(L, false);
+			return 1;
+		}
+
+		MagicEffectEntry entry;
+
+		lua_getfield(L, entryIndex, "type");
+		entry.type = Lua::getNumber<uint16_t>(L, -1, 0);
+		lua_pop(L, 1);
+
+		lua_getfield(L, entryIndex, "delay");
+		entry.delayMs = Lua::getNumber<uint16_t>(L, -1, 0);
+		lua_pop(L, 1);
+
+		lua_getfield(L, entryIndex, "position");
+		const int positionIndex = lua_gettop(L);
+		if (!Lua::isTable(L, positionIndex)) {
+			lua_pop(L, 2);
+			Lua::reportErrorFunc(fmt::format("effect entry {} has no position", i));
+			Lua::pushBoolean(L, false);
+			return 1;
+		}
+
+		entry.position = Lua::getPosition(L, positionIndex);
+		lua_pop(L, 2);
+
+		// The same guard position:sendMagicEffect uses - an unregistered id can crash the
+		// client, and here it would take the rest of the batch down with it.
+		if (g_configManager().getBoolean(WARN_UNSAFE_SCRIPTS) && !g_game().isMagicEffectRegistered(entry.type)) {
+			g_logger().warn("[GameFunctions::luaGameSendMagicEffects] An unregistered magic effect type with id '{}' was blocked to prevent client crash.", entry.type);
+			continue;
+		}
+
+		effects.emplace_back(entry);
+	}
+
+	if (effects.empty()) {
+		Lua::pushBoolean(L, false);
+		return 1;
+	}
+
+	Game::addMagicEffects(effects, actor);
+	Lua::pushBoolean(L, true);
+	return 1;
 }
 
 int GameFunctions::luaGameGetSpectators(lua_State* L) {

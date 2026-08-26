@@ -26,6 +26,7 @@ private:
 	static int luaGameCreateNpcType(lua_State* L);
 
 	static int luaGameGetSpectators(lua_State* L);
+	static int luaGameSendMagicEffects(lua_State* L);
 
 	static int luaGameGetBoostedCreature(lua_State* L);
 	static int luaGameGetBestiaryList(lua_State* L);
