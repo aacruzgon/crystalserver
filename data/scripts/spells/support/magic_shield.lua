@@ -14,24 +14,18 @@ function spell.onCastSpell(creature, var)
 
 	if not isRetroPVP() then
 		local grade = player:upgradeSpellsWOD("Magic Shield")
-		local shield = 300 + 7.6 * player:getLevel() + 7 * player:getMagicLevel()
-		if grade >= WHEEL_GRADE_REGULAR then
-			shield = shield * 1.25
-		end
+		local shield = player:getMagicShieldCapacity(grade >= WHEEL_GRADE_REGULAR)
 		condition:setParameter(CONDITION_PARAM_TICKS, 180000)
-		condition:setParameter(CONDITION_PARAM_MANASHIELD, math.min(player:getMaxMana(), shield))
+		condition:setParameter(CONDITION_PARAM_MANASHIELD, shield)
 	else
 		local level = player:getLevel()
 		if level < 275 then
 			condition:setParameter(CONDITION_PARAM_TICKS, 200000)
 		else
 			local grade = player:upgradeSpellsWOD("Magic Shield")
-			local shield = 300 + 7.6 * player:getLevel() + 7 * player:getMagicLevel()
-			if grade >= WHEEL_GRADE_REGULAR then
-				shield = shield * 1.25
-			end
+			local shield = player:getMagicShieldCapacity(grade >= WHEEL_GRADE_REGULAR)
 			condition:setParameter(CONDITION_PARAM_TICKS, 180000)
-			condition:setParameter(CONDITION_PARAM_MANASHIELD, math.min(player:getMaxMana(), shield))
+			condition:setParameter(CONDITION_PARAM_MANASHIELD, shield)
 		end
 	end
 

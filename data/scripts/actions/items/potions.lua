@@ -36,7 +36,7 @@ exhaust:setParameter(CONDITION_PARAM_TICKS, (configManager.getNumber(configKeys.
 local function magicshield(player)
 	local condition = Condition(CONDITION_MANASHIELD)
 	condition:setParameter(CONDITION_PARAM_TICKS, 60000)
-	condition:setParameter(CONDITION_PARAM_MANASHIELD, math.min(player:getMaxMana(), 300 + 7.6 * player:getLevel() + 7 * player:getMagicLevel()))
+	condition:setParameter(CONDITION_PARAM_MANASHIELD, player:getMagicShieldCapacity(false))
 	exhaust:setParameter(CONDITION_PARAM_TICKS, 500)
 	player:addCondition(condition)
 end

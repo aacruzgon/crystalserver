@@ -979,3 +979,14 @@ function Player.saveLoginLog(self)
 	logger.info("Player {} logged in (IP: {} | Protocol: {} | Level: {} | Vocation: {})", playerName, ipAddress, protocolVersion, playerLevel, playerVocation)
 	return true
 end
+
+-- Magic Shield capacity, per https://tibia.fandom.com/wiki/Formulae#Magic_Shield
+--   base     = 7 * mlvl + 7.6 * level + max(300, 0.4 * level)
+--   enhanced = 8 * mlvl + 8.6 * level + max(300, 0.4 * level)
+-- The flat term only overtakes 300 above level 750. The result is rounded up.
+function Player.getMagicShieldCapacity(self, enhanced)
+	local level = self:getLevel()
+	local magicLevel = self:getMagicLevel()
+	local scaled = enhanced and (8 * magicLevel + 8.6 * level) or (7 * magicLevel + 7.6 * level)
+	return math.ceil(scaled + math.max(300, 0.4 * level))
+end
