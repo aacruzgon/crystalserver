@@ -260,14 +260,21 @@ IOPrey &IOPrey::getInstance() {
 }
 
 // Prey/Task hunting global class
-void IOPrey::checkPlayerPreys(const std::shared_ptr<Player> &player, uint8_t amount) const {
+void IOPrey::checkPlayerPreys(const std::shared_ptr<Player> &player, PreyTrigger_t trigger) const {
 	if (!player) {
 		return;
 	}
 
+	const int64_t now = OTSYS_TIME() / 1000;
+
 	for (uint8_t slotId = PreySlot_First; slotId <= PreySlot_Last; slotId++) {
 		if (const auto &slot = player->getPreySlotById(static_cast<PreySlot_t>(slotId));
-		    slot && slot->isOccupied()) {
+		    slot && slot->isOccupied() && slot->isTriggeredBy(trigger)) {
+			const uint16_t amount = slot->consumeElapsed(now);
+			if (amount == 0) {
+				continue;
+			}
+
 			if (slot->bonusTimeLeft <= amount) {
 				if (slot->option == PreyOption_AutomaticReroll) {
 					if (player->usePreyCards(static_cast<uint16_t>(g_configManager().getNumber(PREY_BONUS_REROLL_PRICE)))) {

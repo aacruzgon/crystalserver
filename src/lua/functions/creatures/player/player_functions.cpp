@@ -1009,10 +1009,12 @@ int PlayerFunctions::luaPlayergetCharmMonsterType(lua_State* L) {
 }
 
 int PlayerFunctions::luaPlayerRemovePreyStamina(lua_State* L) {
-	// player:removePreyStamina(amount)
+	// player:removePreyStamina()
+	// Decays every active prey bonus by the time elapsed since that slot last
+	// triggered, capped at two minutes. The amount is computed server-side.
 	const auto &player = Lua::getUserdataShared<Player>(L, 1);
 	if (player) {
-		g_ioprey().checkPlayerPreys(player, Lua::getNumber<uint8_t>(L, 2, 1));
+		g_ioprey().checkPlayerPreys(player, PreyTrigger_ExperienceGain);
 		Lua::pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);

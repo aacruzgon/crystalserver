@@ -56,6 +56,17 @@ enum PreyBonus_t : uint8_t {
 	PreyBonus_Last = PreyBonus_Loot
 };
 
+// Events that make an active prey bonus decay. Each bonus type listens to its
+// own set of them, see PreySlot::isTriggeredBy.
+enum PreyTrigger_t : uint8_t {
+	PreyTrigger_ExperienceGain = 0,
+	PreyTrigger_DamageTaken = 1
+};
+
+// A single trigger never deducts more than two minutes, however long the player
+// was idle beforehand.
+static constexpr int64_t PREY_MAX_DEDUCTION_SECONDS = 120;
+
 enum PreyOption_t : uint8_t {
 	PreyOption_None = 0,
 	PreyOption_AutomaticReroll = 1,
@@ -111,6 +122,23 @@ public:
 		return selectedRaceId != 0 && bonusTimeLeft > 0;
 	}
 
+	// Damage reduction also decays when the player is hit; every other bonus
+	// only decays on experience gain.
+	bool isTriggeredBy(PreyTrigger_t trigger) const {
+		return trigger == PreyTrigger_ExperienceGain || bonus == PreyBonus_Defense;
+	}
+
+	// Time to deduct for a trigger firing at `now` (both in seconds), capped at
+	// two minutes. Seeds the clock on the first call so that time spent offline
+	// or idle before the slot was ever triggered is not charged.
+	uint16_t consumeElapsed(int64_t now) {
+		const int64_t previous = std::exchange(lastTriggerTime, now);
+		if (previous <= 0 || now <= previous) {
+			return 0;
+		}
+		return static_cast<uint16_t>(std::min(now - previous, PREY_MAX_DEDUCTION_SECONDS));
+	}
+
 	bool canSelect() const {
 		return (state == PreyDataState_Selection || state == PreyDataState_SelectionChangeMonster || state == PreyDataState_ListSelection || state == PreyDataState_Inactive);
 	}
@@ -149,6 +177,7 @@ public:
 	uint16_t bonusTimeLeft = 0;
 
 	int64_t freeRerollTimeStamp = 0;
+	int64_t lastTriggerTime = 0;
 };
 
 class TaskHuntingSlot {
@@ -233,7 +262,7 @@ public:
 
 	static IOPrey &getInstance();
 
-	void checkPlayerPreys(const std::shared_ptr<Player> &player, uint8_t amount) const;
+	void checkPlayerPreys(const std::shared_ptr<Player> &player, PreyTrigger_t trigger) const;
 	void parsePreyAction(const std::shared_ptr<Player> &player, PreySlot_t slotId, PreyAction_t action, PreyOption_t option, int8_t index, uint16_t raceId) const;
 
 	void initializeTaskHuntOptions();

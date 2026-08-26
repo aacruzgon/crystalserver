@@ -3822,7 +3822,9 @@ void Player::onBlockHit() {
 }
 
 void Player::onTakeDamage(const std::shared_ptr<Creature> &attacker, int32_t damage) {
-	// nothing here yet
+	// The damage reduction prey bonus decays whenever the player is hit, in PvP
+	// as well as PvE. The other bonus types only decay on experience gain.
+	g_ioprey().checkPlayerPreys(static_self_cast<Player>(), PreyTrigger_DamageTaken);
 }
 
 void Player::onAttackedCreatureBlockHit(const BlockType_t &blockType) {

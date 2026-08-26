@@ -124,11 +124,9 @@ local function useStamina(player, isStaminaEnabled)
 			staminaMinutes = 0
 		end
 		_G.NextUseStaminaTime[playerId] = currentTime + 120
-		player:removePreyStamina(120)
 	else
 		staminaMinutes = staminaMinutes - 1
 		_G.NextUseStaminaTime[playerId] = currentTime + 60
-		player:removePreyStamina(60)
 	end
 	if isStaminaEnabled then
 		player:setStamina(staminaMinutes)
@@ -493,6 +491,9 @@ function Player:onGainExperience(target, exp, rawExp)
 		soulCondition:setParameter(CONDITION_PARAM_SOULTICKS, vocation:getSoulGainTicks())
 		self:addCondition(soulCondition)
 	end
+
+	-- Prey bonuses decay on experience gain, whether or not stamina is enabled
+	self:removePreyStamina()
 
 	-- Apply XP Boost (Store or Daily Reward)
 	useStaminaXpBoost(self)
