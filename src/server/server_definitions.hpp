@@ -123,6 +123,11 @@ enum MagicEffectsType_t : uint8_t {
 	MAGIC_EFFECTS_CREATE_SOUND_SECONDARY_EFFECT = 7,
 };
 
+// MAGIC_EFFECTS_DELTA is a running total the client decodes as (total % 18, total / 18) tiles
+// from the position the packet opened with, so a batch can only address the 18-wide band at or
+// south-east of its anchor.
+static constexpr uint32_t MAGIC_EFFECTS_DELTA_ROW_WIDTH = 18;
+
 enum ImpactAnalyzerAndTracker_t : uint8_t {
 	ANALYZER_HEAL = 0,
 	ANALYZER_DAMAGE_DEALT = 1,

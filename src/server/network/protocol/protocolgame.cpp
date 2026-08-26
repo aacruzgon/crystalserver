@@ -7578,6 +7578,94 @@ void ProtocolGame::sendMagicEffect(const Position &pos, uint16_t type, SourceEff
 	writeToOutputBuffer(msg);
 }
 
+void ProtocolGame::sendMagicEffects(const std::vector<MagicEffectEntry> &effects, SourceEffect_t source) {
+	if (effects.empty()) {
+		return;
+	}
+
+	// Older protocols have no loop to put entries in, so each one goes out on its own and
+	// loses its timing - still the right picture, just not in one packet.
+	if (oldProtocol) {
+		for (const auto &effect : effects) {
+			sendMagicEffect(effect.position, effect.type, source);
+		}
+		return;
+	}
+
+	std::vector<const MagicEffectEntry*> visible;
+	visible.reserve(effects.size());
+	for (const auto &effect : effects) {
+		if (canSee(effect.position)) {
+			visible.emplace_back(&effect);
+		}
+	}
+
+	if (visible.empty()) {
+		return;
+	}
+
+	// The anchor is the packet's own position and the deltas only ever add, so it has to be
+	// the north-west corner of what is left after the visibility filter - which is why this
+	// is worked out per player rather than once by the caller.
+	const uint8_t floor = visible.front()->position.z;
+	Position anchor = visible.front()->position;
+	for (const auto* effect : visible) {
+		anchor.x = std::min<uint16_t>(anchor.x, effect->position.x);
+		anchor.y = std::min<uint16_t>(anchor.y, effect->position.y);
+	}
+
+	std::vector<std::pair<uint32_t, const MagicEffectEntry*>> ordered;
+	ordered.reserve(visible.size());
+	for (const auto* effect : visible) {
+		const auto &pos = effect->position;
+		const uint32_t offsetX = pos.x - anchor.x;
+		if (pos.z != floor || offsetX >= MAGIC_EFFECTS_DELTA_ROW_WIDTH) {
+			g_logger().warn("[ProtocolGame::sendMagicEffects] effect {} at {} is out of reach of anchor {}, dropping it.", effect->type, pos.toString(), anchor.toString());
+			continue;
+		}
+
+		ordered.emplace_back(static_cast<uint32_t>(pos.y - anchor.y) * MAGIC_EFFECTS_DELTA_ROW_WIDTH + offsetX, effect);
+	}
+
+	if (ordered.empty()) {
+		return;
+	}
+
+	std::ranges::sort(ordered, [](const auto &lhs, const auto &rhs) {
+		return lhs.first < rhs.first;
+	});
+
+	NetworkMessage msg;
+	msg.addByte(0x83);
+	msg.addPosition(anchor);
+
+	uint32_t cursor = 0;
+	for (const auto &[offset, effect] : ordered) {
+		// A delta carries a single byte, so a longer step takes several of them. Entries
+		// sharing a tile need none at all, which is why they are sorted rather than deduped.
+		while (cursor < offset) {
+			const uint32_t step = std::min<uint32_t>(offset - cursor, 0xFF);
+			msg.addByte(MAGIC_EFFECTS_DELTA);
+			msg.addByte(static_cast<uint8_t>(step));
+			cursor += step;
+		}
+
+		// The client consumes a pending delay with the next effect it creates and clears it,
+		// so one goes out per delayed entry rather than once for the packet.
+		if (effect->delayMs > 0) {
+			msg.addByte(MAGIC_EFFECTS_DELAY);
+			msg.add<uint16_t>(effect->delayMs);
+		}
+
+		msg.addByte(MAGIC_EFFECTS_CREATE_EFFECT);
+		msg.add<uint16_t>(effect->type);
+		msg.addByte(static_cast<uint8_t>(source));
+	}
+
+	msg.addByte(MAGIC_EFFECTS_END_LOOP);
+	writeToOutputBuffer(msg);
+}
+
 void ProtocolGame::removeMagicEffect(const Position &pos, uint16_t type) {
 	if (oldProtocol && type > 0xFF) {
 		return;

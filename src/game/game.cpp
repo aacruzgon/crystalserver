@@ -9026,6 +9026,43 @@ void Game::addMagicEffect(const CreatureVector &spectators, const Position &pos,
 	}
 }
 
+void Game::addMagicEffects(const std::vector<MagicEffectEntry> &effects, const std::shared_ptr<Creature> &actor) {
+	using enum SourceEffect_t;
+	if (effects.empty()) {
+		return;
+	}
+
+	// Every tile in the batch contributes its own spectators, otherwise a player standing at
+	// one end of a long area spell would miss the entries at the other end.
+	Spectators spectators;
+	for (const auto &effect : effects) {
+		spectators.find<Player>(effect.position, true);
+	}
+
+	for (const auto &spectator : spectators) {
+		const auto &player = spectator->getPlayer();
+		if (!player) {
+			continue;
+		}
+
+		// Same reading as the single-effect path: the source decides which of the client's
+		// four opacity sliders governs the batch, and "own" is per viewer.
+		SourceEffect_t source = CREATURES;
+		if (!actor || actor->getNpc()) {
+			source = GLOBAL;
+		} else if (actor == spectator) {
+			source = OWN;
+		} else if (actor->getPlayer()) {
+			source = OTHERS;
+		} else if (const auto &monster = actor->getMonster();
+		           monster && monster->getMonsterType() && monster->getMonsterType()->isBoss()) {
+			source = BOSS;
+		}
+
+		player->sendMagicEffects(effects, source);
+	}
+}
+
 void Game::removeMagicEffect(const Position &pos, uint16_t effect) {
 	auto spectators = Spectators().find<Player>(pos, true);
 	removeMagicEffect(spectators.data(), pos, effect);

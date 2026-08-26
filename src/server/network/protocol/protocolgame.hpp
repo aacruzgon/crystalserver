@@ -22,6 +22,7 @@
 #include "server/network/protocol/protocol.hpp"
 #include "creatures/creatures_definitions.hpp"
 #include "enums/disconnect_client.hpp"
+#include "game/game_definitions.hpp"
 #include "game/movement/position.hpp"
 #include "utils/utils_definitions.hpp"
 
@@ -332,6 +333,7 @@ private:
 	void sendAllowBugReport();
 	void sendDistanceShoot(const Position &from, const Position &to, uint16_t type, SourceEffect_t source = SourceEffect_t::GLOBAL);
 	void sendMagicEffect(const Position &pos, uint16_t type, SourceEffect_t source = SourceEffect_t::GLOBAL);
+	void sendMagicEffects(const std::vector<MagicEffectEntry> &effects, SourceEffect_t source = SourceEffect_t::GLOBAL);
 	void removeMagicEffect(const Position &pos, uint16_t type);
 	void sendRestingStatus(uint8_t protection);
 	void sendCreatureHealth(const std::shared_ptr<Creature> &creature);

@@ -2247,6 +2247,12 @@ void Player::sendMagicEffect(const Position &pos, uint16_t type, SourceEffect_t 
 	}
 }
 
+void Player::sendMagicEffects(const std::vector<MagicEffectEntry> &effects, SourceEffect_t source) const {
+	if (client) {
+		client->sendMagicEffects(effects, source);
+	}
+}
+
 void Player::removeMagicEffect(const Position &pos, uint16_t type) const {
 	if (client) {
 		client->removeMagicEffect(pos, type);

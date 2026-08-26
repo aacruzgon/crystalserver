@@ -17,6 +17,17 @@
 
 #pragma once
 
+#include "game/movement/position.hpp"
+
+// One entry in a batched magic-effects packet. The client's 0x83 can carry several of these
+// at once, moving its anchor between them and holding individual entries back in time, which
+// a single sendMagicEffect per tile cannot express.
+struct MagicEffectEntry {
+	Position position;
+	uint16_t type = 0;
+	uint16_t delayMs = 0;
+};
+
 // Enums
 enum StackPosType_t {
 	STACKPOS_MOVE,

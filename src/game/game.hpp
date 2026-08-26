@@ -582,6 +582,7 @@ public:
 	static void addMagicEffect(const std::vector<std::shared_ptr<Player>> &players, const Position &pos, uint16_t effect);
 	static void addMagicEffect(const CreatureVector &spectators, const Position &pos, uint16_t effect);
 	static void addMagicEffect(const CreatureVector &spectators, const Position &pos, uint16_t effect, const std::shared_ptr<Creature> &actor);
+	static void addMagicEffects(const std::vector<MagicEffectEntry> &effects, const std::shared_ptr<Creature> &actor = nullptr);
 	void removeMagicEffect(const Position &pos, uint16_t effect);
 	static void removeMagicEffect(const CreatureVector &spectators, const Position &pos, uint16_t effect);
 	void addDistanceEffect(const Position &fromPos, const Position &toPos, uint16_t effect);

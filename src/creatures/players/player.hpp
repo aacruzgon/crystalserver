@@ -1082,6 +1082,7 @@ public:
 	void sendClientCheck() const;
 	void sendGameNews() const;
 	void sendMagicEffect(const Position &pos, uint16_t type, SourceEffect_t source = SourceEffect_t::GLOBAL) const;
+	void sendMagicEffects(const std::vector<MagicEffectEntry> &effects, SourceEffect_t source = SourceEffect_t::GLOBAL) const;
 	void removeMagicEffect(const Position &pos, uint16_t type) const;
 	void sendPing();
 	void sendPingBack() const;
