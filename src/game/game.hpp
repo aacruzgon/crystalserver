@@ -529,6 +529,16 @@ public:
 	void checkCreatureAttack(uint32_t creatureId);
 	void checkCreatures();
 	void checkLight();
+
+	// Tibian minutes since Tibian midnight, read off the wall clock rather than accumulated.
+	// One real hour is one Tibian day, so only the minute and second past the hour matter.
+	static int32_t currentLightHour();
+
+	// The world light at a given Tibian minute, as a pure function of it. Being a function
+	// rather than a running total is what keeps the sky and the clock in agreement: a tick
+	// that arrives late, or not at all, changes when this is sampled but never what it says.
+	std::pair<uint8_t, LightState_t> lightAt(int32_t hour) const;
+
 	uint8_t getWorldLightColor() const;
 	void checkImbuementsAndSereneStatus();
 
@@ -964,6 +974,12 @@ private:
 	// which is what the day/night table describes. 1050 disagreed with both.
 	static constexpr int32_t SUNSET = 1080;
 	static constexpr int32_t SUNRISE = 360;
+	// How long dawn and dusk take, in Tibian minutes. 120 is two Tibian hours, which at 24
+	// Tibian minutes per real second-of-arc - one real hour to the Tibian day - is the five
+	// real minutes the old accumulating ramp took at upstream's 250/40 endpoints. Stated as a
+	// duration now rather than emerging from a per-tick step, so retuning the day and night
+	// levels changes how far the light travels and no longer how long it takes to get there.
+	static constexpr int32_t LIGHT_RAMP_LENGTH = 120;
 
 	bool isDay = false;
 	bool browseField = false;
@@ -976,8 +992,6 @@ private:
 	int32_t lightLevelDay = LIGHT_LEVEL_DAY;
 	int32_t lightLevelNight = LIGHT_LEVEL_NIGHT;
 	int32_t lightHour = SUNRISE + (SUNSET - SUNRISE) / 2;
-	// (1440 total light of tibian day)/(3600 real seconds each tibian day) * 10 seconds event interval
-	int32_t lightHourDelta = (LIGHT_DAY_LENGTH * (EVENT_LIGHTINTERVAL_MS / 1000)) / DAY_LENGTH_SECONDS;
 
 	uint64_t lastMapLoadTime = 0;
 

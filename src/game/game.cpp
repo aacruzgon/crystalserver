@@ -596,6 +596,24 @@ void Game::loadBoostedCreature() {
 	}
 }
 
+namespace {
+	// Boot can now land mid-dawn, so the seed log needs all four states rather than the
+	// day/night pair the old two-way seeding could produce.
+	const char* lightStateName(const LightState_t state) {
+		switch (state) {
+			case LIGHT_STATE_DAY:
+				return "day";
+			case LIGHT_STATE_NIGHT:
+				return "night";
+			case LIGHT_STATE_SUNRISE:
+				return "sunrise";
+			case LIGHT_STATE_SUNSET:
+				return "sunset";
+		}
+		return "unknown";
+	}
+} // namespace
+
 void Game::start(ServiceManager* manager) {
 	const std::shared_ptr<World> &currentWorld = worlds().getCurrentWorld();
 	if (!currentWorld) {
@@ -615,22 +633,12 @@ void Game::start(ServiceManager* manager) {
 	lightLevelDay = std::clamp<int32_t>(g_configManager().getNumber(WORLD_LIGHT_LEVEL_DAY), 0, 255);
 	lightLevelNight = std::clamp<int32_t>(g_configManager().getNumber(WORLD_LIGHT_LEVEL_NIGHT), 0, lightLevelDay);
 
-	const auto now = getTimeNow();
-	const tm* tms = localtime(&now);
-	int minutes = tms->tm_min;
-	lightHour = (minutes * LIGHT_DAY_LENGTH) / 60;
-
-	// Derive the starting level and state from the hour we just seeded. Left at their
-	// LIGHT_STATE_DAY / LIGHT_LEVEL_DAY member defaults, a server booted during game-night
-	// serves full daylight until the next sunset boundary - up to ~40 real minutes of the
-	// clock and the sky disagreeing, with no way to correct itself in between.
-	if (lightHour >= SUNRISE && lightHour <= SUNSET) {
-		lightLevel = lightLevelDay;
-		lightState = LIGHT_STATE_DAY;
-	} else {
-		lightLevel = lightLevelNight;
-		lightState = LIGHT_STATE_NIGHT;
-	}
+	// Seeding is just the first sample of the same pure function checkLight() calls every tick,
+	// so a boot mid-dawn starts mid-dawn rather than at either endpoint, and a restart cannot
+	// move the sky. Left at their LIGHT_STATE_DAY / LIGHT_LEVEL_DAY member defaults, a server
+	// booted during game-night would serve full daylight until the next sunset boundary.
+	lightHour = currentLightHour();
+	std::tie(lightLevel, lightState) = lightAt(lightHour);
 
 	// Keep the period-change bookkeeping in step, or the first checkLight() tick fires a
 	// GLOBALEVENT_PERIODCHANGE for a transition that never happened.
@@ -639,7 +647,7 @@ void Game::start(ServiceManager* manager) {
 	g_logger().info(
 		"World light seeded at Tibian {:02d}:{:02d} ({}), level {}, colour {}.",
 		lightHour / 60, lightHour % 60,
-		lightState == LIGHT_STATE_DAY ? "day" : "night",
+		lightStateName(lightState),
 		lightLevel, getWorldLightColor()
 	);
 
@@ -9098,46 +9106,49 @@ void Game::checkImbuementsAndSereneStatus() {
 	}
 }
 
+int32_t Game::currentLightHour() {
+	const auto now = getTimeNow();
+	std::tm tms {};
+#if defined(_WIN32) || defined(_WIN64)
+	localtime_s(&tms, &now);
+#else
+	localtime_r(&now, &tms);
+#endif
+
+	// The hour itself is deliberately discarded: a Tibian day is one real hour, so the position
+	// within that hour is the whole of the answer. Seconds are included so the clock advances
+	// smoothly rather than in 24-minute jumps once a real minute.
+	const int32_t secondsIntoHour = tms.tm_min * 60 + tms.tm_sec;
+	return (secondsIntoHour * LIGHT_DAY_LENGTH) / DAY_LENGTH_SECONDS;
+}
+
+std::pair<uint8_t, LightState_t> Game::lightAt(const int32_t hour) const {
+	const auto ramp = [this](const int32_t from, const int32_t to, const int32_t elapsed) {
+		const int32_t travelled = ((to - from) * elapsed) / LIGHT_RAMP_LENGTH;
+		return static_cast<uint8_t>(std::clamp(from + travelled, 0, 255));
+	};
+
+	if (hour >= SUNRISE && hour < SUNRISE + LIGHT_RAMP_LENGTH) {
+		return { ramp(lightLevelNight, lightLevelDay, hour - SUNRISE), LIGHT_STATE_SUNRISE };
+	}
+	if (hour >= SUNRISE + LIGHT_RAMP_LENGTH && hour < SUNSET) {
+		return { static_cast<uint8_t>(lightLevelDay), LIGHT_STATE_DAY };
+	}
+	if (hour >= SUNSET && hour < SUNSET + LIGHT_RAMP_LENGTH) {
+		return { ramp(lightLevelDay, lightLevelNight, hour - SUNSET), LIGHT_STATE_SUNSET };
+	}
+	return { static_cast<uint8_t>(lightLevelNight), LIGHT_STATE_NIGHT };
+}
+
 void Game::checkLight() {
-	lightHour += lightHourDelta;
+	const uint8_t previousLevel = lightLevel;
 
-	if (lightHour > LIGHT_DAY_LENGTH) {
-		lightHour -= LIGHT_DAY_LENGTH;
-	}
+	lightHour = currentLightHour();
+	std::tie(lightLevel, lightState) = lightAt(lightHour);
 
-	if (std::abs(lightHour - SUNRISE) < 2 * lightHourDelta) {
-		lightState = LIGHT_STATE_SUNRISE;
-	} else if (std::abs(lightHour - SUNSET) < 2 * lightHourDelta) {
-		lightState = LIGHT_STATE_SUNSET;
-	}
-
-	int32_t newLightLevel = lightLevel;
-	bool lightChange = false;
-
-	switch (lightState) {
-		case LIGHT_STATE_SUNRISE: {
-			newLightLevel += (lightLevelDay - lightLevelNight) / 30;
-			lightChange = true;
-			break;
-		}
-		case LIGHT_STATE_SUNSET: {
-			newLightLevel -= (lightLevelDay - lightLevelNight) / 30;
-			lightChange = true;
-			break;
-		}
-		default:
-			break;
-	}
-
-	if (newLightLevel <= lightLevelNight) {
-		lightLevel = lightLevelNight;
-		lightState = LIGHT_STATE_NIGHT;
-	} else if (newLightLevel >= lightLevelDay) {
-		lightLevel = lightLevelDay;
-		lightState = LIGHT_STATE_DAY;
-	} else {
-		lightLevel = newLightLevel;
-	}
+	// Only an actual change is worth a world-light packet. The clock still goes out every tick,
+	// which is what the client's own between-message interpolation expects.
+	const bool lightChange = lightLevel != previousLevel;
 
 	LightInfo lightInfo = getWorldLightInfo();
 
