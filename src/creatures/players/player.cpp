@@ -51,6 +51,7 @@
 #include "enums/player_icons.hpp"
 #include "enums/player_cyclopedia.hpp"
 #include "game/game.hpp"
+#include "game/cyclopedia_map/cyclopedia_map.hpp"
 #include "game/modal_window/modal_window.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "game/scheduling/save_manager.hpp"
@@ -3001,6 +3002,67 @@ void Player::onWalk(Direction &dir) {
 	setNextActionTask(nullptr);
 
 	g_callbacks().executeCallback(EventCallback_t::playerOnWalk, &EventCallback::playerOnWalk, getPlayer(), dir);
+}
+
+void Player::updateCyclopediaMapArea(const Position &position) {
+	if (!client || g_cyclopediaMap().getSubAreaCount() == 0) {
+		return;
+	}
+
+	const auto previousSubAreaId = cyclopedia()->getCurrentSubAreaId();
+
+	// Fast path: almost every step lands in the subarea the last one did, so test
+	// that rectangle first and only fall back to scanning all 207 on a real change.
+	uint16_t subAreaId = 0;
+	if (previousSubAreaId != 0) {
+		const auto *previous = g_cyclopediaMap().getSubArea(previousSubAreaId);
+		if (previous && previous->contains(position)) {
+			subAreaId = previousSubAreaId;
+		}
+	}
+
+	if (subAreaId == 0) {
+		subAreaId = g_cyclopediaMap().getSubAreaIdAt(position);
+	}
+
+	if (subAreaId == previousSubAreaId) {
+		return;
+	}
+
+	const auto previousAreaId = cyclopedia()->getCurrentAreaId();
+	const auto areaId = g_cyclopediaMap().getAreaIdOfSubArea(subAreaId);
+	cyclopedia()->setCurrentArea(areaId, subAreaId);
+
+	// Standing in a subarea is what discovers it.
+	const bool discovered = cyclopedia()->discoverSubArea(subAreaId);
+	if (discovered) {
+		client->sendCyclopediaMapDiscoveryData();
+	}
+
+	if (areaId != previousAreaId) {
+		client->sendCyclopediaMapCurrentArea(areaId);
+	}
+
+	client->sendCyclopediaMapExploringArea(subAreaId);
+}
+
+void Player::sendCyclopediaMapData() {
+	if (!client) {
+		return;
+	}
+
+	// Resolve the current position directly rather than going through
+	// updateCyclopediaMapArea: that would push its own incremental messages, and the four
+	// below already cover everything it would have sent.
+	const auto subAreaId = g_cyclopediaMap().getSubAreaIdAt(getPosition());
+	const auto areaId = g_cyclopediaMap().getAreaIdOfSubArea(subAreaId);
+	cyclopedia()->setCurrentArea(areaId, subAreaId);
+	cyclopedia()->discoverSubArea(subAreaId);
+
+	client->sendCyclopediaMapDiscoveryData();
+	client->sendCyclopediaMapDonations();
+	client->sendCyclopediaMapCurrentArea(areaId);
+	client->sendCyclopediaMapExploringArea(subAreaId);
 }
 
 void Player::checkTradeState(const std::shared_ptr<Item> &item) {
@@ -11527,6 +11589,10 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 		refreshCyclopediaMonsterTracker(true);
 		// Refresh bestiary tracker onLogin
 		refreshCyclopediaMonsterTracker(false);
+		// Cyclopedia Map state onLogin. This is the FRESH login path; ProtocolGame::login
+		// only covers reconnecting to a session that is already in game, and the two are
+		// disjoint - a player placed by placeCreature never reaches that branch.
+		sendCyclopediaMapData();
 
 		for (const auto &condition : storedConditionList) {
 			addCondition(condition);
@@ -11627,6 +11693,8 @@ void Player::onCreatureMove(const std::shared_ptr<Creature> &creature, const std
 	if (creature != getPlayer()) {
 		return;
 	}
+
+	updateCyclopediaMapArea(newPos);
 
 	if (tradeState != TRADE_TRANSFER) {
 		// check if we should close trade

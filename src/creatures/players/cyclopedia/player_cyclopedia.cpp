@@ -21,6 +21,7 @@
 #include "database/databasetasks.hpp"
 #include "enums/player_blessings.hpp"
 #include "enums/player_cyclopedia.hpp"
+#include "game/cyclopedia_map/cyclopedia_map.hpp"
 #include "game/game.hpp"
 #include "kv/kv.hpp"
 
@@ -191,4 +192,67 @@ void PlayerCyclopedia::insertValue(uint8_t type, uint16_t amount, const std::str
 	auto newAmount = oldAmount + amount;
 	m_player.kv()->scoped("summary")->scoped(g_game().getSummaryKeyByType(type))->scoped(id)->set("amount", newAmount);
 	g_logger().debug("[{}] type: {}, id: {}, old amount: {}, added amount: {}, new amount: {}", __FUNCTION__, type, id, oldAmount, amount, newAmount);
+}
+
+// --- Cyclopedia Map discovery ------------------------------------------------
+
+const std::shared_ptr<KV> &PlayerCyclopedia::getMapDiscoveryKV() {
+	if (m_mapDiscoveryKV == nullptr) {
+		m_mapDiscoveryKV = m_player.kv()->scoped("cyclopedia-map")->scoped("discovered");
+	}
+
+	return m_mapDiscoveryKV;
+}
+
+void PlayerCyclopedia::loadMapDiscovery() {
+	m_discoveredSubAreas.clear();
+
+	for (const auto &key : getMapDiscoveryKV()->keys()) {
+		// Keys are subarea ids as text. A key that no longer parses means the area
+		// table was regenerated under the player; drop it rather than fail the login.
+		try {
+			const auto subAreaId = static_cast<uint16_t>(std::stoul(key));
+			if (subAreaId != 0) {
+				m_discoveredSubAreas.emplace(subAreaId);
+			}
+		} catch (const std::exception &) {
+			g_logger().warn("[{}] player {} has an unreadable discovered subarea key '{}'", __FUNCTION__, m_player.getName(), key);
+		}
+	}
+
+	g_logger().debug("[{}] player {} has discovered {} subareas", __FUNCTION__, m_player.getName(), m_discoveredSubAreas.size());
+}
+
+bool PlayerCyclopedia::isSubAreaDiscovered(uint16_t subAreaId) const {
+	return m_discoveredSubAreas.contains(subAreaId);
+}
+
+bool PlayerCyclopedia::discoverSubArea(uint16_t subAreaId) {
+	if (subAreaId == 0 || m_discoveredSubAreas.contains(subAreaId)) {
+		return false;
+	}
+
+	m_discoveredSubAreas.emplace(subAreaId);
+	getMapDiscoveryKV()->set(std::to_string(subAreaId), true);
+	return true;
+}
+
+const std::unordered_set<uint16_t> &PlayerCyclopedia::getDiscoveredSubAreas() const {
+	return m_discoveredSubAreas;
+}
+
+uint8_t PlayerCyclopedia::getAreaProgress(uint16_t areaId) const {
+	const auto *area = g_cyclopediaMap().getArea(areaId);
+	if (!area || area->subAreas.empty()) {
+		return 0;
+	}
+
+	size_t discovered = 0;
+	for (const auto subAreaId : area->subAreas) {
+		if (m_discoveredSubAreas.contains(subAreaId)) {
+			++discovered;
+		}
+	}
+
+	return static_cast<uint8_t>((discovered * 100) / area->subAreas.size());
 }

@@ -1035,6 +1035,11 @@ public:
 	void onCreatureAppear(const std::shared_ptr<Creature> &creature, bool isLogin) override;
 	void onRemoveCreature(const std::shared_ptr<Creature> &creature, bool isLogout) override;
 	void onCreatureMove(const std::shared_ptr<Creature> &creature, const std::shared_ptr<Tile> &newTile, const Position &newPos, const std::shared_ptr<Tile> &oldTile, const Position &oldPos, bool teleport) override;
+	// Cyclopedia Map: recompute which subarea the player is standing in, discovering
+	// it if it is new, and push whatever changed. Cheap on the common step.
+	void updateCyclopediaMapArea(const Position &position);
+	// Full Cyclopedia Map state, sent once on login.
+	void sendCyclopediaMapData();
 
 	void onEquipInventory();
 	void onDeEquipInventory();

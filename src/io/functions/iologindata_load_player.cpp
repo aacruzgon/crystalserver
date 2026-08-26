@@ -1030,6 +1030,7 @@ void IOLoginDataLoad::loadPlayerInitializeSystem(const std::shared_ptr<Player> &
 	player->wheel()->initializePlayerData();
 
 	player->achiev()->loadUnlockedAchievements();
+	player->cyclopedia()->loadMapDiscovery();
 	player->badge()->checkAndUpdateNewBadges();
 	player->title()->checkAndUpdateNewTitles();
 	player->cyclopedia()->loadSummaryData();
