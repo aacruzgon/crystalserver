@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Cyclopedia Map areas and subareas.
+
+  Generated from the same map.dat 1530 zone table the client renders from
+  (CrystalOTC modules/game_cyclopedia/tab/map/zones_data.lua). The ids here are
+  the ids that go on the wire, so both sides MUST be regenerated together when
+  the client assets change - a subarea id that only one side knows about shows up
+  as a subarea that can never be discovered.
+
+  Rects are floor-independent: a subarea covers its rectangle on every z.
+
+  donationGoal is the gold a world must donate to an area before its improved
+  respawn switches on. CipSoft's real figure is not recoverable from the client,
+  so this is a tunable default rather than a reproduction; override it per area
+  with a goal="..." attribute.
+-->
+<cyclopediamap donationGoal="10000000">
+	<area id="1" name="Ab&#x27;Dendriel">
+		<subarea id="451" name="Ab&#x27;Dendriel"><rect x="32650" y="31572" width="90" height="198" /></subarea>
+		<subarea id="273" name="Ab&#x27;Dendriel City"><rect x="32541" y="31571" width="198" height="202" /></subarea>
+		<subarea id="53" name="Draconia"><rect x="32770" y="31552" width="60" height="69" /></subarea>
+		<subarea id="54" name="Elvenbane"><rect x="32562" y="31630" width="51" height="42" /></subarea>
+		<subarea id="55" name="Ab&#x27;Dendriel Surroundings"><rect x="32471" y="31644" width="241" height="175" /></subarea>
+	</area>
+	<area id="2" name="Southern Darama">
+		<subarea id="297" name="Ankrahmun City"><rect x="33055" y="32761" width="196" height="133" /></subarea>
+		<subarea id="457" name="Southern Darama"><rect x="33206" y="32786" width="17" height="23" /></subarea>
+		<subarea id="81" name="Ankrahmun Pharaoh Tombs"><rect x="33018" y="32701" width="35" height="39" /></subarea>
+		<subarea id="83" name="Mal&#x27;ouquah"><rect x="33034" y="32618" width="17" height="17" /></subarea>
+		<subarea id="84" name="Kha&#x27;zeel Dragon Lairs"><rect x="32986" y="32534" width="183" height="283" /></subarea>
+		<subarea id="85" name="Southern Darama Desert"><rect x="33017" y="32540" width="332" height="335" /></subarea>
+		<subarea id="184" name="Southern Terramite Tunnels"><rect x="33052" y="32692" width="12" height="14" /></subarea>
+		<subarea id="354" name="Cobra Bastion"><rect x="33359" y="32621" width="56" height="86" /></subarea>
+	</area>
+	<area id="3" name="Carlin">
+		<subarea id="280" name="Vega"><rect x="31936" y="31673" width="91" height="69" /></subarea>
+		<subarea id="39" name="Folda"><rect x="31958" y="31508" width="135" height="129" /></subarea>
+		<subarea id="456" name="Carlin"><rect x="32275" y="31585" width="258" height="271" /></subarea>
+		<subarea id="40" name="Fields of Glory"><rect x="32327" y="31571" width="214" height="192" /></subarea>
+		<subarea id="271" name="Carlin City"><rect x="32131" y="31590" width="403" height="265" /></subarea>
+		<subarea id="38" name="Ghostlands"><rect x="32166" y="31767" width="92" height="109" /></subarea>
+		<subarea id="43" name="Carlin Surroundings"><rect x="32203" y="31629" width="297" height="224" /></subarea>
+		<subarea id="279" name="Ice Islands"><rect x="32098" y="31571" width="165" height="183" /></subarea>
+		<subarea id="281" name="Senja"><rect x="32117" y="31615" width="85" height="75" /></subarea>
+		<subarea id="288" name="Isle of the Kings"><rect x="32152" y="31915" width="49" height="49" /></subarea>
+	</area>
+	<area id="4" name="Northern Darama">
+		<subarea id="452" name="Northern Darama"><rect x="33222" y="32451" width="53" height="23" /></subarea>
+		<subarea id="296" name="Darashia City"><rect x="33187" y="32378" width="111" height="138" /></subarea>
+		<subarea id="64" name="Daramian Minotaur Pyramid"><rect x="33298" y="32266" width="28" height="31" /></subarea>
+		<subarea id="82" name="Ashta&#x27;daramai"><rect x="33064" y="32519" width="47" height="18" /></subarea>
+		<subarea id="66" name="Drefia"><rect x="32961" y="32381" width="119" height="123" /></subarea>
+		<subarea id="68" name="Northern Darama Desert"><rect x="32990" y="32257" width="340" height="273" /></subarea>
+		<subarea id="217" name="Lion&#x27;s Rock"><rect x="33136" y="32351" width="18" height="18" /></subarea>
+	</area>
+	<area id="5" name="Dawnport">
+		<subarea id="315" name="Dawnport Centre"><rect x="32014" y="31845" width="106" height="101" /></subarea>
+	</area>
+	<area id="7" name="Edron">
+		<subarea id="327" name="Cake Keep Isle"><rect x="33271" y="32059" width="74" height="62" /></subarea>
+		<subarea id="455" name="Edron"><rect x="33198" y="31821" width="125" height="158" /></subarea>
+		<subarea id="60" name="Edron Dragon Lair"><rect x="33083" y="31690" width="23" height="20" /></subarea>
+		<subarea id="275" name="Edron Castle"><rect x="33140" y="31748" width="201" height="274" /></subarea>
+		<subarea id="57" name="Edron Troll Den"><rect x="33109" y="31768" width="24" height="18" /></subarea>
+		<subarea id="58" name="Edron Goblin Den"><rect x="33092" y="31841" width="28" height="21" /></subarea>
+		<subarea id="59" name="Edron Orc Lands"><rect x="33133" y="31840" width="62" height="85" /></subarea>
+		<subarea id="61" name="Cyclopolis"><rect x="33246" y="31692" width="11" height="13" /></subarea>
+		<subarea id="63" name="Edron Surroundings"><rect x="33078" y="31623" width="253" height="372" /></subarea>
+		<subarea id="286" name="Cormaya"><rect x="33249" y="31941" width="121" height="118" /></subarea>
+		<subarea id="242" name="Edron Hero Fortress"><rect x="33217" y="31646" width="16" height="15" /></subarea>
+		<subarea id="243" name="Grimvale"><rect x="33317" y="31664" width="43" height="37" /></subarea>
+		<subarea id="274" name="Stonehome"><rect x="33262" y="31743" width="80" height="58" /></subarea>
+		<subarea id="504" name="Azzilon Castle"><rect x="33784" y="32315" width="100" height="105" /></subarea>
+	</area>
+	<area id="8" name="Zao">
+		<subarea id="449" name="Zao"><rect x="33356" y="31142" width="6" height="7" /></subarea>
+		<subarea id="141" name="Zao Orc Fortress"><rect x="33017" y="31266" width="89" height="103" /></subarea>
+		<subarea id="125" name="Vengoth"><rect x="32856" y="31408" width="226" height="179" /></subarea>
+		<subarea id="142" name="Zao Steppe"><rect x="33007" y="31298" width="396" height="274" /></subarea>
+		<subarea id="143" name="Zzaion"><rect x="33253" y="31491" width="110" height="134" /></subarea>
+		<subarea id="144" name="Dragonblaze Peaks"><rect x="33114" y="31245" width="226" height="128" /></subarea>
+		<subarea id="145" name="Muggy Plains"><rect x="33139" y="31091" width="233" height="176" /></subarea>
+		<subarea id="148" name="Razachai"><rect x="32986" y="31062" width="140" height="226" /></subarea>
+		<subarea id="149" name="Corrupted Gardens"><rect x="33113" y="31068" width="125" height="167" /></subarea>
+		<subarea id="150" name="Emperor&#x27;s Castle"><rect x="33053" y="31088" width="48" height="40" /></subarea>
+		<subarea id="151" name="Chazorai"><rect x="33046" y="31009" width="69" height="52" /></subarea>
+		<subarea id="152" name="Spirittrails"><rect x="33125" y="31008" width="212" height="109" /></subarea>
+		<subarea id="511" name="Norcferatu Fortress"><rect x="32898" y="31406" width="69" height="58" /></subarea>
+		<subarea id="319" name="Falcon Bastion"><rect x="33341" y="31278" width="52" height="101" /></subarea>
+	</area>
+	<area id="9" name="Feyrist">
+		<subarea id="308" name="Fae Village"><rect x="33470" y="32212" width="66" height="47" /></subarea>
+		<subarea id="498" name="Candia"><rect x="33323" y="32093" width="134" height="97" /></subarea>
+		<subarea id="314" name="Feyrist Meadows"><rect x="33376" y="32148" width="229" height="187" /></subarea>
+	</area>
+	<area id="11" name="Quirefang">
+		<subarea id="302" name="Gray Beach"><rect x="33432" y="31279" width="101" height="79" /></subarea>
+		<subarea id="167" name="Hive Pools"><rect x="33436" y="31212" width="73" height="91" /></subarea>
+		<subarea id="168" name="Hive Pyramids"><rect x="33486" y="31224" width="121" height="145" /></subarea>
+		<subarea id="169" name="Hive Secondary Structure"><rect x="33468" y="31165" width="150" height="96" /></subarea>
+		<subarea id="507" name="Blue Valley"><rect x="33506" y="31379" width="184" height="158" /></subarea>
+	</area>
+	<area id="14" name="Kazordoon">
+		<subarea id="272" name="Kazordoon City"><rect x="32558" y="31852" width="209" height="387" /></subarea>
+		<subarea id="448" name="Kazordoon"><rect x="32483" y="31816" width="98" height="169" /></subarea>
+		<subarea id="45" name="Kazordoon Troll Den"><rect x="32646" y="31942" width="27" height="37" /></subarea>
+		<subarea id="46" name="Orc Lands"><rect x="32812" y="31676" width="169" height="181" /></subarea>
+		<subarea id="47" name="Femor Hills"><rect x="32461" y="31753" width="163" height="124" /></subarea>
+		<subarea id="49" name="Horned Fox Lair"><rect x="32448" y="31937" width="28" height="44" /></subarea>
+		<subarea id="50" name="Kazordoon Surroundings"><rect x="32384" y="31762" width="465" height="363" /></subarea>
+		<subarea id="106" name="Ulderek&#x27;s Rock"><rect x="32872" y="31703" width="119" height="105" /></subarea>
+		<subarea id="192" name="Rorc Plains"><rect x="32741" y="31703" width="143" height="175" /></subarea>
+	</area>
+	<area id="16" name="Krailos">
+		<subarea id="303" name="Ogre Village"><rect x="33616" y="31646" width="49" height="49" /></subarea>
+		<subarea id="463" name="Krailos"><rect x="33599" y="31751" width="132" height="51" /></subarea>
+		<subarea id="254" name="Krailos Steppe"><rect x="33488" y="31552" width="266" height="239" /></subarea>
+		<subarea id="256" name="Krailos Ruins"><rect x="33569" y="31581" width="23" height="15" /></subarea>
+		<subarea id="313" name="Krailos Mines"><rect x="33604" y="31781" width="81" height="20" /></subarea>
+	</area>
+	<area id="17" name="Vandura">
+		<subarea id="462" name="Vandura"><rect x="31903" y="32576" width="565" height="351" /></subarea>
+		<subarea id="95" name="Liberty Bay Surroundings"><rect x="32153" y="32676" width="309" height="219" /></subarea>
+		<subarea id="312" name="Liberty Bay City"><rect x="32248" y="32498" width="151" height="409" /></subarea>
+		<subarea id="94" name="Vandura Cultist Hideout"><rect x="32409" y="32754" width="45" height="71" /></subarea>
+		<subarea id="96" name="Meriana"><rect x="32272" y="32524" width="131" height="136" /></subarea>
+		<subarea id="282" name="Goroma"><rect x="32009" y="32515" width="157" height="145" /></subarea>
+		<subarea id="97" name="Nargor"><rect x="31893" y="32771" width="195" height="202" /></subarea>
+		<subarea id="98" name="Talahu"><rect x="31920" y="32624" width="67" height="70" /></subarea>
+		<subarea id="99" name="Hellgorge"><rect x="32044" y="32586" width="43" height="42" /></subarea>
+		<subarea id="228" name="Vandura Quara Caves"><rect x="32189" y="32872" width="29" height="30" /></subarea>
+		<subarea id="100" name="Laguna Islands"><rect x="32330" y="32865" width="223" height="143" /></subarea>
+		<subarea id="101" name="Treasure Island"><rect x="32095" y="32900" width="118" height="97" /></subarea>
+		<subarea id="102" name="Calassa"><rect x="31904" y="32707" width="23" height="7" /></subarea>
+		<subarea id="283" name="Ramoa"><rect x="31882" y="32531" width="100" height="79" /></subarea>
+		<subarea id="284" name="Malada"><rect x="31974" y="32674" width="79" height="70" /></subarea>
+		<subarea id="285" name="Kharos"><rect x="32097" y="32663" width="52" height="58" /></subarea>
+		<subarea id="391" name="Bounac"><rect x="32343" y="32439" width="143" height="105" /></subarea>
+	</area>
+	<area id="19" name="Tiquanda">
+		<subarea id="459" name="Tiquanda"><rect x="32687" y="32551" width="309" height="334" /></subarea>
+		<subarea id="86" name="Banuta"><rect x="32764" y="32497" width="102" height="106" /></subarea>
+		<subarea id="238" name="Medusa Tower"><rect x="32852" y="32817" width="31" height="32" /></subarea>
+		<subarea id="309" name="Port Hope City"><rect x="32520" y="32695" width="227" height="125" /></subarea>
+		<subarea id="87" name="Chor"><rect x="32894" y="32769" width="117" height="131" /></subarea>
+		<subarea id="90" name="Forbidden Lands of Tiquanda"><rect x="32917" y="32477" width="119" height="121" /></subarea>
+		<subarea id="475" name="Oskayaat"><rect x="32937" y="32889" width="181" height="111" /></subarea>
+		<subarea id="92" name="Port Hope Surroundings"><rect x="32527" y="32470" width="498" height="507" /></subarea>
+		<subarea id="235" name="Asura Palace"><rect x="32924" y="32669" width="43" height="25" /></subarea>
+		<subarea id="107" name="Kha&#x27;zeel Mountains"><rect x="32962" y="32414" width="267" height="415" /></subarea>
+	</area>
+	<area id="20" name="Oramond">
+		<subarea id="301" name="Rathleton City"><rect x="33576" y="31865" width="105" height="80" /></subarea>
+		<subarea id="453" name="Oramond"><rect x="33567" y="31778" width="170" height="251" /></subarea>
+		<subarea id="208" name="Rathleton Slum"><rect x="33491" y="31846" width="115" height="161" /></subarea>
+		<subarea id="209" name="Oramond Mountain Hideout"><rect x="33591" y="31806" width="121" height="118" /></subarea>
+		<subarea id="210" name="Oramond Minotaur Camp"><rect x="33663" y="31858" width="82" height="142" /></subarea>
+		<subarea id="213" name="Oramond Marshes"><rect x="33465" y="31968" width="245" height="105" /></subarea>
+		<subarea id="214" name="Rathleton Workshops"><rect x="33601" y="31924" width="69" height="83" /></subarea>
+		<subarea id="496" name="Podzilla Maw"><rect x="33793" y="31969" width="73" height="62" /></subarea>
+	</area>
+	<area id="22" name="Roshamuul">
+		<subarea id="519" name="Isle of Ada - Bastion"><rect x="33859" y="32133" width="13" height="8" /></subarea>
+		<subarea id="450" name="Roshamuul"><rect x="33527" y="32260" width="216" height="309" /></subarea>
+		<subarea id="200" name="Roshamuul Mountains"><rect x="33502" y="32280" width="103" height="113" /></subarea>
+		<subarea id="195" name="Upper Roshamuul"><rect x="33530" y="32255" width="214" height="205" /></subarea>
+		<subarea id="198" name="Lower Roshamuul"><rect x="33482" y="32437" width="255" height="143" /></subarea>
+		<subarea id="521" name="Isle of Ada - Warlock Tower"><rect x="33831" y="32135" width="14" height="14" /></subarea>
+		<subarea id="518" name="Isle of Ada - Outskirts"><rect x="33906" y="32123" width="26" height="19" /></subarea>
+		<subarea id="445" name="Ingol"><rect x="33651" y="32494" width="219" height="143" /></subarea>
+		<subarea id="515" name="Isle of Ada - Landing"><rect x="33850" y="32233" width="40" height="43" /></subarea>
+		<subarea id="522" name="Isle of Ada"><rect x="33783" y="32085" width="146" height="190" /></subarea>
+		<subarea id="516" name="Isle of Ada - Adaean Mines"><rect x="33824" y="32106" width="98" height="130" /></subarea>
+	</area>
+	<area id="23" name="Hrodmir">
+		<subarea id="298" name="Svargrond City"><rect x="32143" y="31042" width="217" height="209" /></subarea>
+		<subarea id="113" name="Tyrsung"><rect x="32304" y="31148" width="161" height="222" /></subarea>
+		<subarea id="458" name="Hrodmir"><rect x="31910" y="31009" width="552" height="355" /></subarea>
+		<subarea id="109" name="Nibelor"><rect x="32308" y="31009" width="112" height="86" /></subarea>
+		<subarea id="110" name="Okolnir"><rect x="32140" y="31318" width="175" height="160" /></subarea>
+		<subarea id="111" name="Helheim"><rect x="32452" y="31144" width="54" height="70" /></subarea>
+		<subarea id="112" name="Grimlund"><rect x="32408" y="31053" width="77" height="60" /></subarea>
+		<subarea id="114" name="Formorgar Glacier"><rect x="31955" y="31005" width="263" height="276" /></subarea>
+		<subarea id="116" name="Krimhorn"><rect x="31966" y="31264" width="119" height="192" /></subarea>
+		<subarea id="117" name="Svargrond Surroundings"><rect x="32165" y="31002" width="148" height="246" /></subarea>
+		<subarea id="201" name="Chyllfroest Chakoya Caves"><rect x="31991" y="30993" width="121" height="101" /></subarea>
+		<subarea id="202" name="Chyllfroest Icefire Caves"><rect x="32026" y="31024" width="35" height="29" /></subarea>
+		<subarea id="287" name="Inukaya"><rect x="32461" y="31084" width="47" height="47" /></subarea>
+		<subarea id="289" name="Bittermor"><rect x="31901" y="31195" width="170" height="168" /></subarea>
+		<subarea id="290" name="Ragnir"><rect x="32086" y="31251" width="129" height="155" /></subarea>
+	</area>
+	<area id="24" name="Thais">
+		<subarea id="317" name="Rookgaard"><rect x="31956" y="32078" width="235" height="222" /></subarea>
+		<subarea id="514" name="Newhaven"><rect x="32504" y="32406" width="131" height="117" /></subarea>
+		<subarea id="120" name="Isle of Destiny"><rect x="31940" y="31962" width="187" height="1007" /></subarea>
+		<subarea id="454" name="Thais"><rect x="32130" y="32051" width="266" height="381" /></subarea>
+		<subarea id="307" name="Adventurers&#x27; Guild"><rect x="32145" y="32265" width="73" height="55" /></subarea>
+		<subarea id="28" name="Thais City"><rect x="32130" y="32009" width="471" height="438" /></subarea>
+		<subarea id="33" name="Thais Trolls&#x27; Cave"><rect x="32476" y="32240" width="48" height="72" /></subarea>
+		<subarea id="34" name="Mount Sternum"><rect x="32430" y="32036" width="116" height="73" /></subarea>
+		<subarea id="292" name="Travora"><rect x="32047" y="32352" width="26" height="21" /></subarea>
+		<subarea id="35" name="Fibula"><rect x="32115" y="31685" width="125" height="791" /></subarea>
+		<subarea id="291" name="Meluna"><rect x="32012" y="32401" width="97" height="73" /></subarea>
+		<subarea id="29" name="Thais Surroundings"><rect x="32212" y="32008" width="348" height="424" /></subarea>
+		<subarea id="293" name="Temple of Light"><rect x="31910" y="31975" width="120" height="126" /></subarea>
+		<subarea id="295" name="Greenshore"><rect x="32197" y="32008" width="121" height="108" /></subarea>
+		<subarea id="478" name="Thais Peninsula"><rect x="32452" y="32277" width="70" height="34" /></subarea>
+		<subarea id="528" name="Aragonia"><rect x="33475" y="32684" width="85" height="69" /></subarea>
+		<subarea id="526" name="Targuna"><rect x="31920" y="31850" width="61" height="80" /></subarea>
+	</area>
+	<area id="25" name="Venore">
+		<subarea id="276" name="Venore City"><rect x="32857" y="31992" width="172" height="174" /></subarea>
+		<subarea id="75" name="Plains of Havoc"><rect x="32624" y="32136" width="249" height="272" /></subarea>
+		<subarea id="460" name="Venore"><rect x="32757" y="32053" width="334" height="113" /></subarea>
+		<subarea id="69" name="Amazon Camp"><rect x="32811" y="31900" width="72" height="60" /></subarea>
+		<subarea id="70" name="Black Knight Villa"><rect x="32809" y="31954" width="25" height="20" /></subarea>
+		<subarea id="71" name="Venore Dragon Lair"><rect x="32775" y="32138" width="56" height="33" /></subarea>
+		<subarea id="72" name="Green Claw Swamp"><rect x="32625" y="31930" width="254" height="226" /></subarea>
+		<subarea id="73" name="Outlaw Camp"><rect x="32577" y="32156" width="123" height="174" /></subarea>
+		<subarea id="74" name="Dark Cathedral"><rect x="32617" y="32318" width="76" height="65" /></subarea>
+		<subarea id="76" name="Shadowthorn"><rect x="33045" y="32132" width="107" height="80" /></subarea>
+		<subarea id="77" name="Venore Southern Swamp"><rect x="32770" y="32077" width="289" height="197" /></subarea>
+		<subarea id="78" name="Venore Surroundings"><rect x="32998" y="32000" width="124" height="170" /></subarea>
+		<subarea id="104" name="Jakundaf Desert"><rect x="32560" y="32063" width="144" height="99" /></subarea>
+		<subarea id="239" name="Gloom Caverns"><rect x="32666" y="31931" width="56" height="41" /></subarea>
+	</area>
+	<area id="27" name="Yalahar">
+		<subarea id="134" name="Yalahar Foreigner Quarter"><rect x="32629" y="31237" width="155" height="146" /></subarea>
+		<subarea id="461" name="Yalahar"><rect x="32520" y="31233" width="453" height="276" /></subarea>
+		<subarea id="299" name="Yalahar Centre"><rect x="32726" y="31136" width="151" height="147" /></subarea>
+		<subarea id="127" name="Yalahar Trade Quarter"><rect x="32766" y="31270" width="107" height="104" /></subarea>
+		<subarea id="128" name="Yalahar Sunken Quarter"><rect x="32867" y="31158" width="111" height="96" /></subarea>
+		<subarea id="129" name="Yalahar Factory Quarter"><rect x="32840" y="31223" width="139" height="137" /></subarea>
+		<subarea id="130" name="Yalahar Magician Quarter"><rect x="32799" y="31013" width="149" height="156" /></subarea>
+		<subarea id="131" name="Yalahar Cemetery Quarter"><rect x="32702" y="31009" width="111" height="138" /></subarea>
+		<subarea id="132" name="Yalahar Alchemist Quarter"><rect x="32623" y="31065" width="138" height="137" /></subarea>
+		<subarea id="133" name="Yalahar Arena Quarter"><rect x="32606" y="31185" width="130" height="90" /></subarea>
+		<subarea id="135" name="Mistrock"><rect x="32528" y="31390" width="115" height="88" /></subarea>
+		<subarea id="136" name="Fenrock"><rect x="32513" y="31256" width="56" height="69" /></subarea>
+		<subarea id="138" name="Isle of Evil"><rect x="32665" y="31425" width="105" height="85" /></subarea>
+	</area>
+	<area id="305" name="Boss Lairs">
+		<subarea id="306" name="Boss Lairs"><rect x="33578" y="31177" width="158" height="178" /></subarea>
+	</area>
+	<area id="355" name="Kilmaresh">
+		<subarea id="357" name="Issavi"><rect x="33854" y="31457" width="126" height="122" /></subarea>
+		<subarea id="356" name="Nykri Delta"><rect x="33708" y="31430" width="186" height="114" /></subarea>
+		<subarea id="360" name="Central Steppe"><rect x="33756" y="31508" width="116" height="165" /></subarea>
+		<subarea id="361" name="Southern Steppe"><rect x="33772" y="31651" width="148" height="117" /></subarea>
+		<subarea id="362" name="Green Belt"><rect x="33846" y="31539" width="134" height="145" /></subarea>
+		<subarea id="365" name="Kilmaresh Mountains"><rect x="33786" y="31584" width="90" height="127" /></subarea>
+		<subarea id="388" name="Furious Crater"><rect x="33795" y="31809" width="121" height="131" /></subarea>
+		<subarea id="394" name="Rascacoon"><rect x="33640" y="31251" width="300" height="153" /></subarea>
+		<subarea id="397" name="The Wreckoning"><rect x="33835" y="31178" width="102" height="87" /></subarea>
+	</area>
+	<area id="434" name="Marapur">
+		<subarea id="437" name="Murmuring Wilderness"><rect x="33679" y="32654" width="127" height="53" /></subarea>
+		<subarea id="438" name="Silent Waters"><rect x="33681" y="32693" width="71" height="57" /></subarea>
+		<subarea id="439" name="Fading Isles"><rect x="33617" y="32693" width="75" height="133" /></subarea>
+		<subarea id="440" name="Emerald Gardens"><rect x="33783" y="32658" width="136" height="140" /></subarea>
+		<subarea id="441" name="Sparkling Lagoon"><rect x="33821" y="32796" width="88" height="75" /></subarea>
+		<subarea id="442" name="Stardance Mountains"><rect x="33671" y="32707" width="182" height="131" /></subarea>
+		<subarea id="443" name="Moonfall"><rect x="33809" y="32797" width="8" height="6" /></subarea>
+		<subarea id="444" name="Silvertides"><rect x="33679" y="32821" width="154" height="67" /></subarea>
+		<subarea id="537" name="Salgadora"><rect x="34007" y="32459" width="104" height="81" /></subarea>
+		<subarea id="538" name="Thalassara Surroundings"><rect x="34025" y="32417" width="220" height="244" /></subarea>
+		<subarea id="539" name="Moonstone Crater"><rect x="34099" y="32598" width="132" height="112" /></subarea>
+	</area>
+</cyclopediamap>

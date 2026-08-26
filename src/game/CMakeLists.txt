@@ -3,6 +3,7 @@ target_sources(${PROJECT_NAME}_lib PRIVATE
     game.cpp
     sound_trace.cpp
     bank/bank.cpp
+    cyclopedia_map/cyclopedia_map.cpp
     movement/position.cpp
     movement/teleport.cpp
     scheduling/events_scheduler.cpp

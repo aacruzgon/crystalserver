@@ -27,6 +27,7 @@
 #include "database/databasemanager.hpp"
 #include "declarations.hpp"
 #include "game/game.hpp"
+#include "game/cyclopedia_map/cyclopedia_map.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "game/scheduling/events_scheduler.hpp"
 #include "game/zones/zone.hpp"
@@ -364,6 +365,7 @@ void CrystalServer::loadModules() {
 	modulesLoadHelper(g_imbuements().loadFromXml(), "XML/imbuements.xml");
 	modulesLoadHelper(g_proficiencies().loadFromJson(), "json/proficiencies.json");
 	modulesLoadHelper(g_storages().loadFromXML(), "XML/storages.xml");
+	modulesLoadHelper(g_cyclopediaMap().loadFromXml(), "XML/cyclopedia_map.xml");
 
 	modulesLoadHelper(Item::items.loadFromXml(), "items.xml");
 
