@@ -67,6 +67,19 @@ enum class CyclopediaMapData_t : uint8_t {
 	MonsterBestiary = 8,
 	Donations = 9,
 	SetCurrentArea = 10,
+	// The subarea the player is standing in, as opposed to SetCurrentArea's main area.
+	// The client has always parsed this sub-type; it was simply missing from this enum.
+	SetExploringArea = 11,
+};
+
+// Client -> server, opcode 0xDB. Only Donate is implemented; the enum exists so the
+// parser can reject anything else rather than read a body it does not understand.
+enum class CyclopediaMapAction_t : uint8_t {
+	Donate = 1,
+	// Sent when the player clicks an area on the map. It carries no state the server
+	// needs - selection is a client-side concern - but it must be accepted, or every
+	// click logs a warning.
+	Select = 2,
 };
 
 enum class CyclopediaHouseState : uint8_t {

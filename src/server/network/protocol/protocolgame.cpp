@@ -45,6 +45,8 @@
 #include "creatures/players/wheel/player_wheel.hpp"
 #include "enums/player_icons.hpp"
 #include "game/game.hpp"
+#include "game/cyclopedia_map/cyclopedia_map.hpp"
+#include "kv/kv.hpp"
 #include "game/sound_trace.hpp"
 #include "game/modal_window/modal_window.hpp"
 #include "game/scheduling/dispatcher.hpp"
@@ -830,6 +832,11 @@ void ProtocolGame::connect(const std::string &playerName, OperatingSystem_t oper
 	player->resyncSpellCooldowns();
 
 	sendAddCreature(player, player->getPosition(), 0, true);
+
+	// After sendAddCreature, not before: that call emits the login packet, and the client
+	// only connects its Cyclopedia handlers while processing it. Anything sent earlier
+	// arrives before there is anything listening and is dropped on the floor.
+	player->sendCyclopediaMapData();
 	player->lastIP = player->getIP();
 	player->lastLoad = OTSYS_TIME();
 	player->lastLoginSaved = std::max<time_t>(time(nullptr), player->lastLoginSaved + 1);
@@ -1450,6 +1457,9 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 			break;
 		case 0xC0:
 			parseForgeBrowseHistory(msg);
+			break;
+		case 0xDB:
+			parseCyclopediaMapAction(msg);
 			break;
 		case 0xC8:
 			parseSelectSpellAimProtocol(msg);
@@ -4027,6 +4037,188 @@ void ProtocolGame::sendAddMarker(const Position &pos, uint8_t markType, const st
 	msg.addByte(markType);
 	msg.addString(desc);
 	writeToOutputBuffer(msg);
+}
+
+// --- Cyclopedia Map (0xDD sub-types 1, 9, 10, 11) ----------------------------
+//
+// sendAddMarker above writes sub-type 0. Everything the Map tab needs beyond a
+// pin goes through the sub-types below. Points of interest (sub-type 5) are not
+// implemented yet, so the client simply never receives one.
+
+namespace {
+	// Donations are a property of the world, not of a character, so they live in the
+	// global store rather than the player's.
+	std::shared_ptr<KV> cyclopediaMapDonationsKV() {
+		return g_kv().scoped("cyclopedia-map")->scoped("donations");
+	}
+
+	uint64_t getAreaDonatedAmount(uint16_t areaId) {
+		const auto value = cyclopediaMapDonationsKV()->get(std::to_string(areaId));
+		if (!value) {
+			return 0;
+		}
+
+		const auto number = value->getNumber();
+		return number > 0 ? static_cast<uint64_t>(number) : 0;
+	}
+}
+
+void ProtocolGame::sendCyclopediaMapDiscoveryData() {
+	if (!player || oldProtocol) {
+		return;
+	}
+
+	const auto &areas = g_cyclopediaMap().getAreas();
+	if (areas.empty()) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xDD);
+	msg.addByte(enumToValue(CyclopediaMapData_t::DiscoveryData));
+
+	// [u16 count]{ u16 areaId, u8 status, u8 progress }
+	msg.add<uint16_t>(static_cast<uint16_t>(areas.size()));
+	for (const auto &area : areas) {
+		const auto progress = player->cyclopedia()->getAreaProgress(area.id);
+		// 0 = untouched, 1 = partially discovered, 2 = fully discovered.
+		const uint8_t status = progress == 0 ? 0 : (progress >= 100 ? 2 : 1);
+		msg.add<uint16_t>(area.id);
+		msg.addByte(status);
+		msg.addByte(progress);
+	}
+
+	// [u16 count]{ u16 subAreaId } - discovered
+	const auto &discovered = player->cyclopedia()->getDiscoveredSubAreas();
+	msg.add<uint16_t>(static_cast<uint16_t>(discovered.size()));
+	for (const auto subAreaId : discovered) {
+		msg.add<uint16_t>(subAreaId);
+	}
+
+	// [u16 count]{ u16 subAreaId } - discoverable but not yet discovered
+	auto discoverableCount = msg.getBufferPosition();
+	msg.skipBytes(2);
+	uint16_t discoverable = 0;
+	for (const auto &area : areas) {
+		for (const auto subAreaId : area.subAreas) {
+			if (!discovered.contains(subAreaId)) {
+				msg.add<uint16_t>(subAreaId);
+				++discoverable;
+			}
+		}
+	}
+	const auto endPosition = msg.getBufferPosition();
+	msg.setBufferPosition(discoverableCount);
+	msg.add<uint16_t>(discoverable);
+	msg.setBufferPosition(endPosition);
+
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendCyclopediaMapDonations() {
+	if (!player || oldProtocol) {
+		return;
+	}
+
+	const auto &areas = g_cyclopediaMap().getAreas();
+	if (areas.empty()) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xDD);
+	msg.addByte(enumToValue(CyclopediaMapData_t::Donations));
+
+	// The client reads one goal for the whole message, so send the shared default
+	// rather than a per-area figure it has nowhere to put.
+	msg.add<uint64_t>(g_cyclopediaMap().getDefaultDonationGoal());
+
+	// The count is a byte on the wire; 22 areas today, but clamp rather than wrap.
+	const auto count = static_cast<uint8_t>(std::min<size_t>(areas.size(), 255));
+	msg.addByte(count);
+	for (size_t i = 0; i < count; ++i) {
+		const auto &area = areas[i];
+		const auto donated = getAreaDonatedAmount(area.id);
+		msg.add<uint16_t>(area.id);
+		msg.addByte(area.donationGoal > 0 && donated >= area.donationGoal ? 0x01 : 0x00);
+		msg.add<uint64_t>(donated);
+	}
+
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendCyclopediaMapCurrentArea(uint16_t areaId) {
+	if (!player || oldProtocol) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xDD);
+	msg.addByte(enumToValue(CyclopediaMapData_t::SetCurrentArea));
+	msg.add<uint16_t>(areaId);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendCyclopediaMapExploringArea(uint16_t subAreaId) {
+	if (!player || oldProtocol) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xDD);
+	msg.addByte(enumToValue(CyclopediaMapData_t::SetExploringArea));
+	msg.add<uint16_t>(subAreaId);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::parseCyclopediaMapAction(NetworkMessage &msg) {
+	if (!player || oldProtocol) {
+		return;
+	}
+
+	// [u8 action][u16 areaId][u32 amount][u8 unused]
+	const auto action = msg.getByte();
+	if (action == enumToValue(CyclopediaMapAction_t::Select)) {
+		// Area selection is purely client-side; nothing to do, but swallow it quietly
+		// rather than warn on every click.
+		return;
+	}
+
+	if (action != enumToValue(CyclopediaMapAction_t::Donate)) {
+		g_logger().warn("[{}] player {} sent unknown cyclopedia map action {}", __FUNCTION__, player->getName(), action);
+		return;
+	}
+
+	const auto areaId = msg.get<uint16_t>();
+	const auto amount = msg.get<uint32_t>();
+
+	const auto *area = g_cyclopediaMap().getArea(areaId);
+	if (!area) {
+		g_logger().warn("[{}] player {} tried to donate to unknown area {}", __FUNCTION__, player->getName(), areaId);
+		return;
+	}
+
+	if (amount == 0) {
+		return;
+	}
+
+	// Bank first, then the coins actually carried - the same order the house bid uses.
+	if (!g_game().removeMoney(player, amount, 0, true)) {
+		player->sendTextMessage(MESSAGE_FAILURE, "You do not have enough money.");
+		sendCyclopediaMapDonations();
+		return;
+	}
+
+	const auto donated = getAreaDonatedAmount(areaId);
+	// Saturate rather than wrap if a world somehow reaches the top of the range.
+	const auto total = donated > std::numeric_limits<uint64_t>::max() - amount
+		? std::numeric_limits<uint64_t>::max()
+		: donated + amount;
+	cyclopediaMapDonationsKV()->set(std::to_string(areaId), static_cast<double>(total));
+
+	g_logger().info("[{}] {} donated {} gold to cyclopedia map area {} ({} donated in total)", __FUNCTION__, player->getName(), amount, areaId, total);
+
+	sendCyclopediaMapDonations();
 }
 
 void ProtocolGame::sendCyclopediaCharacterNoData(CyclopediaCharacterInfoType_t characterInfoType, uint8_t errorCode) {

@@ -383,6 +383,12 @@ private:
 	void sendCyclopediaCharacterMiscStats();
 
 	void sendHousesInfo();
+	void parseCyclopediaMapAction(NetworkMessage &msg);
+	// 0xDD sub-types. sendAddMarker above is sub-type 0; these are the map tab's.
+	void sendCyclopediaMapDiscoveryData();
+	void sendCyclopediaMapDonations();
+	void sendCyclopediaMapCurrentArea(uint16_t areaId);
+	void sendCyclopediaMapExploringArea(uint16_t subAreaId);
 	void parseCyclopediaHouseAuction(NetworkMessage &msg);
 	void sendCyclopediaHouseList(HouseMap houses);
 	void sendHouseAuctionMessage(uint32_t houseId, HouseAuctionType type, uint8_t index, bool bidSuccess);
