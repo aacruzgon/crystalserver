@@ -223,13 +223,17 @@ void IOBosstiary::addBosstiaryKill(const std::shared_ptr<Player> &player, const 
 }
 
 uint16_t IOBosstiary::calculateLootBonus(uint32_t bossPoints) const {
-	// Calculate Bonus based on Boss Points
+	// Calculate Bonus based on Boss Points.
+	// The division must be done in floating point: the floor applies to the whole
+	// expression, not to the quotient alone, and calculateBossPoints() below is
+	// the exact inverse of that.
+	const auto points = static_cast<double>(bossPoints);
 	if (bossPoints <= 250) {
-		return static_cast<uint16_t>(25 + bossPoints / 10);
+		return static_cast<uint16_t>(std::floor(25.0 + points / 10.0));
 	} else if (bossPoints < 1250) {
-		return static_cast<uint16_t>(37.5 + bossPoints / 20);
+		return static_cast<uint16_t>(std::floor(37.5 + points / 20.0));
 	}
-	return static_cast<uint16_t>(100 + 0.5 * (sqrt(8 * ((bossPoints - 1250) / 5) + 81) - 9));
+	return static_cast<uint16_t>(std::floor(100.0 + 0.5 * (std::sqrt(8.0 * (points - 1250.0) / 5.0 + 81.0) - 9.0)));
 }
 
 uint32_t IOBosstiary::calculateBossPoints(uint16_t lootBonus) const {
