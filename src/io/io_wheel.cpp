@@ -341,7 +341,12 @@ void IOWheel::initializeKnightSpells() {
 
 	m_wheelBonusData.spells.knight[2].name = "Shield Slam"; // Vocation Adjustment: replaces Chivalrous Challenge
 	m_wheelBonusData.spells.knight[2].grade[1].leech.life = 15; // I +15% life leech
-	m_wheelBonusData.spells.knight[2].grade[2].increase.damageReduction = 25; // II +25% dmg reduction (TODO effect via shield_slam.lua; field inert)
+	// II +25% dmg reduction. registerWheelSpellTable never forwards increase.damageReduction, so this
+	// field is inert by design -- the effect is applied by shield_slam.lua, which reads the grade
+	// directly (upgradeSpellsWOD("Shield Slam") >= 2) and deepens the enemy debuff to -75%. Keep the
+	// field as documentation of the intended magnitude; do NOT wire it into WheelSpellBoost_t, which
+	// feeds damage.damageReductionMultiplier and would weaken the caster's own hit.
+	m_wheelBonusData.spells.knight[2].grade[2].increase.damageReduction = 25;
 
 	m_wheelBonusData.spells.knight[3].name = "Intense Wound Cleansing";
 	m_wheelBonusData.spells.knight[3].grade[1].increase.heal = 125;
@@ -494,6 +499,13 @@ void IOWheel::addVesselResonance(const std::shared_ptr<Player> &player, PlayerWh
 	}
 }
 
+// Which slice grants which augment is fixed by the official client's own grid table
+// (tibia::skillwheel::TGridConfiguration, 36 tiles x 5 vocations). Slot numbering here is
+// tile index + 1, so the five augment slot pairs are:
+//   6/21 spell_1  8/24 spell_2  11/26 spell_3  13/29 spell_4  16/31 spell_5
+// Vocation Adjustments may substitute WHICH spell an augment targets, but must keep it on the
+// same pair -- CrystalOTC draws the slice icon from that table, so moving a spell to a different
+// pair makes the icon, the tooltip and the granted bonus disagree.
 void IOWheel::initializeWheelMapFunctions() {
 	VocationBonusMap vocationBonusMap;
 	vocationBonusMap = {
@@ -640,7 +652,7 @@ void IOWheel::slotRed200(const std::shared_ptr<Player> &player, uint16_t points,
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 3 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Sweeping Takedown");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Chained Penance");
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 2 * points;
 	} else {
@@ -649,7 +661,7 @@ void IOWheel::slotRed200(const std::shared_ptr<Player> &player, uint16_t points,
 				addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, focusSpellName);
 			}
 		} else {
-			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Strong Ice Wave");
+			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Any_Forked_Spell");
 		}
 		bonusData.stats.health += 1 * points;
 		bonusData.stats.mana += 6 * points;
@@ -665,7 +677,7 @@ void IOWheel::slotGreenBottom150(const std::shared_ptr<Player> &player, uint16_t
 // SLOT_GREEN_MIDDLE_100 = 8
 void IOWheel::slotGreenMiddle100(const std::shared_ptr<Player> &player, uint16_t points, uint8_t vocationCipId, PlayerWheelMethodsBonusData &bonusData) const {
 	if (isKnight(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_MIDDLE_100, points, "Groundshaker");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_MIDDLE_100, points, "Shield Slam");
 		bonusData.stats.health += 3 * points;
 	} else if (isPaladin(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_MIDDLE_100, points, "Strong Ethereal Spear");
@@ -714,7 +726,7 @@ void IOWheel::slotRedTop75(const std::shared_ptr<Player> &player, uint16_t point
 // SLOT_RED_MIDDLE_100 = 11
 void IOWheel::slotRedMiddle100(const std::shared_ptr<Player> &player, uint16_t points, uint8_t vocationCipId, PlayerWheelMethodsBonusData &bonusData) const {
 	if (isKnight(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Shield Slam");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Groundshaker");
 		bonusData.stats.mana += 1 * points;
 	} else if (isPaladin(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Divine Dazzle");
@@ -726,7 +738,7 @@ void IOWheel::slotRedMiddle100(const std::shared_ptr<Player> &player, uint16_t p
 		if (isSorcerer(vocationCipId)) {
 			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Death Echo");
 		} else {
-			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Any_Forked_Spell");
+			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_MIDDLE_100, points, "Heal Friend");
 		}
 		bonusData.stats.mana += 6 * points;
 	}
@@ -755,7 +767,7 @@ void IOWheel::slotGreenBottom100(const std::shared_ptr<Player> &player, uint16_t
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Swift Foot");
 		bonusData.stats.health += 2 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Chained Penance");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Flurry of Blows");
 		bonusData.stats.health += 2 * points;
 	} else {
 		if (isSorcerer(vocationCipId)) {
@@ -815,9 +827,9 @@ void IOWheel::slotRed50(const std::shared_ptr<Player> &player, uint16_t points, 
 	} else if (isSorcerer(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_50, points, "Great Fire Wave");
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_50, points, "Flurry of Blows");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_50, points, "Sweeping Takedown");
 	} else {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_50, points, "Heal Friend");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_50, points, "Strong Ice Wave");
 	}
 }
 
@@ -878,7 +890,7 @@ void IOWheel::slotBlue50(const std::shared_ptr<Player> &player, uint16_t points,
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Sharpshooter");
 		bonusData.stats.mana += 3 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Sweeping Takedown");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Chained Penance");
 		bonusData.stats.mana += 2 * points;
 	} else {
 		if (isSorcerer(vocationCipId)) {
@@ -886,7 +898,7 @@ void IOWheel::slotBlue50(const std::shared_ptr<Player> &player, uint16_t points,
 				addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, focusSpellName);
 			}
 		} else {
-			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Strong Ice Wave");
+			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Any_Forked_Spell");
 		}
 		bonusData.stats.mana += 6 * points;
 	}
@@ -930,7 +942,7 @@ void IOWheel::slotPurpleTop75(const std::shared_ptr<Player> &player, uint16_t po
 // SLOT_PURPLE_TOP_100 = 24
 void IOWheel::slotPurpleTop100(const std::shared_ptr<Player> &player, uint16_t points, uint8_t vocationCipId, PlayerWheelMethodsBonusData &bonusData) const {
 	if (isKnight(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_TOP_100, points, "Groundshaker");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_TOP_100, points, "Shield Slam");
 		bonusData.stats.capacity += 5 * points;
 	} else if (isPaladin(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_TOP_100, points, "Strong Ethereal Spear");
@@ -966,7 +978,7 @@ void IOWheel::slotBlueTop150(const std::shared_ptr<Player> &player, uint16_t poi
 void IOWheel::slotBlueMiddle100(const std::shared_ptr<Player> &player, uint16_t points, uint8_t vocationCipId, PlayerWheelMethodsBonusData &bonusData) const {
 	bonusData.mitigation += MITIGATION_INCREASE * points;
 	if (isKnight(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Shield Slam");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Groundshaker");
 	} else if (isPaladin(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Divine Dazzle");
 	} else if (isMonk(vocationCipId)) {
@@ -975,7 +987,7 @@ void IOWheel::slotBlueMiddle100(const std::shared_ptr<Player> &player, uint16_t 
 		if (isSorcerer(vocationCipId)) {
 			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Death Echo");
 		} else {
-			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Any_Forked_Spell");
+			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_MIDDLE_100, points, "Heal Friend");
 		}
 	}
 }
@@ -1009,7 +1021,7 @@ void IOWheel::slotPurpleMiddle100(const std::shared_ptr<Player> &player, uint16_
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Swift Foot");
 		bonusData.stats.capacity += 4 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Chained Penance");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Flurry of Blows");
 		bonusData.stats.capacity += 5 * points;
 	} else {
 		if (isSorcerer(vocationCipId)) {
@@ -1046,14 +1058,14 @@ void IOWheel::slotBlue200(const std::shared_ptr<Player> &player, uint16_t points
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 3 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_200, points, "Flurry of Blows");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_200, points, "Sweeping Takedown");
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 2 * points;
 	} else {
 		if (isSorcerer(vocationCipId)) {
 			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_200, points, "Great Fire Wave");
 		} else {
-			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_200, points, "Heal Friend");
+			addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_200, points, "Strong Ice Wave");
 		}
 		bonusData.stats.health += 1 * points;
 		bonusData.stats.mana += 6 * points;
