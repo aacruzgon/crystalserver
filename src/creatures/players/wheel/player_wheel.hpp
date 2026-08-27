@@ -143,6 +143,21 @@ public:
 	int getSpellAdditionalDuration(const std::string &spellName) const;
 	bool getSpellAdditionalArea(const std::string &spellName) const;
 
+	// Augment types the official 15.25+ client can display. Spell scripts read these through
+	// the matching Player:getWheelSpell* Lua bindings.
+	int getSpellAdditionalRange(const std::string &spellName) const;
+	bool getSpellExpandedShape(const std::string &spellName) const;
+	int getSpellSkillIncrease(const std::string &spellName) const;
+	bool getSpellBoostedEffect(const std::string &spellName) const;
+	int getSpellDelayReduction(const std::string &spellName) const;
+	int getSpellNextAutoAttackReduction(const std::string &spellName) const;
+
+	/**
+	 * @brief Resolves a spell to its wheel augment entry for the player's current grade.
+	 * @return The graded bonus, or nullptr when this vocation's wheel does not augment the spell.
+	 */
+	const WheelSpells::Bonus* getWheelSpellGrade(const std::string &spellName) const;
+
 	bool handleTwinBurstsCooldown(const std::shared_ptr<Player> &player, const std::string &spellName, int spellCooldown, int rateCooldown) const;
 	bool handleBeamMasteryCooldown(const std::shared_ptr<Player> &player, const std::string &spellName, int spellCooldown, int rateCooldown) const;
 

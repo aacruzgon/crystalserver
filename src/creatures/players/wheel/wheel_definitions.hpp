@@ -197,6 +197,21 @@ enum class WheelSpellBoost_t : uint8_t {
 	HEAL = 10,
 	CRITICAL_DAMAGE = 11,
 	CRITICAL_CHANCE = 12,
+
+	// Augment types the official 15.25+ client can display but that had no model here.
+	// Names follow the client's own charinfo_augmenttype_* keys.
+	RANGE = 13, // charinfo_augmenttype_range
+	SHAPE = 14, // charinfo_augmenttype_shape
+	SKILL_INCREASE = 15, // charinfo_augmenttype_skillincrease
+	BOOSTED_EFFECT = 16, // charinfo_augmenttype_boostedeffect
+	DELAY = 17, // charinfo_augmenttype_delay
+	NEXT_AUTO_ATTACK_REDUCTION = 18, // charinfo_augmenttype_nextautoattackreduction
+
+	// Fields that already existed on WheelSpells::Bonus but had no boost id, so gem
+	// modifiers could never grant them.
+	ADDITIONAL_TARGET = 19, // charinfo_augmenttype_chainlength
+	DURATION = 20, // charinfo_augmenttype_duration
+	AREA = 21, // charinfo_augmenttype_angle
 };
 
 struct PlayerWheelMethodsBonusData {
@@ -293,17 +308,29 @@ namespace WheelSpells {
 		int duration = 0;
 		int criticalDamage = 0;
 		int criticalChance = 0;
+
+		// Augment types the official client displays; consumed by spell scripts through
+		// the Player:getWheelSpell* bindings.
+		int range = 0; // extra squares of range (augmentation_description_sap_range)
+		bool shape = false; // expanded shape, distinct from a plain area enlargement
+		int skillIncrease = 0; // % on top of a spell's own skill bonus
+		bool boostedEffect = false; // generic "enhanced effect" flag
+		int nextAutoAttackReduction = 0; // % damage taken from the next hostile auto attack
 	};
 
 	struct Decrease {
 		int cooldown = 0;
 		int manaCost = 0;
 		int secondaryGroupCooldown = 0;
+		int groupCooldown = 0; // had a WheelSpellBoost_t id but no field to back it
+		int delay = 0; // ms shaved off a spell's own wind-up, not its cooldown
 	};
 
 	struct Leech {
 		int mana = 0;
 		int life = 0;
+		int manaChance = 0; // had a WheelSpellBoost_t id but no field to back it
+		int lifeChance = 0;
 	};
 
 	struct Bonus {

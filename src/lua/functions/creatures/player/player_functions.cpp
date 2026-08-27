@@ -396,6 +396,12 @@ void PlayerFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Player", "getWheelSpellAdditionalArea", PlayerFunctions::luaPlayerGetWheelSpellAdditionalArea);
 	Lua::registerMethod(L, "Player", "getWheelSpellAdditionalTarget", PlayerFunctions::luaPlayerGetWheelSpellAdditionalTarget);
 	Lua::registerMethod(L, "Player", "getWheelSpellAdditionalDuration", PlayerFunctions::luaPlayerGetWheelSpellAdditionalDuration);
+	Lua::registerMethod(L, "Player", "getWheelSpellAdditionalRange", PlayerFunctions::luaPlayerGetWheelSpellAdditionalRange);
+	Lua::registerMethod(L, "Player", "getWheelSpellExpandedShape", PlayerFunctions::luaPlayerGetWheelSpellExpandedShape);
+	Lua::registerMethod(L, "Player", "getWheelSpellSkillIncrease", PlayerFunctions::luaPlayerGetWheelSpellSkillIncrease);
+	Lua::registerMethod(L, "Player", "getWheelSpellBoostedEffect", PlayerFunctions::luaPlayerGetWheelSpellBoostedEffect);
+	Lua::registerMethod(L, "Player", "getWheelSpellDelayReduction", PlayerFunctions::luaPlayerGetWheelSpellDelayReduction);
+	Lua::registerMethod(L, "Player", "getWheelSpellNextAutoAttackReduction", PlayerFunctions::luaPlayerGetWheelSpellNextAutoAttackReduction);
 	Lua::registerMethod(L, "Player", "wheelUnlockScroll", PlayerFunctions::luaPlayerWheelUnlockScroll);
 
 	// Forge Functions
@@ -5116,6 +5122,168 @@ int PlayerFunctions::luaPlayerGetWheelSpellAdditionalDuration(lua_State* L) {
 	}
 
 	lua_pushnumber(L, player->wheel()->getSpellAdditionalDuration(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellAdditionalRange(lua_State* L) {
+	// player:getWheelSpellAdditionalRange(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	lua_pushnumber(L, player->wheel()->getSpellAdditionalRange(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellExpandedShape(lua_State* L) {
+	// player:getWheelSpellExpandedShape(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	Lua::pushBoolean(L, player->wheel()->getSpellExpandedShape(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellSkillIncrease(lua_State* L) {
+	// player:getWheelSpellSkillIncrease(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	lua_pushnumber(L, player->wheel()->getSpellSkillIncrease(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellBoostedEffect(lua_State* L) {
+	// player:getWheelSpellBoostedEffect(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	Lua::pushBoolean(L, player->wheel()->getSpellBoostedEffect(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellDelayReduction(lua_State* L) {
+	// player:getWheelSpellDelayReduction(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	lua_pushnumber(L, player->wheel()->getSpellDelayReduction(spellName));
+	return 1;
+}
+
+int PlayerFunctions::luaPlayerGetWheelSpellNextAutoAttackReduction(lua_State* L) {
+	// player:getWheelSpellNextAutoAttackReduction(spellname)
+	const auto &player = Lua::getUserdataShared<Player>(L, 1);
+	if (!player) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto spellName = Lua::getString(L, 2);
+	if (spellName.empty()) {
+		Lua::reportErrorFunc("Spell name is empty");
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	const auto &spell = g_spells().getInstantSpellByName(spellName);
+	if (!spell) {
+		Lua::reportErrorFunc(Lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
+		Lua::pushBoolean(L, false);
+		return 0;
+	}
+
+	lua_pushnumber(L, player->wheel()->getSpellNextAutoAttackReduction(spellName));
 	return 1;
 }
 

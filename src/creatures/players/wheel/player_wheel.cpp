@@ -294,54 +294,16 @@ const static std::unordered_map<uint8_t, std::reference_wrapper<const std::vecto
 // To avoid conflict in other files that might use a function with the same name
 // Here are built-in helper functions
 namespace {
+	// All five vocation tables have the same shape, so one lookup serves every augment field.
 	template <typename SpellType>
-	bool checkSpellArea(const std::array<SpellType, 5> &spellsTable, const std::string &spellName, uint8_t stage) {
+	const WheelSpells::Bonus* findSpellGrade(const std::array<SpellType, 5> &spellsTable, std::string_view spellName, uint8_t stage) {
 		for (const auto &spellTable : spellsTable) {
-			auto size = std::ssize(spellTable.grade);
-			g_logger().debug("spell area stage {}, grade {}", stage, size);
-			if (spellTable.name == spellName && stage < static_cast<uint8_t>(size)) {
-				const auto &spellData = spellTable.grade[stage];
-				if (spellData.increase.area) {
-					g_logger().debug("[{}] spell with name {}, and stage {} has increase area", __FUNCTION__, spellName, stage);
-
-					return true;
-				}
+			if (spellTable.name == spellName && stage < static_cast<uint8_t>(std::ssize(spellTable.grade))) {
+				return &spellTable.grade[stage];
 			}
 		}
 
-		return false;
-	}
-
-	template <typename SpellType>
-	int checkSpellAdditionalTarget(const std::array<SpellType, 5> &spellsTable, std::string_view spellName, uint8_t stage) {
-		for (const auto &spellTable : spellsTable) {
-			auto size = std::ssize(spellTable.grade);
-			g_logger().debug("spell target stage {}, grade {}", stage, size);
-			if (spellTable.name == spellName && stage < static_cast<uint8_t>(size)) {
-				const auto &spellData = spellTable.grade[stage];
-				if (spellData.increase.aditionalTarget) {
-					return spellData.increase.aditionalTarget;
-				}
-			}
-		}
-
-		return 0;
-	}
-
-	template <typename SpellType>
-	int checkSpellAdditionalDuration(const std::array<SpellType, 5> &spellsTable, std::string_view spellName, uint8_t stage) {
-		for (const auto &spellTable : spellsTable) {
-			auto size = std::ssize(spellTable.grade);
-			g_logger().debug("spell duration stage {}, grade {}", stage, size);
-			if (spellTable.name == spellName && stage < static_cast<uint8_t>(size)) {
-				const auto &spellData = spellTable.grade[stage];
-				if (spellData.increase.duration > 0) {
-					return spellData.increase.duration;
-				}
-			}
-		}
-
-		return 0;
+		return nullptr;
 	}
 
 	const static std::vector<PromotionScroll> WheelOfDestinyPromotionScrolls = {
@@ -1012,68 +974,81 @@ void PlayerWheel::reclaimExcessPoints() {
 	saveDBPlayerSlotPointsOnLogout();
 }
 
-bool PlayerWheel::getSpellAdditionalArea(const std::string &spellName) const {
+const WheelSpells::Bonus* PlayerWheel::getWheelSpellGrade(const std::string &spellName) const {
 	const auto stage = static_cast<uint8_t>(getSpellUpgrade(spellName));
 	if (stage == 0) {
-		return false;
+		return nullptr;
 	}
 
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
-		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
-		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
-		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
-		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_MONK_CIP) {
-		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.monk, spellName, stage);
-	}
+	// A spell that belongs to a group augment is stored in the vocation table under the group's
+	// synthetic name, even though its grade is keyed by the real name.
+	const auto &tableName = IOWheel::getWheelTableNameFor(spellName);
 
-	return false;
+	const auto &spells = g_game().getIOWheel()->getWheelBonusData().spells;
+	switch (m_player.getPlayerVocationEnum()) {
+		case Vocation_t::VOCATION_KNIGHT_CIP:
+			return findSpellGrade(spells.knight, tableName, stage);
+		case Vocation_t::VOCATION_PALADIN_CIP:
+			return findSpellGrade(spells.paladin, tableName, stage);
+		case Vocation_t::VOCATION_DRUID_CIP:
+			return findSpellGrade(spells.druid, tableName, stage);
+		case Vocation_t::VOCATION_SORCERER_CIP:
+			return findSpellGrade(spells.sorcerer, tableName, stage);
+		case Vocation_t::VOCATION_MONK_CIP:
+			return findSpellGrade(spells.monk, tableName, stage);
+		default:
+			return nullptr;
+	}
+}
+
+// Every augment accessor sums the two sources that can grant it: the vocation's wheel
+// augment table (keyed by the spell's current grade) and any supreme gem mod that named
+// this spell. Previously only the wheel table was consulted, so a gem could never grant
+// an area, target or duration augment.
+
+bool PlayerWheel::getSpellAdditionalArea(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade && grade->increase.area) || getSpellBonus(spellName, WheelSpellBoost_t::AREA) > 0;
 }
 
 int PlayerWheel::getSpellAdditionalTarget(const std::string &spellName) const {
-	const auto stage = static_cast<uint8_t>(getSpellUpgrade(spellName));
-	if (stage == 0) {
-		return 0;
-	}
-
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
-		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
-		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
-		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
-		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_MONK_CIP) {
-		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.monk, spellName, stage);
-	}
-	return 0;
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->increase.aditionalTarget : 0) + getSpellBonus(spellName, WheelSpellBoost_t::ADDITIONAL_TARGET);
 }
 
 int PlayerWheel::getSpellAdditionalDuration(const std::string &spellName) const {
-	const auto stage = static_cast<uint8_t>(getSpellUpgrade(spellName));
-	if (stage == 0) {
-		return 0;
-	}
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->increase.duration : 0) + getSpellBonus(spellName, WheelSpellBoost_t::DURATION);
+}
 
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
-		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
-		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
-		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
-		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
-	} else if (vocationEnum == Vocation_t::VOCATION_MONK_CIP) {
-		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.monk, spellName, stage);
-	}
-	return 0;
+int PlayerWheel::getSpellAdditionalRange(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->increase.range : 0) + getSpellBonus(spellName, WheelSpellBoost_t::RANGE);
+}
+
+bool PlayerWheel::getSpellExpandedShape(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade && grade->increase.shape) || getSpellBonus(spellName, WheelSpellBoost_t::SHAPE) > 0;
+}
+
+int PlayerWheel::getSpellSkillIncrease(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->increase.skillIncrease : 0) + getSpellBonus(spellName, WheelSpellBoost_t::SKILL_INCREASE);
+}
+
+bool PlayerWheel::getSpellBoostedEffect(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade && grade->increase.boostedEffect) || getSpellBonus(spellName, WheelSpellBoost_t::BOOSTED_EFFECT) > 0;
+}
+
+int PlayerWheel::getSpellDelayReduction(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->decrease.delay : 0) + getSpellBonus(spellName, WheelSpellBoost_t::DELAY);
+}
+
+int PlayerWheel::getSpellNextAutoAttackReduction(const std::string &spellName) const {
+	const auto* grade = getWheelSpellGrade(spellName);
+	return (grade ? grade->increase.nextAutoAttackReduction : 0) + getSpellBonus(spellName, WheelSpellBoost_t::NEXT_AUTO_ATTACK_REDUCTION);
 }
 
 bool PlayerWheel::handleTwinBurstsCooldown(const std::shared_ptr<Player> &player, const std::string &spellName, int spellCooldown, int rateCooldown) const {
@@ -1407,19 +1382,31 @@ void PlayerWheel::resetRevelationBonus() {
 
 void PlayerWheel::addSpellBonus(const std::string &spellName, const WheelSpells::Bonus &bonus) {
 	if (m_spellsBonuses.contains(spellName)) {
-		m_spellsBonuses[spellName].decrease.cooldown += bonus.decrease.cooldown;
-		m_spellsBonuses[spellName].decrease.manaCost += bonus.decrease.manaCost;
-		m_spellsBonuses[spellName].decrease.secondaryGroupCooldown += bonus.decrease.secondaryGroupCooldown;
-		m_spellsBonuses[spellName].increase.aditionalTarget += bonus.increase.aditionalTarget;
-		m_spellsBonuses[spellName].increase.area = bonus.increase.area;
-		m_spellsBonuses[spellName].increase.criticalChance += bonus.increase.criticalChance;
-		m_spellsBonuses[spellName].increase.criticalDamage += bonus.increase.criticalDamage;
-		m_spellsBonuses[spellName].increase.damage += bonus.increase.damage;
-		m_spellsBonuses[spellName].increase.damageReduction += bonus.increase.damageReduction;
-		m_spellsBonuses[spellName].increase.duration += bonus.increase.duration;
-		m_spellsBonuses[spellName].increase.heal += bonus.increase.heal;
-		m_spellsBonuses[spellName].leech.life += bonus.leech.life;
-		m_spellsBonuses[spellName].leech.mana += bonus.leech.mana;
+		auto &target = m_spellsBonuses[spellName];
+		target.decrease.cooldown += bonus.decrease.cooldown;
+		target.decrease.manaCost += bonus.decrease.manaCost;
+		target.decrease.groupCooldown += bonus.decrease.groupCooldown;
+		target.decrease.secondaryGroupCooldown += bonus.decrease.secondaryGroupCooldown;
+		target.decrease.delay += bonus.decrease.delay;
+		target.increase.aditionalTarget += bonus.increase.aditionalTarget;
+		// Flags latch on. A previous source having granted the flag must not be undone by a
+		// later source that simply does not grant it.
+		target.increase.area |= bonus.increase.area;
+		target.increase.shape |= bonus.increase.shape;
+		target.increase.boostedEffect |= bonus.increase.boostedEffect;
+		target.increase.criticalChance += bonus.increase.criticalChance;
+		target.increase.criticalDamage += bonus.increase.criticalDamage;
+		target.increase.damage += bonus.increase.damage;
+		target.increase.damageReduction += bonus.increase.damageReduction;
+		target.increase.duration += bonus.increase.duration;
+		target.increase.heal += bonus.increase.heal;
+		target.increase.range += bonus.increase.range;
+		target.increase.skillIncrease += bonus.increase.skillIncrease;
+		target.increase.nextAutoAttackReduction += bonus.increase.nextAutoAttackReduction;
+		target.leech.life += bonus.leech.life;
+		target.leech.lifeChance += bonus.leech.lifeChance;
+		target.leech.mana += bonus.leech.mana;
+		target.leech.manaChance += bonus.leech.manaChance;
 		return;
 	}
 	m_spellsBonuses[spellName] = bonus;
@@ -1432,13 +1419,19 @@ int32_t PlayerWheel::getSpellBonus(const std::string &spellName, WheelSpellBoost
 		return 0;
 	}
 	const auto &[leech, increase, decrease] = m_spellsBonuses.at(spellName);
+	// Exhaustive on purpose: no default case, so adding a WheelSpellBoost_t without
+	// backing it with a field is a compile error rather than a silent zero.
 	switch (boost) {
 		case COOLDOWN:
 			return decrease.cooldown;
 		case MANA:
 			return decrease.manaCost;
+		case GROUP_COOLDOWN:
+			return decrease.groupCooldown;
 		case SECONDARY_GROUP_COOLDOWN:
 			return decrease.secondaryGroupCooldown;
+		case DELAY:
+			return decrease.delay;
 		case CRITICAL_CHANCE:
 			return increase.criticalChance;
 		case CRITICAL_DAMAGE:
@@ -1451,11 +1444,31 @@ int32_t PlayerWheel::getSpellBonus(const std::string &spellName, WheelSpellBoost
 			return increase.heal;
 		case LIFE_LEECH:
 			return leech.life;
+		case LIFE_LEECH_CHANCE:
+			return leech.lifeChance;
 		case MANA_LEECH:
 			return leech.mana;
-		default:
-			return 0;
+		case MANA_LEECH_CHANCE:
+			return leech.manaChance;
+		case RANGE:
+			return increase.range;
+		case SHAPE:
+			return increase.shape ? 1 : 0;
+		case SKILL_INCREASE:
+			return increase.skillIncrease;
+		case BOOSTED_EFFECT:
+			return increase.boostedEffect ? 1 : 0;
+		case NEXT_AUTO_ATTACK_REDUCTION:
+			return increase.nextAutoAttackReduction;
+		case ADDITIONAL_TARGET:
+			return increase.aditionalTarget;
+		case DURATION:
+			return increase.duration;
+		case AREA:
+			return increase.area ? 1 : 0;
 	}
+
+	return 0;
 }
 
 void PlayerWheel::addGems(NetworkMessage &msg) const {
