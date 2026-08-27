@@ -171,10 +171,8 @@ int32_t Weapon::playerWeaponCheck(const std::shared_ptr<Player> &player, const s
 			return 0;
 		}
 
-		// No mana precondition. The Vocation Adjustments turned the wand/rod mana figure from a cost
-		// into a per-shot gain (see onUsedWeapon), and wands/rods are the only weapons that carry one,
-		// so requiring the player to already hold that much mana would gate a mana source on the very
-		// resource it produces -- a wand would refuse to fire at 0 mana.
+		// No mana precondition: getManaGain is a gain, not a charge. Gating a wand on the resource it
+		// produces would stop it firing at 0 mana, which is exactly when it matters.
 
 		if (player->getHealth() < getHealthCost(player)) {
 			return 0;
@@ -410,11 +408,9 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 		}
 	}
 
-	// Vocation Adjustment: "Attacks now generate mana instead of consuming mana." The value still
-	// reaches us through getManaCost() because that is what the item attribute is called, but it is a
-	// gain now, not a charge -- nothing anywhere may treat it as a precondition. addManaSpent still
+	// Vocation Adjustment: "Attacks now generate mana instead of consuming mana." addManaSpent still
 	// runs so wands and rods keep training magic level as they always have.
-	const uint32_t manaGain = getManaCost(player);
+	const uint32_t manaGain = getManaGain(player);
 	if (manaGain != 0) {
 		player->addManaSpent(manaGain);
 		player->changeMana(static_cast<int32_t>(manaGain));
@@ -460,10 +456,7 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 	}
 }
 
-// Despite the name, this is the per-shot mana GAIN for wands and rods since the Vocation
-// Adjustments; no other weapon type carries the attribute. The name is kept to stay mergeable with
-// upstream. Callers must not use it as an affordability check.
-uint32_t Weapon::getManaCost(const std::shared_ptr<Player> &player) const {
+uint32_t Weapon::getManaGain(const std::shared_ptr<Player> &player) const {
 	if (mana != 0) {
 		return mana;
 	}

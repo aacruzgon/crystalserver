@@ -237,7 +237,10 @@ private:
 		return false;
 	}
 
-	uint32_t getManaCost(const std::shared_ptr<Player> &player) const;
+	// Per-shot mana GAIN for wands and rods. Since the Vocation Adjustments a wand attack generates
+	// mana rather than costing it, and no other weapon type carries the underlying item attribute.
+	// This is not an affordability check -- do not gate an attack on it.
+	uint32_t getManaGain(const std::shared_ptr<Player> &player) const;
 	int32_t getHealthCost(const std::shared_ptr<Player> &player) const;
 	bool executeUseWeapon(const std::shared_ptr<Player> &player, const LuaVariant &var) const;
 
