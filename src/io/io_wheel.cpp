@@ -223,6 +223,44 @@ const std::vector<std::string> &IOWheel::getFocusSpells() const {
 	return InternalPlayerWheel::m_focusSpells;
 }
 
+const std::vector<std::string>* IOWheel::getSpellGroupAugment(const std::string &name) {
+	if (name == "Any_Focus_Mage_Spell") {
+		return &InternalPlayerWheel::m_focusSpells;
+	}
+	if (name == "Any_Special_Mage_Spell") {
+		return &InternalPlayerWheel::m_specialSpells;
+	}
+	if (name == "Any_Forked_Spell") {
+		return &InternalPlayerWheel::m_forkedSpells;
+	}
+
+	return nullptr;
+}
+
+const std::string &IOWheel::getWheelTableNameFor(const std::string &spellName) {
+	// Reverse of getSpellGroupAugment: the vocation tables store one entry per group, so a real
+	// spell that belongs to a group has to be looked up under that group's synthetic name.
+	static const std::string focusName = "Any_Focus_Mage_Spell";
+	static const std::string specialName = "Any_Special_Mage_Spell";
+	static const std::string forkedName = "Any_Forked_Spell";
+
+	const auto contains = [&spellName](const std::vector<std::string> &list) {
+		return std::ranges::find(list, spellName) != list.end();
+	};
+
+	if (contains(InternalPlayerWheel::m_focusSpells)) {
+		return focusName;
+	}
+	if (contains(InternalPlayerWheel::m_specialSpells)) {
+		return specialName;
+	}
+	if (contains(InternalPlayerWheel::m_forkedSpells)) {
+		return forkedName;
+	}
+
+	return spellName;
+}
+
 using VocationBonusFunction = std::function<void(const std::shared_ptr<Player> &, uint16_t, uint8_t, PlayerWheelMethodsBonusData &)>;
 using VocationBonusMap = std::map<WheelSlots_t, VocationBonusFunction>;
 const VocationBonusMap &IOWheel::getWheelMapFunctions() const {
@@ -408,9 +446,22 @@ bool IOWheel::isMonk(uint8_t vocationId) const {
 }
 
 void IOWheel::addSpellAugmented(const std::shared_ptr<Player> &player, PlayerWheelMethodsBonusData &bonusData, WheelSlots_t slotType, uint16_t points, const std::string &spellName) const {
-	if (isMaxPointAddedToSlot(player, points, slotType)) {
-		bonusData.spells.push_back(spellName);
+	if (!isMaxPointAddedToSlot(player, points, slotType)) {
+		return;
 	}
+
+	// Group augments ("Forked Spells", "Focus Spells", "Special Spells") are declared under a
+	// single synthetic name, but the per-player grade map is keyed by real spell names. Without
+	// expanding here the grade lands on a name no spell ever queries, and the augment silently
+	// does nothing.
+	if (const auto* groupSpells = getSpellGroupAugment(spellName)) {
+		for (const auto &realSpellName : *groupSpells) {
+			bonusData.spells.push_back(realSpellName);
+		}
+		return;
+	}
+
+	bonusData.spells.push_back(spellName);
 }
 
 void IOWheel::addVesselResonance(const std::shared_ptr<Player> &player, PlayerWheelMethodsBonusData &bonusData, WheelSlots_t slotType, WheelGemAffinity_t affinity, uint16_t points) const {

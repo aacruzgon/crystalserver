@@ -143,6 +143,17 @@ public:
 	 */
 	const std::vector<std::string> &getFocusSpells() const;
 
+	/**
+	 * @brief Real spells covered by a synthetic group-augment name, or nullptr if not a group.
+	 */
+	static const std::vector<std::string>* getSpellGroupAugment(const std::string &name);
+
+	/**
+	 * @brief Name a spell is stored under in the vocation augment tables.
+	 * @details Group members resolve to their synthetic group name; everything else to itself.
+	 */
+	static const std::string &getWheelTableNameFor(const std::string &spellName);
+
 	using VocationBonusFunction = std::function<void(const std::shared_ptr<Player> &, uint16_t, uint8_t, PlayerWheelMethodsBonusData &)>;
 	using VocationBonusMap = std::map<WheelSlots_t, VocationBonusFunction>;
 	/**
