@@ -11357,40 +11357,6 @@ void Player::sendLootContainers() const {
 	}
 }
 
-void Player::sendSpellCooldowns() {
-	constexpr auto maxu16 = std::numeric_limits<uint16_t>::max();
-
-	for (const auto &condItem : conditions) {
-		if (!condItem) {
-			continue;
-		}
-
-		const ConditionType_t type = condItem->getType();
-		const uint32_t subId = condItem->getSubId();
-
-		if (type != CONDITION_SPELLCOOLDOWN && type != CONDITION_SPELLGROUPCOOLDOWN) {
-			continue;
-		}
-
-		uint16_t spellId = subId > maxu16 ? 0u : static_cast<uint16_t>(subId);
-		const auto &spell = g_spells().getInstantSpellById(spellId);
-		if (!spell) {
-			continue;
-		}
-
-		const uint32_t ticks = std::max<int32_t>(0, condItem->getTicks());
-		if (ticks == 0) {
-			continue;
-		}
-
-		if (type == CONDITION_SPELLGROUPCOOLDOWN) {
-			sendSpellGroupCooldown(static_cast<SpellGroup_t>(spellId), ticks);
-		} else {
-			sendSpellCooldown(spellId, ticks);
-		}
-	}
-}
-
 void Player::sendPlayerTyping(const std::shared_ptr<Creature> &creature, uint8_t typing) const {
 	if (!client) {
 		return;
@@ -12572,18 +12538,30 @@ void Player::resyncSpellCooldowns() const {
 		return;
 	}
 
+	// subId 0 means SPELLGROUP_NONE or an unregistered spell; the condition itself never
+	// sends those live, so replaying them here would only confuse the client. A tick count
+	// of 0 or below is an expired or endless condition and has no remaining time to show.
+
 	// Resync individual spell cooldowns
 	for (const auto &condition : getConditionsByType(CONDITION_SPELLCOOLDOWN)) {
-		uint16_t spellId = condition->getSubId();
-		uint32_t ticks = condition->getTicks();
-		sendSpellCooldown(spellId, ticks);
+		const uint32_t subId = condition->getSubId();
+		const int32_t ticks = condition->getTicks();
+		if (subId == 0 || ticks <= 0) {
+			continue;
+		}
+
+		sendSpellCooldown(static_cast<uint16_t>(subId), static_cast<uint32_t>(ticks));
 	}
 
-	// Resync group spell cooldowns
+	// Resync group spell cooldowns. subId is a SpellGroup_t here, never a spell id.
 	for (const auto &condition : getConditionsByType(CONDITION_SPELLGROUPCOOLDOWN)) {
-		SpellGroup_t groupId = static_cast<SpellGroup_t>(condition->getSubId());
-		uint32_t ticks = condition->getTicks();
-		client->sendSpellGroupCooldown(groupId, ticks);
+		const uint32_t subId = condition->getSubId();
+		const int32_t ticks = condition->getTicks();
+		if (subId == 0 || ticks <= 0) {
+			continue;
+		}
+
+		sendSpellGroupCooldown(static_cast<SpellGroup_t>(subId), static_cast<uint32_t>(ticks));
 	}
 }
 

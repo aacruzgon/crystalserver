@@ -8309,10 +8309,10 @@ void ProtocolGame::sendAddCreature(const std::shared_ptr<Creature> &creature, co
 	player->sendGameNews();
 	player->sendIcons();
 
-	// Send open containers after login.
+	// Send open containers after login. Spell cooldowns are already replayed by
+	// resyncSpellCooldowns() in ProtocolGame::login().
 	if (isLogin) {
 		player->openPlayerContainers();
-		player->sendSpellCooldowns();
 	}
 }
 

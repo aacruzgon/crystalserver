@@ -1015,7 +1015,6 @@ public:
 	// Quickloot
 	void sendLootContainers() const;
 
-	void sendSpellCooldowns();
 
 	void sendSingleSoundEffect(const Position &pos, SoundEffect_t id, SourceEffect_t source) const;
 
