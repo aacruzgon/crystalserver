@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3175, 4)
 end
 
+spell:id(116)
 spell:name("Stone Shower Rune")
 spell:words("adori mas tera")
 spell:group("support")

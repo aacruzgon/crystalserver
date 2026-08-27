@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3173, 2)
 end
 
+spell:id(91)
 spell:name("Poison Bomb Rune")
 spell:words("adevo mas pox")
 spell:group("support")

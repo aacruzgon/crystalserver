@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3190, 4)
 end
 
+spell:id(28)
 spell:name("Fire Wall Rune")
 spell:words("adevo mas grav flam")
 spell:group("support")

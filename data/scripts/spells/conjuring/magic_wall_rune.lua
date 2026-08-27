@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3180, 3)
 end
 
+spell:id(86)
 spell:name("Magic Wall Rune")
 spell:words("adevo grav tera")
 spell:group("support")

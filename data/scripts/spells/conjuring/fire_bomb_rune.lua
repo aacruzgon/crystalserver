@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3192, 2)
 end
 
+spell:id(17)
 spell:name("Fire Bomb Rune")
 spell:words("adevo mas flam")
 spell:group("support")

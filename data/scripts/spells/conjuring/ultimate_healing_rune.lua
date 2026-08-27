@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3160, 1)
 end
 
+spell:id(5)
 spell:name("Ultimate Healing Rune")
 spell:words("adura vita")
 spell:group("support")

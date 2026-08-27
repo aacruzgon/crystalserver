@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3203, 1)
 end
 
+spell:id(83)
 spell:name("Animate Dead Rune")
 spell:words("adana mort")
 spell:group("support")

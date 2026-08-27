@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3202, 4)
 end
 
+spell:id(117)
 spell:name("Thunderstorm Rune")
 spell:words("adori mas vis")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3191, 4)
 end
 
+spell:id(16)
 spell:name("Great Fireball Rune")
 spell:words("adori mas flam")
 spell:group("support")

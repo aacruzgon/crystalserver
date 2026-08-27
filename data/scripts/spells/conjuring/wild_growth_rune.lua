@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3156, 2)
 end
 
+spell:id(94)
 spell:name("Wild Growth Rune")
 spell:words("adevo grav vita")
 spell:group("support")

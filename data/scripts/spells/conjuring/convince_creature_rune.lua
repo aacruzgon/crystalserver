@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3177, 1)
 end
 
+spell:id(12)
 spell:name("Convince Creature Rune")
 spell:words("adeta sio")
 spell:group("support")

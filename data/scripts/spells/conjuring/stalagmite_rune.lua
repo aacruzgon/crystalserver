@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3179, 10)
 end
 
+spell:id(77)
 spell:name("Stalagmite Rune")
 spell:words("adori tera")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3178, 1)
 end
 
+spell:id(14)
 spell:name("Chameleon Rune")
 spell:words("adevo ina")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3165, 1)
 end
 
+spell:id(54)
 spell:name("Paralyze Rune")
 spell:words("adana ani")
 spell:group("support")

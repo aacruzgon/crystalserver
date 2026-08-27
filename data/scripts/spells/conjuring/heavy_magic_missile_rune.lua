@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3198, 10)
 end
 
+spell:id(8)
 spell:name("Heavy Magic Missile Rune")
 spell:words("adori vis")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3197, 3)
 end
 
+spell:id(78)
 spell:name("Disintegrate Rune")
 spell:words("adito tera")
 spell:group("support")

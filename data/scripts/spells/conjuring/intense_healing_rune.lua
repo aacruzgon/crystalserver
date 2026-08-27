@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3152, 1)
 end
 
+spell:id(4)
 spell:name("Intense Healing Rune")
 spell:words("adura gran")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3158, 5)
 end
 
+spell:id(114)
 spell:name("Icicle Rune")
 spell:words("adori frigo")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 21352, 10)
 end
 
+spell:id(179)
 spell:name("Lightest Missile Rune")
 spell:words("adori infir vis")
 spell:group("support")

@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3172, 3)
 end
 
+spell:id(26)
 spell:name("Poison Field Rune")
 spell:words("adevo grav pox")
 spell:group("support")

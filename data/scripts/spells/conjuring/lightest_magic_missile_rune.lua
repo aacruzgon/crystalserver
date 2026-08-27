@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3174, 10, CONST_ME_MAGIC_BLUE)
 end
 
+spell:id(168)
 spell:name("Practise Magic Missile")
 spell:words("adori dis min vis")
 spell:group("support")

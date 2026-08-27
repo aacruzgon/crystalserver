@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3164, 3)
 end
 
+spell:id(27)
 spell:name("Energy Field Rune")
 spell:words("adevo grav vis")
 spell:group("support")

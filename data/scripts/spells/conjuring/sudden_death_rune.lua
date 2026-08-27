@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3155, 3)
 end
 
+spell:id(21)
 spell:name("Sudden Death Rune")
 spell:words("adori gran mort")
 spell:group("support")

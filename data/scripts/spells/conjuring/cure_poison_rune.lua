@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3153, 1)
 end
 
+spell:id(31)
 spell:name("Cure Poison Rune")
 spell:words("adana pox")
 spell:group("support")

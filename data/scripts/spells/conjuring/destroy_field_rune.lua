@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3148, 3)
 end
 
+spell:id(30)
 spell:name("Destroy Field Rune")
 spell:words("adito grav")
 spell:group("support")

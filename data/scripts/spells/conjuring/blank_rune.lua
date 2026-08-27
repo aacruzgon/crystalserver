@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(0, 3147, 1)
 end
 
+spell:id(34)
 spell:name("Blank Rune")
 spell:words("adori blank")
 spell:group("support")

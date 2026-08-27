@@ -4,6 +4,7 @@ function spell.onCastSpell(creature, variant)
 	return creature:conjureItem(3147, 3195, 3)
 end
 
+spell:id(50)
 spell:name("Soulfire Rune")
 spell:words("adevo res flam")
 spell:group("support")
