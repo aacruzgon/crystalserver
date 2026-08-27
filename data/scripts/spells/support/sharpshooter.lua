@@ -1,13 +1,23 @@
-local condition = Condition(CONDITION_ATTRIBUTES)
-condition:setParameter(CONDITION_PARAM_SUBID, AttrSubId_Sharpshooter)
-condition:setParameter(CONDITION_PARAM_TICKS, -1)
-condition:setParameter(CONDITION_PARAM_SKILL_DISTANCEPERCENT, 140)
-condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
+-- Base gives +40% distance skill. The wheel's bonus II reads
+-- "-6s Cooldown; distance skill bonus increased by +5%", i.e. +45% in total.
+local BASE_DISTANCE_PERCENT = 140
 
-local combat = Combat()
-combat:setParameter(COMBAT_PARAM_EFFECT, 5)
-combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
-combat:addCondition(condition)
+local function buildCombat(distancePercent)
+	local condition = Condition(CONDITION_ATTRIBUTES)
+	condition:setParameter(CONDITION_PARAM_SUBID, AttrSubId_Sharpshooter)
+	condition:setParameter(CONDITION_PARAM_TICKS, -1)
+	condition:setParameter(CONDITION_PARAM_SKILL_DISTANCEPERCENT, distancePercent)
+	condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
+
+	local combat = Combat()
+	combat:setParameter(COMBAT_PARAM_EFFECT, 5)
+	combat:setParameter(COMBAT_PARAM_AGGRESSIVE, false)
+	combat:addCondition(condition)
+	return combat
+end
+
+local combat = buildCombat(BASE_DISTANCE_PERCENT)
+local combatAugmented = buildCombat(BASE_DISTANCE_PERCENT + 5)
 
 local spell = Spell("instant")
 
@@ -21,6 +31,11 @@ function spell.onCastSpell(creature, variant)
 	end
 	if player then
 		player:setStance(STANCE_SHARPSHOOTER)
+		-- Wheel bonus II raises the distance skill bonus. Bonus I lifts the stance's block on
+		-- support and healing spells, which is enforced in Spell::playerSpellCheck.
+		if player:getWheelSpellSkillIncrease("Sharpshooter") > 0 then
+			return combatAugmented:execute(creature, variant)
+		end
 	end
 	return combat:execute(creature, variant)
 end

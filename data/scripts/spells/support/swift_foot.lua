@@ -1,4 +1,6 @@
 local spellDuration = 10000
+-- Own subid so toggling another CONDITION_ATTRIBUTES effect off cannot clear this debuff.
+local SUBID_SWIFT_FOOT = 91
 
 local combat = Combat()
 combat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_MAGIC_GREEN)
@@ -29,17 +31,20 @@ function spell.onCastSpell(creature, var)
 	end
 
 	if combat:execute(creature, var) then
+		-- Official ladder, straight from the client's own augment strings:
+		--   no augment : attacks and spells are disabled while active
+		--   bonus I    : "Attacks and spells are enabled but dealt damage is reduced by 50%."
+		--   bonus II   : "and the damage dealt is no longer reduced."
 		local grade = creature:upgradeSpellsWOD("Swift Foot")
 		if grade == WHEEL_GRADE_NONE then
-			-- Vocation Adjustment: attacking/casting is now ALLOWED while active; -30% damage instead.
-			local damageDebuff = Condition(CONDITION_ATTRIBUTES)
-			damageDebuff:setParameter(CONDITION_PARAM_TICKS, spellDuration)
-			damageDebuff:setParameter(CONDITION_PARAM_BUFF_DAMAGEDEALT, 70) -- 70% of damage dealt = -30%
-			creature:addCondition(damageDebuff)
+			local pacify = Condition(CONDITION_PACIFIED)
+			pacify:setParameter(CONDITION_PARAM_TICKS, spellDuration)
+			creature:addCondition(pacify)
 		elseif grade == WHEEL_GRADE_REGULAR then
 			local damageDebuff = Condition(CONDITION_ATTRIBUTES)
+			damageDebuff:setParameter(CONDITION_PARAM_SUBID, SUBID_SWIFT_FOOT)
 			damageDebuff:setParameter(CONDITION_PARAM_TICKS, spellDuration)
-			damageDebuff:setParameter(CONDITION_PARAM_BUFF_DAMAGEDEALT, 50)
+			damageDebuff:setParameter(CONDITION_PARAM_BUFF_DAMAGEDEALT, 50) -- deals 50% of normal damage
 			creature:addCondition(damageDebuff)
 		end
 		return true

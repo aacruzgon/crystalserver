@@ -353,9 +353,18 @@ void IOWheel::initializeKnightSpells() {
 }
 
 void IOWheel::initializePaladinSpells() {
-	m_wheelBonusData.spells.paladin[0].name = "Ethereal Barrage"; // Vocation Adjustment: replaces Sharpshooter
-	m_wheelBonusData.spells.paladin[0].grade[1].leech.life = 10; // I +10% life leech
-	m_wheelBonusData.spells.paladin[0].grade[2].increase.criticalChance = 10; // II +10% crit chance
+	// Official: the Paladin wheel augments Sharpshooter. The client ships a dedicated string for
+	// bonus I, perk_description_AugSharpshooter_level1_special_long = "Enables the casting of
+	// support spells while active and", so bonus I lifts the stance's support-spell block on top
+	// of its numeric effect. That block lives in Spell::playerSpellCheck.
+	m_wheelBonusData.spells.paladin[0].name = "Sharpshooter";
+	// Official text, verbatim from the pristine client capture (SkillwheelStringsJsonLibrary2.json,
+	// MediumPerkInfos[22]):
+	//   I : "Enables the casting of support spells while active and Focus secondary group cooldown -8s"
+	//   II: "-6s Cooldown; distance skill bonus increased by +5%"
+	m_wheelBonusData.spells.paladin[0].grade[1].decrease.secondaryGroupCooldown = 8;
+	m_wheelBonusData.spells.paladin[0].grade[2].decrease.cooldown = 6;
+	m_wheelBonusData.spells.paladin[0].grade[2].increase.skillIncrease = 5; // +5% on the spell's distance skill bonus
 
 	m_wheelBonusData.spells.paladin[1].name = "Strong Ethereal Spear";
 	m_wheelBonusData.spells.paladin[1].grade[1].decrease.cooldown = 2;
@@ -366,9 +375,17 @@ void IOWheel::initializePaladinSpells() {
 	m_wheelBonusData.spells.paladin[2].grade[2].increase.duration = 4;
 	m_wheelBonusData.spells.paladin[2].grade[2].decrease.cooldown = 8; // II -8s cd (was -4s)
 
-	m_wheelBonusData.spells.paladin[3].name = "Divine Barrage"; // Vocation Adjustment: replaces Swift Foot
-	m_wheelBonusData.spells.paladin[3].grade[1].increase.damage = 10; // I +10% base damage
-	m_wheelBonusData.spells.paladin[3].grade[2].increase.damage = 15; // II +15% base damage
+	// Official: the Paladin wheel augments Swift Foot, and the client spells out the whole ladder.
+	// Base   : attacks and spells are disabled while active.
+	// Bonus I: "Attacks and spells are enabled but dealt damage is reduced by 50%."
+	// Bonus II: "and the damage dealt is no longer reduced."
+	// swift_foot.lua reads the grade and applies exactly that.
+	m_wheelBonusData.spells.paladin[3].name = "Swift Foot";
+	// Official text, verbatim (MediumPerkInfos[19]):
+	//   I : "Focus secondary group cooldown -8s. Attacks and spells are enabled but dealt damage is reduced by 50%."
+	//   II: "-6s Cooldown and the damage dealt is no longer reduced."
+	m_wheelBonusData.spells.paladin[3].grade[1].decrease.secondaryGroupCooldown = 8;
+	m_wheelBonusData.spells.paladin[3].grade[2].decrease.cooldown = 6;
 
 	m_wheelBonusData.spells.paladin[4].name = "Divine Caldera";
 	m_wheelBonusData.spells.paladin[4].grade[1].decrease.manaCost = 20;
@@ -416,9 +433,16 @@ void IOWheel::initializeMonkSpells() {
 	m_wheelBonusData.spells.monk[3].grade[1].increase.area = true; // Vocation Adjustment: I enlarges area (was +5% life leech)
 	m_wheelBonusData.spells.monk[3].grade[2].increase.damage = 15;
 
-	m_wheelBonusData.spells.monk[4].name = "Thousand Fist Blows"; // Vocation Adjustment: replaces Sweeping Takedown
-	m_wheelBonusData.spells.monk[4].grade[1].increase.criticalDamage = 40; // I +40% crit extra damage
-	m_wheelBonusData.spells.monk[4].grade[2].decrease.cooldown = 6; // II -6s cd
+	// Reverted to Sweeping Takedown: the supreme gem mods Monk_SweepingTakedown_* target this spell,
+	// so augmenting a different one left them pointing at a spell the wheel never graded.
+	m_wheelBonusData.spells.monk[4].name = "Sweeping Takedown";
+	// Official text, verbatim (MediumPerkInfos[44]):
+	//   I : "Adds 3% mana leech to this spell"
+	//   II: "Adds 25% critical extra damage for this spell and grants a 10% chance (non-cumulative)
+	//        for a critical hit."
+	m_wheelBonusData.spells.monk[4].grade[1].leech.mana = 3;
+	m_wheelBonusData.spells.monk[4].grade[2].increase.criticalDamage = 25;
+	m_wheelBonusData.spells.monk[4].grade[2].increase.criticalChance = 10;
 }
 
 bool IOWheel::isMaxPointAddedToSlot(const std::shared_ptr<Player> &player, uint16_t points, WheelSlots_t slotType) const {
@@ -612,11 +636,11 @@ void IOWheel::slotRed200(const std::shared_ptr<Player> &player, uint16_t points,
 		bonusData.stats.health += 3 * points;
 		bonusData.stats.mana += 1 * points;
 	} else if (isPaladin(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Ethereal Barrage");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Sharpshooter");
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 3 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Thousand Fist Blows");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_RED_200, points, "Sweeping Takedown");
 		bonusData.stats.health += 2 * points;
 		bonusData.stats.mana += 2 * points;
 	} else {
@@ -728,7 +752,7 @@ void IOWheel::slotGreenBottom100(const std::shared_ptr<Player> &player, uint16_t
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Intense Wound Cleansing");
 		bonusData.stats.health += 3 * points;
 	} else if (isPaladin(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Divine Barrage");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Swift Foot");
 		bonusData.stats.health += 2 * points;
 	} else if (isMonk(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_GREEN_BOTTOM_100, points, "Chained Penance");
@@ -851,10 +875,10 @@ void IOWheel::slotBlue50(const std::shared_ptr<Player> &player, uint16_t points,
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Front Sweep");
 		bonusData.stats.mana += 1 * points;
 	} else if (isPaladin(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Ethereal Barrage");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Sharpshooter");
 		bonusData.stats.mana += 3 * points;
 	} else if (isMonk(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Thousand Fist Blows");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_BLUE_50, points, "Sweeping Takedown");
 		bonusData.stats.mana += 2 * points;
 	} else {
 		if (isSorcerer(vocationCipId)) {
@@ -982,7 +1006,7 @@ void IOWheel::slotPurpleMiddle100(const std::shared_ptr<Player> &player, uint16_
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Intense Wound Cleansing");
 		bonusData.stats.capacity += 5 * points;
 	} else if (isPaladin(vocationCipId)) {
-		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Divine Barrage");
+		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Swift Foot");
 		bonusData.stats.capacity += 4 * points;
 	} else if (isMonk(vocationCipId)) {
 		addSpellAugmented(player, bonusData, WheelSlots_t::SLOT_PURPLE_MIDDLE_100, points, "Chained Penance");
