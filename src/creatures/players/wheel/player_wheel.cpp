@@ -2847,23 +2847,23 @@ void PlayerWheel::applyBlueStageBonus(uint8_t stageValue, Vocation_t vocationEnu
 		m_playerBonusData.stages.combatMastery = stageValue;
 	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
 		m_playerBonusData.stages.drainBody = stageValue;
-		for (uint8_t i = 0; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Drain_Body_Spells");
 		}
 	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
 		m_playerBonusData.stages.divineEmpowerment = stageValue;
-		for (uint8_t i = 0; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Divine Empowerment");
 		}
 	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
 		m_playerBonusData.stages.twinBurst = stageValue;
-		for (uint8_t i = 1; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Terra Burst");
 			addSpellToVector("Ice Burst");
 		}
 	} else if (vocationEnum == Vocation_t::VOCATION_MONK_CIP) {
 		m_playerBonusData.stages.ascetic = stageValue;
-		for (uint8_t i = 0; i <= stageValue; ++i) {
+		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Ascetic");
 		}
 	}
