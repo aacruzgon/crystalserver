@@ -2751,10 +2751,41 @@ void PlayerWheel::processActiveGems() {
 			g_logger().debug("[{}] Adding supreme modifier {} to player {} from {} gem affinity {}", __FUNCTION__, modifierName, playerName, magic_enum::enum_name(quality), magic_enum::enum_name(affinity));
 			m_modifierContext->addStrategies(supremeModifier, grade);
 		}
+
+		if (const int matchBonus = getVesselResonanceMatchBonus(quality, count); matchBonus > 0) {
+			g_logger().debug("[{}] Vessel Resonance {} matches {} gem in {} domain for player {}: +{} damage and healing", __FUNCTION__, count, magic_enum::enum_name(quality), magic_enum::enum_name(affinity), playerName, matchBonus);
+			m_playerBonusData.stats.damage += matchBonus;
+			m_playerBonusData.stats.healing += matchBonus;
+		}
 	}
 
 	g_logger().debug("[{}] active gems: {} ", __FUNCTION__, activeGems.size());
 	m_modifierContext->executeStrategies();
+}
+
+int PlayerWheel::getVesselResonanceMatchBonus(WheelGemQuality_t quality, uint8_t resonance) {
+	// Official rule, from the client's own wording
+	// (skill_wheel_dialog_vessel_matches_gem_bonus_information):
+	//
+	//   "If the Vessel Resonance matches the gem quality in this domain, a bonus of +1 to all
+	//    damage and healing is granted. This bonus is increased by 1 for greater gems.
+	//    Regardless of the match, gems will always grant mod bonuses based on the Vessel
+	//    Resonance.
+	//      Lesser gems match Dormant Vessels (VR I)
+	//      Regular gems match Awakened Vessels (VR II)
+	//      Greater gems match Radiant Vessels (VR III)"
+	//
+	// The match is exact, not "at least": a Lesser gem in a Radiant vessel does not match.
+	// Quality ordinals line up with the resonance they match, offset by one.
+	static constexpr int MATCH_BONUS = 1;
+	static constexpr int GREATER_EXTRA = 1;
+
+	const auto requiredResonance = static_cast<uint8_t>(static_cast<uint8_t>(quality) + 1);
+	if (resonance != requiredResonance) {
+		return 0;
+	}
+
+	return MATCH_BONUS + (quality == WheelGemQuality_t::Greater ? GREATER_EXTRA : 0);
 }
 
 void PlayerWheel::applyStageBonuses() {

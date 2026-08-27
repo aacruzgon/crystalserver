@@ -448,6 +448,13 @@ public:
 private:
 	void resetRevelationState();
 	void processActiveGems();
+
+	/**
+	 * @brief Flat damage and healing granted when a domain's Vessel Resonance matches its gem's quality.
+	 * @details Lesser gems match VR I, Regular VR II, Greater VR III. The match is exact.
+	 * @return The bonus to add to both damage and healing, or 0 when the vessel does not match.
+	 */
+	static int getVesselResonanceMatchBonus(WheelGemQuality_t quality, uint8_t resonance);
 	void applyStageBonuses();
 	void applyStageBonusForColor(const std::string &color);
 	void applyRedStageBonus(uint8_t stageValue, Vocation_t vocationEnum);
