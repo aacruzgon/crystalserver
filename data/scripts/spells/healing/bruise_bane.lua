@@ -24,7 +24,7 @@ spell:words("exura infir ico")
 spell:group("healing")
 spell:vocation("knight;true", "elite knight;true")
 spell:castSound(SOUND_EFFECT_TYPE_SPELL_BRUISE_BANE)
-spell:id(170)
+spell:id(175)
 spell:cooldown(1000)
 spell:groupCooldown(2 * 1000) -- Phase A rebalance: 1s -> 2s
 spell:level(1)
