@@ -26,6 +26,105 @@ class Player;
 struct Position;
 class RSA;
 
+/**
+ * Heap-backed storage for a network message body.
+ *
+ * NetworkMessage used to hold its NETWORKMESSAGE_MAXSIZE buffer inline, which made every
+ * instance a ~64KB object. The send* helpers each keep one as a local, so a nested call
+ * chain (equip -> transform -> equip -> ...) piled up hundreds of KB and overflowed the
+ * 512KB stack that non-main threads get on macOS. Keeping the bytes on the heap leaves the
+ * message itself pointer-sized while presenting the same interface the message code used.
+ *
+ * Allocation is lazy so a moved-from message stays usable: callers such as
+ * ProtocolGame::sendCoinBalance reset() and refill a message after handing it off.
+ */
+class MessageBuffer {
+public:
+	MessageBuffer() = default;
+
+	MessageBuffer(const MessageBuffer &other) {
+		if (other.storage) {
+			std::copy_n(other.storage.get(), NETWORKMESSAGE_MAXSIZE, allocate());
+		}
+	}
+
+	MessageBuffer &operator=(const MessageBuffer &other) {
+		if (this != &other) {
+			if (other.storage) {
+				std::copy_n(other.storage.get(), NETWORKMESSAGE_MAXSIZE, allocate());
+			} else {
+				storage.reset();
+			}
+		}
+		return *this;
+	}
+
+	MessageBuffer(MessageBuffer &&) noexcept = default;
+	MessageBuffer &operator=(MessageBuffer &&) noexcept = default;
+
+	// Reported independently of the allocation so bounds checks behave the same either way.
+	static constexpr size_t size() {
+		return static_cast<size_t>(NETWORKMESSAGE_MAXSIZE);
+	}
+
+	uint8_t* data() {
+		return allocate();
+	}
+
+	const uint8_t* data() const {
+		return allocate();
+	}
+
+	uint8_t* begin() {
+		return allocate();
+	}
+
+	const uint8_t* begin() const {
+		return allocate();
+	}
+
+	uint8_t* end() {
+		return allocate() + NETWORKMESSAGE_MAXSIZE;
+	}
+
+	const uint8_t* end() const {
+		return allocate() + NETWORKMESSAGE_MAXSIZE;
+	}
+
+	uint8_t &operator[](size_t index) {
+		return allocate()[index];
+	}
+
+	const uint8_t &operator[](size_t index) const {
+		return allocate()[index];
+	}
+
+	uint8_t &at(size_t index) {
+		if (index >= size()) {
+			throw std::out_of_range("NetworkMessage buffer index out of range");
+		}
+		return allocate()[index];
+	}
+
+	const uint8_t &at(size_t index) const {
+		if (index >= size()) {
+			throw std::out_of_range("NetworkMessage buffer index out of range");
+		}
+		return allocate()[index];
+	}
+
+private:
+	// Zero-initialised on first use, matching the value-initialised array this replaced.
+	uint8_t* allocate() const {
+		if (!storage) {
+			storage = std::make_unique<uint8_t[]>(NETWORKMESSAGE_MAXSIZE);
+		}
+		return storage.get();
+	}
+
+	mutable std::unique_ptr<uint8_t[]> storage;
+};
+
 class NetworkMessage {
 public:
 	using MsgSize_t = uint16_t;
@@ -183,5 +282,5 @@ protected:
 	};
 
 	NetworkMessageInfo info;
-	std::array<uint8_t, NETWORKMESSAGE_MAXSIZE> buffer = {};
+	MessageBuffer buffer;
 };
