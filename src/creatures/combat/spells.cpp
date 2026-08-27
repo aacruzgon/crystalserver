@@ -774,6 +774,16 @@ void Spell::applyCooldownConditions(const std::shared_ptr<Player> &player) const
 		rateCooldown = 0.1; // Safe minimum value
 	}
 	int32_t augmentCooldownReduction = calculateAugmentSpellCooldownReduction(player);
+
+	// "The cooldown of a spell cannot be reduced to less than 50% of its base cooldown by any
+	// means." (official client, skill_wheel_cooldown_limit_info). The same floor is applied to the
+	// group cooldowns: the client lists spell / primary group / secondary group as three separate
+	// cooldowns, and letting either group reach zero is not a defensible reading of that rule.
+	const auto applyFloor = [](int32_t reduced, int32_t base) {
+		const int32_t floor = base / 2;
+		return reduced < floor ? floor : reduced;
+	};
+
 	if (cooldown > 0) {
 		int32_t spellCooldown = cooldown;
 		if (isUpgraded) {
@@ -782,8 +792,7 @@ void Spell::applyCooldownConditions(const std::shared_ptr<Player> &player) const
 		g_logger().debug("[{}] spell name: {}, spellCooldown: {}, bonus: {}, augment {}", __FUNCTION__, name, spellCooldown, player->wheel()->getSpellBonus(name, WheelSpellBoost_t::COOLDOWN), augmentCooldownReduction);
 		spellCooldown -= player->wheel()->getSpellBonus(name, WheelSpellBoost_t::COOLDOWN);
 		spellCooldown -= augmentCooldownReduction;
-		const int32_t halfBaseCooldown = cooldown / 2;
-		spellCooldown = halfBaseCooldown > spellCooldown ? halfBaseCooldown : spellCooldown; // The cooldown should never be reduced less than half (50%) of its base cooldown
+		spellCooldown = applyFloor(spellCooldown, cooldown);
 		if (spellCooldown > 0) {
 			player->wheel()->handleTwinBurstsCooldown(player, name, spellCooldown, rateCooldown);
 			const auto &condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, spellCooldown / rateCooldown, 0, false, m_spellId);
@@ -796,6 +805,8 @@ void Spell::applyCooldownConditions(const std::shared_ptr<Player> &player) const
 		if (isUpgraded) {
 			spellGroupCooldown -= getWheelOfDestinyBoost(WheelSpellBoost_t::GROUP_COOLDOWN, spellGrade);
 		}
+		spellGroupCooldown -= player->wheel()->getSpellBonus(name, WheelSpellBoost_t::GROUP_COOLDOWN);
+		spellGroupCooldown = applyFloor(spellGroupCooldown, groupCooldown);
 		if (spellGroupCooldown > 0) {
 			const auto &condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, spellGroupCooldown / rateCooldown, 0, false, group);
 			player->addCondition(condition);
@@ -813,6 +824,7 @@ void Spell::applyCooldownConditions(const std::shared_ptr<Player> &player) const
 		if (secondaryGroup == SPELLGROUP_FOCUS && player->wheel()->getInstant("Focus Mastery")) {
 			spellSecondaryGroupCooldown -= 2000;
 		}
+		spellSecondaryGroupCooldown = applyFloor(spellSecondaryGroupCooldown, secondaryGroupCooldown);
 		if (spellSecondaryGroupCooldown > 0) {
 			player->wheel()->handleBeamMasteryCooldown(player, name, spellSecondaryGroupCooldown, rateCooldown);
 			const auto &condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, spellSecondaryGroupCooldown / rateCooldown, 0, false, secondaryGroup);
