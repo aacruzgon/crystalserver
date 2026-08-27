@@ -124,7 +124,7 @@ static void applyElementalStance(const std::shared_ptr<Player> &player, CombatDa
 
 	// Wheel "Lord of Destruction" (repurposed Drain Body stage, grade 0..3) scales the stance bonus.
 	// Grade 0 == no Lord of Destruction == the base values, so this stays fully backward-compatible.
-	uint8_t lod = player->wheel()->getStage(WheelStage_t::DRAIN_BODY);
+	uint8_t lod = player->wheel()->getStage(WheelStage_t::LORD_OF_DESTRUCTION);
 	if (lod > 3) {
 		lod = 3;
 	}

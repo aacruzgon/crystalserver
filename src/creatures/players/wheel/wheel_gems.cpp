@@ -303,7 +303,7 @@ void WheelModifierContext::addStrategies(WheelGemSupremeModifier_t modifier, uin
 		case WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_AvatarOfStorm:
 			m_strategies.emplace_back(std::make_unique<GemModifierRevelationStrategy>(m_wheel, WheelGemAffinity_t::Purple, 150 * gradeMultiplier));
 			break;
-		case WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_DrainBody:
+		case WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_LordOfDestruction:
 			m_strategies.emplace_back(std::make_unique<GemModifierRevelationStrategy>(m_wheel, WheelGemAffinity_t::Blue, 150 * gradeMultiplier));
 			break;
 

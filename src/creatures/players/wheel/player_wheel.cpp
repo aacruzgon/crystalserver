@@ -225,7 +225,7 @@ const static std::vector<WheelGemSupremeModifier_t> modsSupremeSorcererPosition 
 	WheelGemSupremeModifier_t::Sorcerer_GreatEnergyBeam_CriticalExtraDamage,
 	WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_AvatarOfStorm,
 	WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_BeamMastery,
-	WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_DrainBody,
+	WheelGemSupremeModifier_t::Sorcerer_RevelationMastery_LordOfDestruction,
 };
 
 const static std::vector<WheelGemSupremeModifier_t> modsSupremeDruidPosition = {
@@ -2326,12 +2326,12 @@ void PlayerWheel::registerPlayerBonusData() {
 		setSpellInstant("Divine Grenade", false);
 	}
 
-	if (m_playerBonusData.stages.drainBody > 0) {
-		for (int i = 0; i < m_playerBonusData.stages.drainBody; ++i) {
-			setSpellInstant("Drain Body", true);
+	if (m_playerBonusData.stages.lordOfDestruction > 0) {
+		for (int i = 0; i < m_playerBonusData.stages.lordOfDestruction; ++i) {
+			setSpellInstant("Lord of Destruction", true);
 		}
 	} else {
-		setSpellInstant("Drain Body", false);
+		setSpellInstant("Lord of Destruction", false);
 	}
 	if (m_playerBonusData.stages.beamMastery > 0) {
 		m_beamMasterySpells.emplace("Energy Beam");
@@ -2629,8 +2629,8 @@ void PlayerWheel::printPlayerWheelMethodsBonusData(const PlayerWheelMethodsBonus
 	if (bonusData.stages.blessingOfTheGrove > 0) {
 		g_logger().debug("  blessingOfTheGrove: {}", bonusData.stages.blessingOfTheGrove);
 	}
-	if (bonusData.stages.drainBody > 0) {
-		g_logger().debug("  drainBody: {}", bonusData.stages.drainBody);
+	if (bonusData.stages.lordOfDestruction > 0) {
+		g_logger().debug("  lordOfDestruction: {}", bonusData.stages.lordOfDestruction);
 	}
 	if (bonusData.stages.beamMastery > 0) {
 		g_logger().debug("  beamMastery: {}", bonusData.stages.beamMastery);
@@ -2846,7 +2846,7 @@ void PlayerWheel::applyBlueStageBonus(uint8_t stageValue, Vocation_t vocationEnu
 	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
 		m_playerBonusData.stages.combatMastery = stageValue;
 	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
-		m_playerBonusData.stages.drainBody = stageValue;
+		m_playerBonusData.stages.lordOfDestruction = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Drain_Body_Spells");
 		}
@@ -3276,8 +3276,9 @@ int32_t PlayerWheel::checkBeamMasteryDamage() const {
 
 int32_t PlayerWheel::checkDrainBodyLeech(const std::shared_ptr<Creature> &, skills_t) const {
 	// Vocation Adjustment: Lord of Destruction REPLACES Drain Body. The Drain Body stage now only
-	// scales the Sorcerer elemental stances (combat.cpp applyElementalStance via getStage(DRAIN_BODY));
-	// its old life/mana leech is removed per user decision. (The drainBody debuff condition is now inert.)
+	// scales the Sorcerer elemental stances (combat.cpp applyElementalStance via
+	// getStage(LORD_OF_DESTRUCTION)); its old life/mana leech is removed. The drainBody debuff
+	// condition below is now inert and kept only so old saves and scripts stay loadable.
 	return 0;
 }
 
@@ -3672,11 +3673,11 @@ void PlayerWheel::setSpellInstant(const std::string &name, bool value) {
 		} else {
 			setStage(WheelStage_t::BLESSING_OF_THE_GROVE, 0);
 		}
-	} else if (name == "Drain Body") {
+	} else if (name == "Lord of Destruction" || name == "Drain Body") { // legacy alias
 		if (value) {
-			setStage(WheelStage_t::DRAIN_BODY, getStage(WheelStage_t::DRAIN_BODY) + 1);
+			setStage(WheelStage_t::LORD_OF_DESTRUCTION, getStage(WheelStage_t::LORD_OF_DESTRUCTION) + 1);
 		} else {
-			setStage(WheelStage_t::DRAIN_BODY, 0);
+			setStage(WheelStage_t::LORD_OF_DESTRUCTION, 0);
 		}
 	} else if (name == "Divine Empowerment") {
 		if (value) {
@@ -3791,7 +3792,8 @@ uint8_t PlayerWheel::getStage(std::string_view name) const {
 		{ "Combat Mastery", COMBAT_MASTERY },
 		{ "Gift of Life", GIFT_OF_LIFE },
 		{ "Blessing of the Grove", BLESSING_OF_THE_GROVE },
-		{ "Drain Body", DRAIN_BODY },
+		{ "Lord of Destruction", LORD_OF_DESTRUCTION },
+		{ "Drain Body", LORD_OF_DESTRUCTION }, // legacy alias: the perk this slot used to be
 		{ "Divine Empowerment", DIVINE_EMPOWERMENT },
 		{ "Divine Grenade", DIVINE_GRENADE },
 		{ "Twin Burst", TWIN_BURST },
@@ -3924,7 +3926,8 @@ bool PlayerWheel::getInstant(std::string_view name) const {
 		{ "Combat Mastery", COMBAT_MASTERY },
 		{ "Gift of Life", GIFT_OF_LIFE },
 		{ "Blessing of the Grove", BLESSING_OF_THE_GROVE },
-		{ "Drain Body", DRAIN_BODY },
+		{ "Lord of Destruction", LORD_OF_DESTRUCTION },
+		{ "Drain Body", LORD_OF_DESTRUCTION }, // legacy alias: the perk this slot used to be
 		{ "Divine Empowerment", DIVINE_EMPOWERMENT },
 		{ "Divine Grenade", DIVINE_GRENADE },
 		{ "Twin Burst", TWIN_BURST },
