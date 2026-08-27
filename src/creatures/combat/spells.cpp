@@ -436,15 +436,12 @@ bool Spell::playerSpellCheck(const std::shared_ptr<Player> &player) const {
 		return false;
 	}
 
-	// Official: the Sharpshooter stance blocks support and healing spells while it is active --
-	// the client's own spell description says the paladin is "unable to cast any support, supply
-	// or healing spells in these 10 seconds". The Paladin wheel's bonus I lifts that block:
-	// perk_description_AugSharpshooter_level1_special_long = "Enables the casting of support
-	// spells while active and". Stance spells are exempt, otherwise the player could never cast
-	// Sharpshooter a second time to drop the stance.
+	// The Sharpshooter stance blocks support and healing spells while it is active. The wheel bonus
+	// that used to lift this block is gone -- 15.25 replaced the Sharpshooter augments with Ethereal
+	// Barrage ones -- so the block now stands for as long as the stance is up. Stance spells are
+	// exempt, otherwise the player could never cast Sharpshooter a second time to drop the stance.
 	if ((group == SPELLGROUP_SUPPORT || group == SPELLGROUP_HEALING) && secondaryGroup != SPELLGROUP_STANCE
-		&& player->getStance() == STANCE_SHARPSHOOTER
-		&& player->wheel()->getSpellUpgrade("Sharpshooter") < WheelSpellGrade_t::REGULAR) {
+		&& player->getStance() == STANCE_SHARPSHOOTER) {
 		player->sendCancelMessage("You cannot cast support or healing spells while Sharpshooter is active.");
 		g_game().addMagicEffect(player->getPosition(), CONST_ME_POFF);
 		return false;

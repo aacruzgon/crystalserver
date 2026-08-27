@@ -37,7 +37,7 @@ local spell = Spell("instant")
 
 function spell.onCastSpell(creature, var)
 	local player = creature:getPlayer()
-	if player and player:getWheelSpellAdditionalArea("Front Sweep") then
+	if player and player:getWheelSpellExpandedShape("Front Sweep") then
 		return combatWOD:execute(creature, var)
 	end
 	return combat:execute(creature, var)

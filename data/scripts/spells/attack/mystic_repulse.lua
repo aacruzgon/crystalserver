@@ -60,7 +60,7 @@ spell:words("exori amp pug")
 spell:castSound(SOUND_EFFECT_TYPE_SPELL_MYSTIC_REPULSE)
 spell:level(30)
 spell:mana(150)
-spell:basePower(72)
+spell:basePower(85) -- Vocation Adjustment: 72 -> 85
 spell:isPremium(true)
 spell:range(7)
 spell:needTarget(true)

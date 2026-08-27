@@ -3353,16 +3353,6 @@ int32_t PlayerWheel::checkDrainBodyLeech(const std::shared_ptr<Creature> &, skil
 	return 0;
 }
 
-int32_t PlayerWheel::checkBattleHealingAmount() const {
-	double amount = static_cast<double>(m_player.getSkillLevel(SKILL_SHIELD)) * 0.2;
-	const uint8_t healthPercent = (m_player.getHealth() * 100) / m_player.getMaxHealth();
-	if (healthPercent <= 30) {
-		amount *= 3;
-	} else if (healthPercent <= 60) {
-		amount *= 2;
-	}
-	return static_cast<int32_t>(amount);
-}
 
 int32_t PlayerWheel::checkAvatarSkill(WheelAvatarSkill_t skill) const {
 	if (skill == WheelAvatarSkill_t::NONE || (getOnThinkTimer(WheelOnThink_t::AVATAR_SPELL) <= OTSYS_TIME() && getOnThinkTimer(WheelOnThink_t::AVATAR_FORGE) <= OTSYS_TIME())) {
@@ -3613,6 +3603,13 @@ std::shared_ptr<Spell> PlayerWheel::getCombatDataSpell(CombatDamage &damage) {
 		damage.manaLeechChance += getSpellBonus(spellName, WheelSpellBoost_t::MANA_LEECH_CHANCE);
 		damage.lifeLeech += getSpellBonus(spellName, WheelSpellBoost_t::LIFE_LEECH);
 		damage.lifeLeechChance += getSpellBonus(spellName, WheelSpellBoost_t::LIFE_LEECH_CHANCE);
+
+		// 15.25 Vocation Adjustments: "Battle Healing has been reworked: increases the effect of your
+		// healing spells by 10%; this bonus is tripled while wearing a shield; no longer grants
+		// healing when challenging."
+		if (damage.primary.type == COMBAT_HEALING && getInstant("Battle Healing")) {
+			damage.healingMultiplier += m_player.hasShield() ? 30 : 10;
+		}
 	}
 
 	return spell;
@@ -4129,15 +4126,6 @@ void PlayerWheel::updateBeamMasteryDamage(CombatDamage &tmpDamage, uint8_t &beam
 		reduceAllSpellsCooldownTimer(1000); // Reduces all spell cooldown by 1 second per target hit (max 3 seconds)
 		--beamAffectedTotal;
 		beamAffectedCurrent++;
-	}
-}
-
-void PlayerWheel::healIfBattleHealingActive() const {
-	if (getInstant("Battle Healing")) {
-		CombatDamage damage;
-		damage.primary.value = checkBattleHealingAmount();
-		damage.primary.type = COMBAT_HEALING;
-		g_game().combatChangeHealth(m_player.getPlayer(), m_player.getPlayer(), damage);
 	}
 }
 

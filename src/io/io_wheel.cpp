@@ -333,7 +333,9 @@ void IOWheel::initializeDruidSpells() {
 void IOWheel::initializeKnightSpells() {
 	m_wheelBonusData.spells.knight[0].name = "Front Sweep";
 	m_wheelBonusData.spells.knight[0].grade[1].increase.damage = 40; // Vocation Adjustment: I +40% base power
-	m_wheelBonusData.spells.knight[0].grade[2].increase.area = true; // II shape +2 squares (front_sweep.lua must widen area)
+	// 15.25: "second increases shape to hit two additional squares to the sides of your character,
+	// for a total of 5 affected squares" -- a shape change, which has its own field and binding.
+	m_wheelBonusData.spells.knight[0].grade[2].increase.shape = true;
 
 	m_wheelBonusData.spells.knight[1].name = "Groundshaker";
 	m_wheelBonusData.spells.knight[1].grade[1].decrease.cooldown = 2; // Vocation Adjustment: swapped I<->II

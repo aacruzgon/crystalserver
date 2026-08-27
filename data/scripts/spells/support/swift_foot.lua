@@ -31,22 +31,15 @@ function spell.onCastSpell(creature, var)
 	end
 
 	if combat:execute(creature, var) then
-		-- Official ladder, straight from the client's own augment strings:
-		--   no augment : attacks and spells are disabled while active
-		--   bonus I    : "Attacks and spells are enabled but dealt damage is reduced by 50%."
-		--   bonus II   : "and the damage dealt is no longer reduced."
-		local grade = creature:upgradeSpellsWOD("Swift Foot")
-		if grade == WHEEL_GRADE_NONE then
-			local pacify = Condition(CONDITION_PACIFIED)
-			pacify:setParameter(CONDITION_PARAM_TICKS, spellDuration)
-			creature:addCondition(pacify)
-		elseif grade == WHEEL_GRADE_REGULAR then
-			local damageDebuff = Condition(CONDITION_ATTRIBUTES)
-			damageDebuff:setParameter(CONDITION_PARAM_SUBID, SUBID_SWIFT_FOOT)
-			damageDebuff:setParameter(CONDITION_PARAM_TICKS, spellDuration)
-			damageDebuff:setParameter(CONDITION_PARAM_BUFF_DAMAGEDEALT, 50) -- deals 50% of normal damage
-			creature:addCondition(damageDebuff)
-		end
+		-- 15.25 Vocation Adjustments: "Swift Foot now allows attacking and casting while being active,
+		-- but damage dealt is reduced by 30%." Before, attacks were disabled outright and only the
+		-- wheel augment lifted that; the augment is gone (the slot now carries Divine Barrage), so this
+		-- is unconditional base behaviour.
+		local damageDebuff = Condition(CONDITION_ATTRIBUTES)
+		damageDebuff:setParameter(CONDITION_PARAM_SUBID, SUBID_SWIFT_FOOT)
+		damageDebuff:setParameter(CONDITION_PARAM_TICKS, spellDuration)
+		damageDebuff:setParameter(CONDITION_PARAM_BUFF_DAMAGEDEALT, 70) -- deals 70% of normal damage
+		creature:addCondition(damageDebuff)
 		return true
 	end
 
@@ -59,8 +52,8 @@ spell:group("support", "focus")
 spell:vocation("paladin;true", "royal paladin;true")
 spell:castSound(SOUND_EFFECT_TYPE_SPELL_SWIFT_FOOT)
 spell:id(134)
-spell:cooldown(10 * 1000)
-spell:groupCooldown(2 * 1000, 10 * 1000)
+spell:cooldown(4 * 1000) -- Vocation Adjustment: 10s -> 4s
+spell:groupCooldown(2 * 1000, 2 * 1000) -- Vocation Adjustment: secondary 10s -> 2s
 spell:level(55)
 spell:mana(400)
 spell:isSelfTarget(true)
