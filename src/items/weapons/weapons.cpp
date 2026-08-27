@@ -171,9 +171,10 @@ int32_t Weapon::playerWeaponCheck(const std::shared_ptr<Player> &player, const s
 			return 0;
 		}
 
-		if (player->getMana() < getManaCost(player)) {
-			return 0;
-		}
+		// No mana precondition. The Vocation Adjustments turned the wand/rod mana figure from a cost
+		// into a per-shot gain (see onUsedWeapon), and wands/rods are the only weapons that carry one,
+		// so requiring the player to already hold that much mana would gate a mana source on the very
+		// resource it produces -- a wand would refuse to fire at 0 mana.
 
 		if (player->getHealth() < getHealthCost(player)) {
 			return 0;
@@ -409,12 +410,14 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 		}
 	}
 
-	const uint32_t manaCost = getManaCost(player);
-	if (manaCost != 0) {
-		// Vocation Adjustment: wand/rod attacks GENERATE mana instead of consuming it -- the per-shot
-		// mana cost (the only weapons with one are wands/rods) is added back to the caster's mana pool.
-		player->addManaSpent(manaCost);
-		player->changeMana(static_cast<int32_t>(manaCost));
+	// Vocation Adjustment: "Attacks now generate mana instead of consuming mana." The value still
+	// reaches us through getManaCost() because that is what the item attribute is called, but it is a
+	// gain now, not a charge -- nothing anywhere may treat it as a precondition. addManaSpent still
+	// runs so wands and rods keep training magic level as they always have.
+	const uint32_t manaGain = getManaCost(player);
+	if (manaGain != 0) {
+		player->addManaSpent(manaGain);
+		player->changeMana(static_cast<int32_t>(manaGain));
 	}
 
 	const uint32_t healthCost = getHealthCost(player);
@@ -457,6 +460,9 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 	}
 }
 
+// Despite the name, this is the per-shot mana GAIN for wands and rods since the Vocation
+// Adjustments; no other weapon type carries the attribute. The name is kept to stay mergeable with
+// upstream. Callers must not use it as an affordability check.
 uint32_t Weapon::getManaCost(const std::shared_ptr<Player> &player) const {
 	if (mana != 0) {
 		return mana;
