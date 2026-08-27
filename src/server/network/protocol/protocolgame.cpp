@@ -1077,8 +1077,19 @@ void ProtocolGame::disconnectClient(const std::string &message, DisconnectClient
 }
 
 void ProtocolGame::writeToOutputBuffer(NetworkMessage &msg) {
-	g_dispatcher().safeCall([self = getThis(), msg = std::move(msg)] {
-		self->getOutputBuffer(msg.getLength())->append(msg);
+	// safeCall runs the callback inline unless we are on an async task, so building a
+	// std::function for it costs an allocation the common path never needs.
+	if (!g_dispatcher().context().isAsync()) {
+		getOutputBuffer(msg.getLength())->append(msg);
+		return;
+	}
+
+	// Deferred: the bytes must outlive this frame. Copy only what was actually written
+	// rather than retaining the whole message, and leave the caller's msg intact so it
+	// can be reset() and refilled (ProtocolGame::sendCoinBalance does exactly that).
+	const auto* payloadStart = msg.getBuffer() + NetworkMessage::INITIAL_BUFFER_POSITION;
+	g_dispatcher().safeCall([self = getThis(), payload = std::vector<uint8_t>(payloadStart, payloadStart + msg.getLength())] {
+		self->getOutputBuffer(static_cast<int32_t>(payload.size()))->append(payload);
 	});
 }
 

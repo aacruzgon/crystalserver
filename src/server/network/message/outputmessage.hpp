@@ -65,6 +65,18 @@ public:
 		info.position += msgLen;
 	}
 
+	void append(std::span<const uint8_t> payload) {
+		auto msgLen = static_cast<MsgSize_t>(payload.size());
+		if (!canAdd(msgLen)) {
+			g_logger().error("[OutputMessage::append]: Insufficient buffer space for payload of size {}", msgLen);
+			return;
+		}
+		std::span<unsigned char> destSpan(buffer.data() + info.position, msgLen);
+		std::ranges::copy(payload, destSpan.begin());
+		info.length += msgLen;
+		info.position += msgLen;
+	}
+
 	void append(const OutputMessage_ptr &msg) {
 		auto msgLen = msg->getLength();
 		if (!canAdd(msgLen)) {
