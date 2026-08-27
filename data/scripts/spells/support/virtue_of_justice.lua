@@ -6,7 +6,7 @@ function spell.onCastSpell(creature, var)
 	return true
 end
 
-spell:group("support")
+spell:group("support", "stance")
 spell:id(275)
 spell:name("Virtue of Justice")
 spell:words("utito virtu")
@@ -14,7 +14,7 @@ spell:level(20)
 spell:mana(210)
 spell:isPremium(false)
 spell:needLearn(false)
-spell:groupCooldown(2 * 1000)
+spell:groupCooldown(2 * 1000, 10 * 1000)
 spell:cooldown(10 * 1000)
 spell:vocation("monk;true", "exalted monk;true")
 spell:isSelfTarget(true)

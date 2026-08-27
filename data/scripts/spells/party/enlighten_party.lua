@@ -58,7 +58,7 @@ spell:mana(75)
 spell:isPremium(false)
 
 spell:cooldown(5 * 60 * 1000)
-spell:groupCooldown(1 * 1000)
+spell:groupCooldown(2 * 1000)
 spell:isSelfTarget(true)
 spell:vocation("monk;true", "exalted monk;true")
 spell:register()

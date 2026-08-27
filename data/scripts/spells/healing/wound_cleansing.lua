@@ -23,7 +23,7 @@ spell:group("healing")
 spell:vocation("knight;true", "elite knight;true")
 spell:castSound(SOUND_EFFECT_TYPE_SPELL_WOUND_CLEANSING)
 spell:id(123)
-spell:cooldown(1 * 1000)
+spell:cooldown(2 * 1000)
 spell:groupCooldown(2 * 1000) -- Phase A rebalance: 1s -> 2s
 spell:level(8)
 spell:mana(40)
