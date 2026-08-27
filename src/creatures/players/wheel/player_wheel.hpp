@@ -153,10 +153,10 @@ public:
 	int getSpellNextAutoAttackReduction(const std::string &spellName) const;
 
 	/**
-	 * @brief Resolves a spell to its wheel augment entry for the player's current grade.
-	 * @return The graded bonus, or nullptr when this vocation's wheel does not augment the spell.
+	 * @brief Resolves a spell to its wheel augment, folded across every grade the player holds.
+	 * @return The accumulated bonus; all-zero when this vocation's wheel does not augment the spell.
 	 */
-	const WheelSpells::Bonus* getWheelSpellGrade(const std::string &spellName) const;
+	WheelSpells::Bonus getWheelSpellAugment(const std::string &spellName) const;
 
 	bool handleTwinBurstsCooldown(const std::shared_ptr<Player> &player, const std::string &spellName, int spellCooldown, int rateCooldown) const;
 	bool handleBeamMasteryCooldown(const std::shared_ptr<Player> &player, const std::string &spellName, int spellCooldown, int rateCooldown) const;
