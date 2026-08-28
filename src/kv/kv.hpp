@@ -121,10 +121,27 @@ protected:
 	virtual std::vector<std::string> loadPrefix(const std::string &prefix = "") = 0;
 
 private:
+	// Beyond this many remembered misses the set is cleared wholesale. Correctness
+	// is unaffected -- a cleared entry just costs one more query the next time that
+	// key is read -- and it bounds the memory a caller can consume by probing an
+	// unbounded range of keys.
+	static constexpr size_t MAX_MISSING_KEYS = 100000;
+
 	void setLocked(const std::string &key, const ValueWrapper &value);
 
 	phmap::parallel_flat_hash_map<std::string, std::pair<ValueWrapper, std::list<std::string>::iterator>> store_;
 	std::list<std::string> lruQueue_;
+
+	// Keys the backing store has already told us do not exist. Without this every
+	// read of an absent key is a fresh SELECT, because a miss is never recorded
+	// anywhere: get() only populates store_ when load() returns a value.
+	//
+	// Deliberately not modelled as a ValueWrapper::deleted() entry in store_, even
+	// though that would short-circuit get() the same way: KVSQL::prepareSave turns
+	// a deleted value into a DELETE statement, so every saveAll() would then issue
+	// one DELETE per key that had merely been read and found absent.
+	phmap::flat_hash_set<std::string> missingKeys_;
+
 	std::mutex mutex_;
 };
 

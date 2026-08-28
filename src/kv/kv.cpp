@@ -45,6 +45,14 @@ void KVStore::set(const std::string &key, const ValueWrapper &value) {
 
 void KVStore::setLocked(const std::string &key, const ValueWrapper &value) {
 	logger.trace("KVStore::set({})", key);
+
+	// The key now has a value, so it must not be remembered as absent. Required
+	// rather than tidiness: get() only consults missingKeys_ when the key is not
+	// in store_, and LRU eviction removes keys from store_. Without this erase, a
+	// key that was read while absent, then written, then evicted would afterwards
+	// read back as absent even though eviction had just saved it.
+	missingKeys_.erase(key);
+
 	const auto it = store_.find(key);
 	if (it != store_.end()) {
 		it->second.first = value;
@@ -68,9 +76,23 @@ std::optional<ValueWrapper> KVStore::get(const std::string &key, bool forceLoad 
 	logger.trace("KVStore::get({})", key);
 	std::scoped_lock lock(mutex_);
 	if (forceLoad || !store_.contains(key)) {
+		// A key that is known absent must not be queried again. Reading one that
+		// does not exist is the common case for per-session flags, and each miss
+		// was previously a synchronous SELECT on the dispatcher thread -- once per
+		// read, forever, because nothing recorded the miss.
+		if (!forceLoad && missingKeys_.contains(key)) {
+			return std::nullopt;
+		}
+
 		auto value = load(key);
 		if (value) {
 			setLocked(key, *value);
+		} else {
+			if (missingKeys_.size() >= MAX_MISSING_KEYS) {
+				logger.debug("KVStore::get() - MAX_MISSING_KEYS reached, clearing the miss set");
+				missingKeys_.clear();
+			}
+			missingKeys_.emplace(key);
 		}
 		return value;
 	}
