@@ -63,7 +63,10 @@ bool Proficiencies::loadFromJson(bool /* reloading */) {
 				const auto &perkJson = perksArray[perkIdx];
 				const uint8_t positionSlot = static_cast<uint8_t>(perkIdx + 1);
 				const WeaponProficiencyPerkType_t perkType = static_cast<WeaponProficiencyPerkType_t>(perkJson.at("Type").get<uint16_t>());
-				const float perkValue = perkJson.at("Value").get<float>();
+				// Perk types added after PROFICIENCY_PERK_ELEMENTAL_PIERCE (31) carry Multiplier/Probability
+				// instead of a flat Value - PERK_HOMING_MISSILE (32) is the first. Reading Value with at()
+				// threw on those and took the whole file down with it.
+				const float perkValue = perkJson.contains("Value") ? perkJson.at("Value").get<float>() : 0.0f;
 
 				ProficiencyPerk perk(positionSlot, perkType, perkValue);
 
