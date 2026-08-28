@@ -417,9 +417,29 @@ IntegerVector vectorAtoi(const StringVector &stringVector) {
 	return returnVector;
 }
 
+// One generator per thread. A single shared std::mt19937 was a data race: its
+// ~2.5 KB state and its index are read-modify-written on every call, and the
+// parallel task groups reach here (Monster::onExecuteAsyncTasks ->
+// updateIdleStatus -> setIdle -> Game::addCreatureCheck -> uniform_random) while
+// the dispatcher thread is rolling loot and damage. Racing calls can return the
+// same value twice or skip one.
+//
+// thread_local rather than a mutex on purpose: a lock would serialise the very
+// group this parallelism exists for, and the shared state spans 39 cache lines,
+// so it was also bouncing between cores on every roll.
+//
+// The seed mixes a counter into random_device because random_device is permitted
+// to be deterministic; without it, every thread could produce an identical
+// sequence, which is worse than the race being fixed.
 std::mt19937 &getRandomGenerator() {
-	static std::random_device rd;
-	static std::mt19937 generator(rd());
+	static std::atomic_uint64_t seedCounter { 0 };
+
+	thread_local std::mt19937 generator { [] {
+		std::random_device rd;
+		const auto counter = seedCounter.fetch_add(1, std::memory_order_relaxed);
+		return static_cast<std::mt19937::result_type>(rd() ^ (counter * 0x9E3779B9u));
+	}() };
+
 	return generator;
 }
 
@@ -429,7 +449,7 @@ int32_t getBaseDamageHealing(uint32_t level) {
 }
 
 int32_t uniform_random(int32_t minNumber, int32_t maxNumber) {
-	static std::uniform_int_distribution<int32_t> uniformRand;
+	thread_local std::uniform_int_distribution<int32_t> uniformRand;
 	if (minNumber == maxNumber) {
 		return minNumber;
 	}
@@ -440,7 +460,10 @@ int32_t uniform_random(int32_t minNumber, int32_t maxNumber) {
 }
 
 int32_t normal_random(int32_t minNumber, int32_t maxNumber) {
-	static std::normal_distribution<float> normalRand(0.5f, 0.25f);
+	// Must be thread_local, not static: normal_distribution caches the second
+	// Box-Muller value between calls, so it is shared mutable state in its own
+	// right, independent of the generator.
+	thread_local std::normal_distribution<float> normalRand(0.5f, 0.25f);
 	float v;
 	do {
 		v = normalRand(getRandomGenerator());
@@ -451,7 +474,7 @@ int32_t normal_random(int32_t minNumber, int32_t maxNumber) {
 }
 
 bool boolean_random(double probability /* = 0.5*/) {
-	static std::bernoulli_distribution booleanRand;
+	thread_local std::bernoulli_distribution booleanRand;
 	return booleanRand(getRandomGenerator(), std::bernoulli_distribution::param_type(probability));
 }
 
