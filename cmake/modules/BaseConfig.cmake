@@ -64,7 +64,10 @@ endif()
 # Options
 # *****************************************************************************
 option(TOGGLE_BIN_FOLDER "Use build/bin folder for generate compilation files" ON)
-option(OPTIONS_ENABLE_OPENMP "Enable Open Multi-Processing support." ON)
+# Off by default: there is not one #pragma omp anywhere in src/, so enabling this
+# only linked libgomp and added a find_package that fails on Apple clang. Turn it
+# back on if OpenMP directives are ever introduced.
+option(OPTIONS_ENABLE_OPENMP "Enable Open Multi-Processing support." OFF)
 option(DEBUG_LOG "Enable Debug Log" OFF)
 option(ASAN_ENABLED "Build this target with AddressSanitizer" OFF)
 option(BUILD_STATIC_LIBRARY "Build using static libraries" OFF)
