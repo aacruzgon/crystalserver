@@ -102,6 +102,18 @@ bool Proficiencies::loadFromJson(bool /* reloading */) {
 					perk.damageType = perkJson.at("DamageType").get<int32_t>();
 				}
 
+				if (perkJson.contains("Multiplier")) {
+					perk.multiplier = perkJson.at("Multiplier").get<float>();
+				}
+
+				if (perkJson.contains("Probability")) {
+					perk.probability = perkJson.at("Probability").get<float>();
+				}
+
+				if (perkJson.contains("MissileId")) {
+					perk.missileId = perkJson.at("MissileId").get<uint16_t>();
+				}
+
 				levelStruct.proficiencyDataPerks.emplace_back(std::move(perk));
 			}
 

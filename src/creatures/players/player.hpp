@@ -193,6 +193,13 @@ struct EquippedWeaponProficiencyBonuses {
 	float armorPenetration = 0; // ignores X% of target's physical armor
 	float elementalPierce[COMBAT_COUNT] = { 0 }; // ignores X% of target's elemental resistance per combat type
 
+	// Homing Missile: offensive spells have homingMissileChance to fire a missile dealing
+	// homingMissileMultiplier of the caster's level as homingMissileElement damage.
+	float homingMissileChance = 0;
+	float homingMissileMultiplier = 0;
+	int32_t homingMissileElement = 0;
+	uint16_t homingMissileId = 0;
+
 	uint8_t bestiaryId = 0;
 
 	void reset() {

@@ -38,6 +38,10 @@ struct ProficiencyPerk {
 	uint8_t bestiaryId = 0;
 	int32_t damageType = 0;
 	uint8_t range = 0;
+	// PROFICIENCY_PERK_HOMING_MISSILE carries these instead of a flat perkValue
+	float multiplier = 0.0f;
+	float probability = 0.0f;
+	uint16_t missileId = 0;
 	// std::string bestiaryName = "";
 };
 

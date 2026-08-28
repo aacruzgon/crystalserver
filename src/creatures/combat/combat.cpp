@@ -1698,6 +1698,36 @@ void Combat::doCombatHealth(const std::shared_ptr<Creature> &caster, const std::
 		}
 
 		CombatHealthFunc(caster, target, params, &damage);
+
+		// Proficiency Perk: Homing Missile.
+		// "Offensive spells have a X% chance to fire a homing missile that deals <element>
+		// damage equal to Y% of your level." Rolled here, in the single-target entry point,
+		// so it fires once per cast rather than once per creature hit - the area overload
+		// goes through CombatFunc and deliberately does not proc at all. The missile is
+		// applied straight through combatChangeHealth rather than re-entering doCombatHealth,
+		// so it cannot proc itself.
+		if (const auto &casterPlayer = caster ? caster->getPlayer() : nullptr;
+		    casterPlayer && target && target != caster && params.aggressive
+		    && damage.primary.type != COMBAT_HEALING
+		    && (!damage.instantSpellName.empty() || !damage.runeSpellName.empty())) {
+			const auto &proficiencyPerk = casterPlayer->getEquippedWeaponProficiency();
+			const float homingChance = proficiencyPerk.homingMissileChance;
+			if (homingChance > 0.0f && proficiencyPerk.homingMissileMultiplier > 0.0f
+			    && uniform_random(1, 10000) <= static_cast<int32_t>(homingChance * 10000.0f)) {
+				CombatDamage homingMissile;
+				homingMissile.primary.type = static_cast<CombatType_t>(proficiencyPerk.homingMissileElement);
+				homingMissile.primary.value = -static_cast<int32_t>(std::ceil(casterPlayer->getLevel() * proficiencyPerk.homingMissileMultiplier));
+				homingMissile.origin = ORIGIN_SPELL;
+
+				if (proficiencyPerk.homingMissileId != 0) {
+					addDistanceEffect(caster, origin, target->getPosition(), proficiencyPerk.homingMissileId);
+				}
+
+				g_logger().debug("[{}] homing missile procced for {} ({}% of level {})", __FUNCTION__, homingMissile.primary.value, proficiencyPerk.homingMissileMultiplier * 100, casterPlayer->getLevel());
+				g_game().combatChangeHealth(caster, target, homingMissile);
+			}
+		}
+
 		if (params.targetCallback) {
 			params.targetCallback->onTargetCombat(caster, target);
 		}

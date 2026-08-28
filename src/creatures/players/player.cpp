@@ -13282,6 +13282,16 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 					}
 					break;
 				}
+				case PROFICIENCY_PERK_HOMING_MISSILE: {
+					// This perk has no flat Value; its numbers live in Probability/Multiplier.
+					equippedWeaponProficiency.homingMissileChance += perk.probability;
+					equippedWeaponProficiency.homingMissileMultiplier += perk.multiplier;
+					if (damageTypeIndex >= 0 && damageTypeIndex < COMBAT_COUNT) {
+						equippedWeaponProficiency.homingMissileElement = damageTypeIndex;
+					}
+					equippedWeaponProficiency.homingMissileId = perk.missileId;
+					break;
+				}
 			}
 		}
 	}
