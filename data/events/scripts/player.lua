@@ -41,6 +41,59 @@ local storeItemID = {
 -- Players cannot throw items on teleports if set to true
 local blockTeleportTrashing = true
 
+-- Constants for Player:onGainExperience. That handler runs on every experience
+-- gain, for every player in the party, so nothing argument-independent should be
+-- rebuilt inside it.
+local taintExperienceBoostMap = {
+	[1] = { boost = 0 },
+	[2] = { boost = 0 },
+	[3] = { boost = 0 },
+	[4] = { boost = 0 },
+	[5] = { boost = 5 },
+	[6] = { boost = 10 },
+	[7] = { boost = 15 },
+	[8] = { boost = 20 },
+	[9] = { boost = 25 },
+}
+
+-- Keyed by name rather than a sequence: table.contains is a linear pairs() scan,
+-- so the array form cost up to 21 comparisons per kill.
+local bakragoreMonsters = {
+	["sopping corpus"] = true,
+	["oozing corpus"] = true,
+	["mycobiontic beetle"] = true,
+	["bloated man-maggot"] = true,
+	["murcion"] = true,
+	["walking pillar"] = true,
+	["darklight matter"] = true,
+	["darklight source"] = true,
+	["darklight striker"] = true,
+	["vemiath"] = true,
+	["darklight emitter"] = true,
+	["darklight construct"] = true,
+	["wandering pillar"] = true,
+	["converter"] = true,
+	["chagorz"] = true,
+	["oozing carcass"] = true,
+	["sopping carcass"] = true,
+	["rotten man-maggot"] = true,
+	["meandering mushroom"] = true,
+	["ichgahal"] = true,
+	["bakragore"] = true,
+}
+
+-- Rotten Blood taint areas: upper and lower left, floors 14 and 15.
+local function isInRottenBloodArea(player)
+	local pos = player:getPosition()
+	if pos.z ~= 14 and pos.z ~= 15 then
+		return false
+	end
+
+	local upperLeft = pos.x >= 33800 and pos.x <= 33941 and pos.y >= 31653 and pos.y <= 31771
+	local lowerLeft = pos.x >= 33800 and pos.x <= 33937 and pos.y >= 31809 and pos.y <= 31931
+	return upperLeft or lowerLeft
+end
+
 local configPush = {
 	maxItemsPerSeconds = 1,
 	exhaustTime = 2000,
@@ -512,8 +565,11 @@ function Player:onGainExperience(target, exp, rawExp)
 	-- Concoction System
 	useConcoctionTime(self)
 
+	-- Lowercased once and reused by the boosted-creature and Rotten Blood checks below.
+	local monsterName = target:getName():lower()
+
 	-- Apply Boosted Creature Bonus
-	if target:getName():lower() == Game.getBoostedCreature():lower() then
+	if monsterName == Game.getBoostedCreature():lower() then
 		exp = exp * 2
 	end
 
@@ -556,54 +612,8 @@ function Player:onGainExperience(target, exp, rawExp)
 	end
 
 	-- Rotten Blood Taint System: Experience Bonus ONLY in Rotten Areas
-	local function isInRottenBloodArea(player)
-		local pos = player:getPosition()
-		-- Upper left area: (33800, 31653) to (33941, 31771) floors 14 and 15
-		local upperLeft = (pos.x >= 33800 and pos.x <= 33941 and pos.y >= 31653 and pos.y <= 31771 and (pos.z == 14 or pos.z == 15))
-		-- Lower left area: (33800, 31809) to (33937, 31931) floors 14 and 15
-		local lowerLeft = (pos.x >= 33800 and pos.x <= 33937 and pos.y >= 31809 and pos.y <= 31931 and (pos.z == 14 or pos.z == 15))
-		return upperLeft or lowerLeft
-	end
-
-	local taintExperienceBoostMap = {
-		[1] = { boost = 0 },
-		[2] = { boost = 0 },
-		[3] = { boost = 0 },
-		[4] = { boost = 0 },
-		[5] = { boost = 5 },
-		[6] = { boost = 10 },
-		[7] = { boost = 15 },
-		[8] = { boost = 20 },
-		[9] = { boost = 25 },
-	}
-
-	local bakragoreMonsters = {
-		"sopping corpus",
-		"oozing corpus",
-		"mycobiontic beetle",
-		"bloated man-maggot",
-		"murcion",
-		"walking pillar",
-		"darklight matter",
-		"darklight source",
-		"darklight striker",
-		"vemiath",
-		"darklight emitter",
-		"darklight construct",
-		"wandering pillar",
-		"converter",
-		"chagorz",
-		"oozing carcass",
-		"sopping carcass",
-		"rotten man-maggot",
-		"meandering mushroom",
-		"ichgahal",
-		"bakragore",
-	}
-
-	local monsterName = target:getName():lower()
 	-- ONLY apply taint bonus if player is IN Rotten Blood areas AND killing Rotten monsters
-	if table.contains(bakragoreMonsters, monsterName) and isInRottenBloodArea(self) then
+	if bakragoreMonsters[monsterName] and isInRottenBloodArea(self) then
 		-- Get taint from BOTH sources (KV and Condition) and use the highest
 		local kv = self:kv():scoped("rotten-blood-quest")
 		local taintKV = kv:get("taints") or 0
