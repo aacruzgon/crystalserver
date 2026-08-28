@@ -60,8 +60,11 @@ public:
 		thread_local static int16_t id = -1;
 
 		if (id == -1) {
-			lastId.fetch_add(1);
-			id = lastId.load();
+			// One atomic, one result. Incrementing and then loading separately let
+			// two threads racing through here observe the same post-increment value,
+			// so they shared a Dispatcher::ThreadTask slot while another slot went
+			// unused.
+			id = lastId.fetch_add(1) + 1;
 		}
 
 		return id;
