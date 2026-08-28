@@ -88104,4 +88104,3647 @@
 		<attribute key="description" value="A catalyst used to enhance proficiencies." />
 		<attribute key="weight" value="100" />
 	</item>
+
+	<!-- ===== Client 15.30 sync: items in appearances.dat previously absent from items.xml.
+	     Generated from client assets + TibiaWiki infoboxes. ===== -->
+	<item id="8748" article="an" name="old piece of paper">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="39818" name="some golem parts">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="5" />
+	</item>
+	<item id="40016" name="fresh hydra herbs">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="40514" article="a" name="research records">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="40515" name="copied research notes">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="40516" article="a" name="feather and inkwell">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="40517" name="book with transcripts">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="40518" article="a" name="letter">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="40522" article="a" name="daedal chisel">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="40523" name="the key Intihuatac">
+	</item>
+	<item id="40524" article="a" name="piece of an ancient disc">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="333" />
+	</item>
+	<item id="40525" article="a" name="part of an ancient disc">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="333" />
+	</item>
+	<item id="40526" article="a" name="fragment of an ancient disc">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="333" />
+	</item>
+	<item id="40527" article="a" name="rotten feather">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="20" />
+	</item>
+	<item id="40528" article="a" name="ritual tooth">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="55" />
+	</item>
+	<item id="40529" article="a" name="gold-brocaded cloth">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="210" />
+	</item>
+	<item id="40581" article="a" name="wet boards">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="40596" article="an" name="egg cracker">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="500" />
+	</item>
+	<item id="40598" article="a" name="bottled yolk">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="40599" article="an" name="empty flask">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="40601" article="a" name="nutrient solution">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="40602" article="a" name="crumbled diary page">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="40603" name="flask with anti-mutagen">
+	</item>
+	<item id="42085" name="folded artefact carpet VII">
+		<attribute key="primarytype" value="decoration" />
+	</item>
+	<item id="42175" name="santa Ahau">
+		<attribute key="primarytype" value="decoration" />
+	</item>
+	<item id="43356" name="restorative goo">
+	</item>
+	<item id="43585" article="an" name="ocarina">
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43670" article="a" name="cauldron">
+		<attribute key="primarytype" value="tools (objects)" />
+	</item>
+	<item id="43671" article="a" name="cauldron">
+		<attribute key="primarytype" value="tools (objects)" />
+	</item>
+	<item id="43672" article="a" name="cauldron">
+		<attribute key="primarytype" value="tools (objects)" />
+	</item>
+	<item id="43673" article="a" name="cauldron">
+		<attribute key="primarytype" value="tools (objects)" />
+	</item>
+	<item id="43674" article="a" name="table">
+		<attribute key="primarytype" value="tables" />
+	</item>
+	<item id="43675" article="a" name="table with candles">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43676" article="a" name="table with burning candles">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43677" article="a" name="chest full of witchcraft">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43678" article="a" name="chest full of witchcraft">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43679" article="a" name="chest full of witchcraft">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43680" article="a" name="chest full of witchcraft">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43681" article="a" name="witchcraft chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43682" article="a" name="witchcraft chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43683" article="a" name="witchcraft chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43684" article="a" name="witchcraft chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43687" article="a" name="witchcraft cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="43688" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43688" article="a" name="witchcraft cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="43687" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43689" article="a" name="witchcraft portal">
+	</item>
+	<item id="43690" article="a" name="witchcraft portal">
+	</item>
+	<item id="43691" article="a" name="witchcraft portal">
+	</item>
+	<item id="43692" article="a" name="witchcraft portal">
+	</item>
+	<item id="43693" article="a" name="witchcraft fireplace">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43694" article="a" name="witchcraft fireplace">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43695" article="a" name="witchcraft fireplace">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43696" article="a" name="witchcraft fireplace">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43697" article="a" name="witchcraft cupboard">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43699" article="a" name="witchcraft cupboard">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43701" article="a" name="witchcraft summoning circle">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="43702" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43702" article="a" name="witchcraft summoning circle">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="43701" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43703" article="a" name="witchcraft bookstand">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43704" article="a" name="witchcraft bookstand">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43705" article="a" name="witchcraft bookstand">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43706" article="a" name="witchcraft bookstand">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43707" article="a" name="witchcraft cage">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="43708" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43708" article="a" name="witchcraft cage">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="43707" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="43709" article="a" name="witchcraft scroll">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43711" name="witchcraft forest herbs">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43713" name="witchcraft sweet herbs">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="43715" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43716" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43717" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43718" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43719" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43720" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43721" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43722" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43723" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43724" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43725" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43726" article="a" name="witchcraft bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="43738" article="a" name="pocket sundial">
+		<attribute key="weight" value="280" />
+	</item>
+	<item id="43739" article="a" name="moon compass">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="280" />
+	</item>
+	<item id="43778" article="an" name="organic acid">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43779" article="an" name="unstable darklight matter">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43780" article="a" name="yellow darklight matter">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43781" article="a" name="darklight obsidian axe">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43782" article="a" name="lichen gobbler">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43847" article="a" name="rotten vermin ichor">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43848" article="a" name="worm sponge">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43856" article="a" name="bloated maggot">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43857" article="a" name="blooded worm">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43858" article="a" name="basalt crumbs">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43859" article="a" name="basalt core">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="43860" article="a" name="bag you covet">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="43861" article="a" name="conch shell">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="43862" article="a" name="wooden mouthpiece">
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="43888" article="a" name="closed pocket sundial">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="280" />
+	</item>
+	<item id="43892" article="a" name="dewberries">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="43893" article="a" name="moon-touched dewberries">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="43894" article="a" name="dewberry palm leaf">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="60" />
+	</item>
+	<item id="43896" article="a" name="bag you covet">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="43897" article="a" name="bag you covet">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="43898" article="a" name="bag you covet">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="43930" article="a" name="pocket sundial">
+		<attribute key="weight" value="280" />
+	</item>
+	<item id="43946" article="an" name="abridged promotion scroll">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43947" article="a" name="basic promotion scroll">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43948" article="a" name="revised promotion scroll">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43949" article="an" name="extended promotion scroll">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43950" article="an" name="advanced promotion scroll">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="43961" article="a" name="darklight figurine">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="43962" article="a" name="putrefactive figurine">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="43963" name="figurine of Bakragore">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43964" name="Ichgahal&#x27;s fungal infestation">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43965" name="Murcion&#x27;s mycelium">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43966" name="Chagorz igneous obsidian">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43967" name="Vemiath&#x27;s infused basalt">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43968" name="Bakragore&#x27;s amalgamation">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="43969" name="Heliodor&#x27;s scrolls">
+	</item>
+	<item id="44008" article="a" name="moonlight ipomea&#x27;s stamen">
+		<attribute key="primarytype" value="extra slot" />
+		<attribute key="weight" value="50" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="44028" name="werewolf painting">
+		<attribute key="transformEquipTo" value="44029" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44029" name="werewolf painting">
+		<attribute key="transformDeEquipTo" value="44028" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44030" article="a" name="mask of the defiler">
+	</item>
+	<item id="44031" article="a" name="mask of the defiler">
+	</item>
+	<item id="44032" article="a" name="mask of the defiler">
+	</item>
+	<item id="44033" article="a" name="mask of the defiler">
+	</item>
+	<item id="44034" article="a" name="mask of the defiler">
+	</item>
+	<item id="44035" article="a" name="mask of the defiler">
+	</item>
+	<item id="44044" article="a" name="test voodoo skull">
+	</item>
+	<item id="44045" name="empty essence flask">
+		<attribute key="transformEquipTo" value="44046" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44046" name="empty essence flask">
+		<attribute key="transformDeEquipTo" value="44045" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44048" article="a" name="spiritual horseshoe">
+		<attribute key="primarytype" value="taming items" />
+		<attribute key="weight" value="120" />
+	</item>
+	<item id="44051" article="a" name="duality doll">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2105" />
+	</item>
+	<item id="44052" article="a" name="duality doll">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2105" />
+	</item>
+	<item id="44053" article="a" name="duality doll">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2105" />
+	</item>
+	<item id="44054" article="a" name="duality doll">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2105" />
+	</item>
+	<item id="44055" name="the dragon spirit">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2602" />
+	</item>
+	<item id="44056" name="the dragon spirit">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2602" />
+	</item>
+	<item id="44057" name="the dragon spirit">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2602" />
+	</item>
+	<item id="44058" name="the dragon spirit">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2602" />
+	</item>
+	<item id="44059" name="Aylie">
+	</item>
+	<item id="44060" name="Aylie">
+	</item>
+	<item id="44061" name="Aylie">
+	</item>
+	<item id="44062" name="Aylie">
+	</item>
+	<item id="44072" article="a" name="snowball">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="attack" value="0" />
+		<attribute key="defense" value="0" />
+		<attribute key="weight" value="80" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="0" />
+			<attribute key="slot" value="hand" />
+		</attribute>
+	</item>
+	<item id="44073" article="a" name="cave bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44074" article="a" name="cave bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44075" article="a" name="cave bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44076" article="a" name="cave bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44077" article="a" name="cave chair">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44078" article="a" name="cave chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44079" article="a" name="cave chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44080" article="a" name="cave chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44081" article="a" name="cave chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44082" article="a" name="cave table">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44083" article="a" name="cave cabinet">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44084" article="a" name="cave cabinet">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44085" article="a" name="cave cabinet">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44086" article="a" name="cave cabinet">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44087" article="a" name="cave floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44088" article="a" name="cave floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44089" article="a" name="cave wall lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformEquipTo" value="44090" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44090" article="a" name="cave wall lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformDeEquipTo" value="44089" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44091" name="gathered cave floor earth">
+		<attribute key="primarytype" value="floor decorations" />
+	</item>
+	<item id="44092" name="cave floor earth">
+		<attribute key="primarytype" value="floor decorations" />
+	</item>
+	<item id="44093" article="a" name="skelaptor">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44094" article="a" name="skelaptor">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44095" article="a" name="skelaptor">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44096" article="a" name="skelaptor">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44097" article="a" name="skelaptor">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44098" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44099" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44100" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44101" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44102" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44103" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44104" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44105" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44106" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44107" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44108" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44109" article="a" name="cave bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44110" name="cave wall panel">
+	</item>
+	<item id="44111" name="cave wall panel">
+	</item>
+	<item id="44112" name="cave wall panel">
+	</item>
+	<item id="44113" name="cave wall panel">
+	</item>
+	<item id="44114" article="a" name="cave weapon display">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44116" name="cave firewood">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44117" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44117" name="cave firewood">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44116" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44118" name="cave remains">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44119" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44119" name="cave remains">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44118" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44120" name="cave bones">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44121" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44121" name="cave bones">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44120" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44122" article="a" name="cave mural">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44123" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44123" article="a" name="cave mural">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44122" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44124" article="a" name="low cave mural">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44125" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44125" article="a" name="low cave mural">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44124" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44126" article="a" name="cave panel">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44127" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44127" article="a" name="cave panel">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44126" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44128" article="a" name="low cave panel">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44129" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44129" article="a" name="low cave panel">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44128" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44130" article="a" name="cave fence">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44131" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44131" article="a" name="cave fence">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44130" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44132" article="a" name="low cave fence">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44133" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44133" article="a" name="low cave fence">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44132" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44134" article="a" name="cave rampart">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44135" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44135" article="a" name="cave rampart">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44134" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44136" article="a" name="low cave rampart">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44137" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44137" article="a" name="low cave rampart">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44136" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44138" article="a" name="cave wall border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44139" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44139" article="a" name="cave wall border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44138" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44140" article="a" name="cave panel border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44141" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44141" article="a" name="cave panel border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44140" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44142" article="a" name="cave fence border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44143" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44143" article="a" name="cave fence border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44142" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44144" article="a" name="cave rampart border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44145" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44145" article="a" name="cave rampart border">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44144" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44146" article="a" name="cave fireplace">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44147" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44147" article="a" name="cave fireplace">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44146" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44148" article="a" name="cave floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44149" article="a" name="cave floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44157" article="an" name="albino dragon leather">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="60" />
+	</item>
+	<item id="44179" name="bottled dragon breath">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="60" />
+	</item>
+	<item id="44180" article="a" name="maddening mushroom">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="44182" article="a" name="cave chair">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44351" name="ballista bolt">
+	</item>
+	<item id="44352" name="enchanted ballista bolt">
+	</item>
+	<item id="44432" name="ancient Iks ritual chalice">
+	</item>
+	<item id="44433" article="a" name="ceremonial brush">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="44434" article="a" name="pilchi with paint">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="44435" article="a" name="jug of gold lye">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="44436" name="idol of Tukh">
+	</item>
+	<item id="44437" name="polished idol of Tukh">
+	</item>
+	<item id="44438" name="broken Mitmah necklace">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="44439" name="crystal of the Mitmah">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="44440" article="a" name="yapunac dagger">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44449" article="a" name="crystal chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44450" article="a" name="crystal chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44451" article="a" name="crystal chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44452" article="a" name="crystal chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44453" article="a" name="crystal chest">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44454" article="a" name="crystal chest">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44455" article="a" name="crystal chest">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44456" article="a" name="crystal chest">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44457" article="a" name="crystal table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44458" article="a" name="crystal cabinet">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="44459" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44459" article="a" name="crystal cabinet">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="44458" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44460" article="a" name="crystal floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44461" article="a" name="crystal floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44462" article="a" name="crystal floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44463" article="a" name="crystal floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="44515" article="a" name="crystal wall lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformEquipTo" value="44516" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44516" article="a" name="crystal wall lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformDeEquipTo" value="44515" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="44517" article="a" name="gnome baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44518" article="a" name="gnome baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44519" article="a" name="gnome baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44520" article="a" name="gnome baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="44525" article="a" name="fryclops axe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="1800" />
+	</item>
+	<item id="44527" article="a" name="spirit container">
+		<attribute key="primarytype" value="enchanted items" />
+		<attribute key="transformEquipTo" value="44528" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="600" />
+	</item>
+	<item id="44528" article="a" name="spirit container">
+		<attribute key="primarytype" value="enchanted items" />
+		<attribute key="transformDeEquipTo" value="44527" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="600" />
+	</item>
+	<item id="44545" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44546" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44547" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44548" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44549" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44550" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44551" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44552" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44553" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44554" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44555" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44556" article="a" name="crystal bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="44558" article="an" name="immensely powerful crystal">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="8" />
+	</item>
+	<item id="44672" name="the Mitmah north key">
+	</item>
+	<item id="44673" name="the Mitmah east key">
+	</item>
+	<item id="44674" name="the Mitmah south key">
+	</item>
+	<item id="44675" name="the Mitmah west key">
+	</item>
+	<item id="44677" article="a" name="ley triangulator">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="900" />
+	</item>
+	<item id="44727" name="broken Mitmah chestplate">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="44728" name="splintered Mitmah gem">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="44729" name="Atab&#x27;s Mitmah helmet">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="44736" article="a" name="bulltaur horn">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44737" article="a" name="bulltaur hoof">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44738" article="a" name="bulltaur armor scrap">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44739" article="an" name="encrypted notes">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44740" article="a" name="strange substance">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44741" article="a" name="staff piece">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44742" article="an" name="idol of the forge">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="44755" article="a" name="draccoon santa">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="44759" name="Aurora&#x27;s Collection">
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="44760" name="Aurora&#x27;s Collection">
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="44761" name="Aurora&#x27;s Collection">
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="44762" name="Aurora&#x27;s Collection">
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="45318" article="a" name="gravestone chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45319" article="a" name="gravestone chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45320" article="a" name="gravestone chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45321" article="a" name="gravestone chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45322" article="a" name="spooky chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45323" article="a" name="spooky chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45324" article="a" name="spooky chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45325" article="a" name="spooky chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45326" article="a" name="skull cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="45327" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45327" article="a" name="skull cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="45326" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45328" article="a" name="gravestone table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45329" article="a" name="gravestone table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45330" article="a" name="gravestone table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45331" article="a" name="reaper clock">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="45332" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45332" article="a" name="reaper clock">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="45331" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45333" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45334" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45335" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45336" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45337" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45338" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45339" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45340" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45341" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45342" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45343" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45344" article="a" name="tomb bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45345" article="a" name="morbid floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45346" article="a" name="morbid floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45347" article="a" name="morbid floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45348" article="a" name="morbid floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45349" article="a" name="black heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45350" article="a" name="black heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45351" article="a" name="black heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45352" article="a" name="reaper painting">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45353" article="a" name="spooky mirror">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="45354" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45354" article="a" name="spooky mirror">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="45353" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45355" article="a" name="vulture">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45356" article="a" name="vulture">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45357" article="a" name="vulture">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45358" article="a" name="vulture">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45493" article="a" name="blossom chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45494" article="a" name="blossom chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45495" article="a" name="blossom chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45496" article="a" name="blossom chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45497" article="a" name="blossom chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45498" article="a" name="blossom chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45499" article="a" name="blossom chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45500" article="a" name="blossom chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45501" article="a" name="lilypad table">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="45502" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45502" article="a" name="lilypad table">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="45501" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45503" article="a" name="blossom cabinet">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="45504" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45504" article="a" name="blossom cabinet">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="45503" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45505" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45506" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45507" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45508" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45509" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45510" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45511" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45512" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45513" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45514" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45515" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45516" article="a" name="blossom bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="45517" article="a" name="pink blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45518" article="a" name="pink blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45519" article="a" name="pink blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45520" article="a" name="pink blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="45521" article="a" name="purple blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformEquipTo" value="45522" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45522" article="a" name="purple blossom lamp">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformDeEquipTo" value="45521" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="45523" article="a" name="red heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45524" article="a" name="red heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45525" article="a" name="red heart">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45526" article="a" name="unicorn painting">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45527" article="a" name="flowering log">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45528" article="a" name="flowering log">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45529" name="blue butterfly">
+	</item>
+	<item id="45530" article="a" name="flowering log">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="45646" article="a" name="powerful pink seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="45647" article="a" name="powerful red seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="45648" article="a" name="powerful light blue seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="45649" article="a" name="powerful violet seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="45650" article="a" name="powerful purple seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="45651" article="a" name="powerful yellow seed">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="47899" article="a" name="falcon knight soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="48102" article="a" name="gingerbread key recipe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="20" />
+	</item>
+	<item id="48115" article="a" name="taiyaki">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="800" />
+	</item>
+	<item id="48118" article="a" name="bioluminescent root end">
+	</item>
+	<item id="48178" article="a" name="gingerbread key">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="48179" article="a" name="moon melon slice">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="48190" article="an" name="intricate cage key">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="48192" article="a" name="mirror image spell">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48194" article="a" name="flask with moon melon sirup">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48195" article="a" name="flask with raspberry sirup">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48196" article="a" name="flask with lemon sirup">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48197" article="a" name="moon melon">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="950" />
+	</item>
+	<item id="48198" article="a" name="gingerbread key">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="48199" article="a" name="gingerbread key">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="48200" article="a" name="gingerbread key">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="48201" name="sugar">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="500" />
+	</item>
+	<item id="48238" article="a" name="rose milk cake">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="48239" article="a" name="matcha turtle">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="48240" article="a" name="nightsky cupcake">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="48241" article="a" name="candy lipstick">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48248" article="a" name="rainbow waffles">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="48253" article="a" name="beijinho">
+		<attribute key="primarytype" value="food" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="48278" article="a" name="tattered piece of paper">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="48280" article="a" name="full honey glass">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="1500" />
+	</item>
+	<item id="48359" article="a" name="candy cane beam">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="800" />
+	</item>
+	<item id="48419" name="Podzilla&#x27;s Finest">
+	</item>
+	<item id="48420" name="processed blue tea leaves">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="48422" article="a" name="potent dew">
+		<attribute key="primarytype" value="quest items" />
+	</item>
+	<item id="48423" article="a" name="toothbrush">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="48475" name="magic bag of magic chests">
+	</item>
+	<item id="48480" article="a" name="rose milk cake recipe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48481" article="a" name="matcha turtle recipe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48482" article="a" name="nightsky cupcake recipe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48483" article="a" name="rainbow waffles recipe">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="48512" article="an" name="insect tarsus">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="25" />
+	</item>
+	<item id="48513" article="an" name="amber infused insect heart">
+		<attribute key="weight" value="25" />
+	</item>
+	<item id="48574" article="a" name="candy chest">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="48575" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="48575" article="a" name="candy chest">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="48574" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="48576" article="a" name="beehive">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="48577" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="48577" article="a" name="beehive">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="48576" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="48578" article="a" name="sweet present">
+		<attribute key="primarytype" value="taming items" />
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="48582" article="a" name="handful of marzipan carrots">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="160" />
+	</item>
+	<item id="48586" article="a" name="marzipan carrot">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="160" />
+	</item>
+	<item id="49156" article="a" name="sand toys">
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="49160" article="a" name="bursa obscura">
+		<attribute key="primarytype" value="containers" />
+		<attribute key="weight" value="150" />
+		<attribute key="imbuementslot" value="1">
+			<attribute key="increase capacity" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="backpack" />
+		</attribute>
+	</item>
+	<item id="49174" article="a" name="large obelisk">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformEquipTo" value="49175" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49175" article="a" name="large obelisk">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformDeEquipTo" value="49174" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49176" article="a" name="celestial torch">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="speed" value="25" />
+		<attribute key="weight" value="1800" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="49188" name="wicker chair">
+	</item>
+	<item id="49189" name="wicker chair">
+	</item>
+	<item id="49190" name="wicker chair">
+	</item>
+	<item id="49191" name="wicker chair">
+	</item>
+	<item id="49192" name="wicker table">
+	</item>
+	<item id="49193" name="wicker cabinet">
+		<attribute key="transformEquipTo" value="49194" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49194" name="wicker cabinet">
+		<attribute key="transformDeEquipTo" value="49193" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49195" name="wicker chest">
+	</item>
+	<item id="49196" name="wicker chest">
+	</item>
+	<item id="49197" name="wicker chest">
+	</item>
+	<item id="49198" name="wicker chest">
+	</item>
+	<item id="49199" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49200" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49201" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49202" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49203" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49204" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49205" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49206" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49207" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49208" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49209" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49210" article="a" name="wicker bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49211" article="an" name="overgrown floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="49212" article="an" name="overgrown floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="49213" article="an" name="overgrown floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="49214" article="an" name="overgrown floor lamp">
+		<attribute key="primarytype" value="lamps" />
+	</item>
+	<item id="49215" name="water floor in a bucket">
+		<attribute key="primarytype" value="floor decorations" />
+	</item>
+	<item id="49216" name="water floor">
+		<attribute key="primarytype" value="floor decorations" />
+	</item>
+	<item id="49217" article="a" name="wall growth">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49218" article="a" name="kapok tree">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49219" name="Cormayan beech">
+	</item>
+	<item id="49220" article="a" name="sycamore tree">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49221" name="Vanduran tuft palm">
+	</item>
+	<item id="49222" article="a" name="chill nettle shrub">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49223" article="an" name="umbrella fern">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49224" article="a" name="spotted jungle orchid">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49225" article="a" name="blue witches&#x27; cauldron flower">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49226" article="a" name="sloth">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49227" article="a" name="sloth">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49228" article="a" name="sloth">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49229" article="a" name="sloth">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49230" article="a" name="ember chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49231" article="a" name="ember chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49232" article="a" name="ember chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49233" article="a" name="ember chair">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49234" article="a" name="ember bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49235" article="a" name="ember bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49236" article="a" name="ember bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49237" article="a" name="ember bench">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49238" article="a" name="ember chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49239" article="a" name="ember chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49240" article="a" name="ember chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49241" article="a" name="ember chest">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49242" article="a" name="ember table">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="49243" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49243" article="a" name="ember table">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="49242" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49244" article="a" name="ember cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="49245" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49245" article="a" name="ember cabinet">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="49244" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49246" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49247" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49248" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49249" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49250" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49251" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49252" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49253" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49254" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49255" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49256" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49257" article="a" name="ember bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="49258" article="a" name="small volcano">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="49259" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49259" article="a" name="small volcano">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="49258" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49260" name="ember veins">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformEquipTo" value="49261" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49261" name="ember veins">
+		<attribute key="primarytype" value="lamps" />
+		<attribute key="transformDeEquipTo" value="49260" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49262" article="an" name="ember floor crack">
+		<attribute key="primarytype" value="floor decorations" />
+		<attribute key="transformEquipTo" value="49263" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49263" article="an" name="ember floor crack">
+		<attribute key="primarytype" value="floor decorations" />
+		<attribute key="transformDeEquipTo" value="49262" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49264" article="a" name="small fire elemental">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49265" article="a" name="small fire elemental">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49266" article="a" name="small fire elemental">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49267" article="a" name="small fire elemental">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="49268" article="an" name="ember fissure">
+		<attribute key="primarytype" value="floor decorations" />
+		<attribute key="transformEquipTo" value="49269" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49269" article="an" name="ember fissure">
+		<attribute key="primarytype" value="floor decorations" />
+		<attribute key="transformDeEquipTo" value="49268" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="49272" article="a" name="love elixir">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="1350" />
+	</item>
+	<item id="49273" name="chaos critical dice">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="40" />
+	</item>
+	<item id="49910" article="a" name="pine cone">
+		<attribute key="weight" value="100" />
+	</item>
+	<item id="50051" name="Rotrender&#x27;s sceptre">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="transformEquipTo" value="50052" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50052" name="Rotrender&#x27;s sceptre">
+		<attribute key="transformDeEquipTo" value="50051" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50053" article="a" name="blood coin">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="50062" article="a" name="demon in a red box">
+		<attribute key="primarytype" value="taming items" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="50063" article="a" name="demon in a golden box">
+		<attribute key="primarytype" value="taming items" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="50065" name="Rotrender scalp">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="50066" name="Rotrender claw">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="50172" article="a" name="sickbay table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50173" article="a" name="sickbay table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50174" article="a" name="sickbay table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50175" article="a" name="sickbay table">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50177" article="a" name="sickbay cabinet">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50178" article="a" name="sickbay cabinet">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50179" article="a" name="sickbay cabinet">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50180" article="a" name="sickbay cabinet">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50205" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50206" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50207" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50208" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50209" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50210" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50211" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50212" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50213" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50214" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50215" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50216" article="a" name="sickbed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50217" name="creatures in jars">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="50218" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50218" name="creatures in jars">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="50217" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50219" name="small creatures in jars">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="50220" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50220" name="small creatures in jars">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="50219" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50221" article="a" name="brain in a jar">
+		<attribute key="primarytype" value="spellbooks" />
+		<attribute key="defense" value="31" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="absorbpercentearth" value="7" />
+		<attribute key="weight" value="2700" />
+		<attribute key="imbuementslot" value="1">
+			<attribute key="elemental protection death" value="3" />
+			<attribute key="elemental protection earth" value="3" />
+			<attribute key="elemental protection energy" value="3" />
+			<attribute key="elemental protection fire" value="3" />
+			<attribute key="elemental protection holy" value="3" />
+			<attribute key="elemental protection ice" value="3" />
+			<attribute key="skillboost shielding" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="180" />
+			<attribute key="slot" value="shield" />
+		</attribute>
+	</item>
+	<item id="50222" name="leech jar">
+	</item>
+	<item id="50223" article="a" name="leech terrarium">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="50224" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50224" article="a" name="leech terrarium">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="50223" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50234" name="anatomical skeleton">
+		<attribute key="transformEquipTo" value="50235" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50235" name="anatomical skeleton">
+		<attribute key="transformDeEquipTo" value="50234" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50236" name="several skulls">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformEquipTo" value="50237" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50237" name="several skulls">
+		<attribute key="primarytype" value="furniture" />
+		<attribute key="transformDeEquipTo" value="50236" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="50238" article="a" name="paramedic demon">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50241" article="a" name="paramedic demon">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="50312" article="a" name="mighty demonic core essence">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="190" />
+	</item>
+	<item id="50335" article="a" name="guardian statue">
+		<attribute key="primarytype" value="statues" />
+	</item>
+	<item id="50336" name="fragment of a statue">
+		<attribute key="primarytype" value="decoration" />
+	</item>
+	<item id="50337" name="fragment of a statue">
+		<attribute key="primarytype" value="decoration" />
+	</item>
+	<item id="50338" name="fragment of a statue">
+		<attribute key="primarytype" value="decoration" />
+	</item>
+	<item id="50488" name="red panda">
+	</item>
+	<item id="50489" name="red panda">
+	</item>
+	<item id="50490" name="red panda">
+	</item>
+	<item id="50491" name="red panda">
+	</item>
+	<item id="50975" article="a" name="magic bookmark">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="50979" name="illuminated book page">
+	</item>
+	<item id="50980" name="illuminated book page">
+	</item>
+	<item id="50981" name="illuminated book page">
+	</item>
+	<item id="51030" article="a" name="wooden stake">
+		<attribute key="primarytype" value="tools" />
+		<attribute key="weight" value="500" />
+	</item>
+	<item id="51031" article="an" name="empowered stake">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="400" />
+	</item>
+	<item id="51032" name=" vial of corrosive blood">
+	</item>
+	<item id="51033" article="a" name="vial of vampiric blood">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="51034" article="an" name="empowered stake">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="400" />
+	</item>
+	<item id="51035" name=" vial of corrosive blood">
+	</item>
+	<item id="51078" article="a" name="jar of red colour">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="180" />
+	</item>
+	<item id="51079" article="a" name="jar of blue colour">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="180" />
+	</item>
+	<item id="51224" article="a" name="voodoo doll">
+		<attribute key="primarytype" value="dolls and bears" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51225" article="a" name="voodoo doll">
+		<attribute key="primarytype" value="dolls and bears" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51226" article="a" name="voodoo doll">
+		<attribute key="primarytype" value="dolls and bears" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51227" article="a" name="voodoo doll">
+		<attribute key="primarytype" value="dolls and bears" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51236" article="a" name="painted torch">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="500" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="51276" name="spirited soil">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="51293" article="an" name="ancient orc fetish">
+	</item>
+	<item id="51314" article="a" name="magic hat">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="630" />
+	</item>
+	<item id="51315" name="Banor doll">
+		<attribute key="primarytype" value="valuables" />
+	</item>
+	<item id="51316" article="a" name="bard doll">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="850" />
+	</item>
+	<item id="51317" name="Aylie">
+		<attribute key="primarytype" value="valuables" />
+	</item>
+	<item id="51318" name="Aurora&#x27;s Collection">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="51319" name="the dragon spirit">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="2602" />
+	</item>
+	<item id="51376" article="a" name="dip pen">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="20" />
+	</item>
+	<item id="51377" article="a" name="dip pen with ink">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="23" />
+	</item>
+	<item id="51380" article="a" name="painted arrow">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="10" />
+	</item>
+	<item id="51381" article="a" name="painted bow">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="3100" />
+	</item>
+	<item id="51424" article="a" name="cookbook">
+		<attribute key="primarytype" value="books" />
+		<attribute key="weight" value="1500" />
+	</item>
+	<item id="51428" article="a" name="pressed flower">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="5" />
+	</item>
+	<item id="51429" name="axe of Sir Leonard">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="51430" name="helmet of Sir Leonard">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="51439" article="a" name="phoenix feather quill">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="3100" />
+	</item>
+	<item id="51440" article="an" name="ink-coated sword">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="3500" />
+	</item>
+	<item id="51441" name="the sacred writings of Getema">
+	</item>
+	<item id="51749" name="painting of Thais">
+		<attribute key="transformEquipTo" value="51750" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51750" name="painting of Thais">
+		<attribute key="transformDeEquipTo" value="51749" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51751" article="a" name="skullfrost figurine">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51752" article="a" name="emberwing figurine">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51753" article="a" name="thundergiant figurine">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51754" article="a" name="grovebeast figurine">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51755" article="a" name="omniphant figurine">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="weight" value="650" />
+	</item>
+	<item id="51759" name="book">
+	</item>
+	<item id="51761" name="sighting chair">
+	</item>
+	<item id="51762" name="sighting chair">
+	</item>
+	<item id="51763" name="sighting chair">
+	</item>
+	<item id="51764" name="sighting chair">
+	</item>
+	<item id="51765" name="sighting chest">
+	</item>
+	<item id="51766" name="sighting chest">
+	</item>
+	<item id="51767" name="sighting chest">
+	</item>
+	<item id="51768" name="sighting chest">
+	</item>
+	<item id="51769" name="sighting table">
+	</item>
+	<item id="51770" name="sighting cabinet">
+		<attribute key="transformEquipTo" value="51771" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51771" name="sighting cabinet">
+		<attribute key="transformDeEquipTo" value="51770" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51772" name="sighting lamp">
+		<attribute key="transformEquipTo" value="51773" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51773" name="sighting lamp">
+		<attribute key="transformDeEquipTo" value="51772" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="51774" name="tiny sight of surrender">
+	</item>
+	<item id="51775" name="tiny sight of surrender">
+	</item>
+	<item id="51776" name="tiny sight of surrender">
+	</item>
+	<item id="51786" name="sighting bed">
+	</item>
+	<item id="51787" name="sighting bed">
+	</item>
+	<item id="51788" name="sighting bed">
+	</item>
+	<item id="51789" name="sightingbed">
+	</item>
+	<item id="51790" name="sighting bed">
+	</item>
+	<item id="51791" name="sighting bed">
+	</item>
+	<item id="51792" name="sighting bed">
+	</item>
+	<item id="51793" name="sighting bed">
+	</item>
+	<item id="51794" name="sighting bed">
+	</item>
+	<item id="51795" name="sighting bed">
+	</item>
+	<item id="51796" name="sighting bed">
+	</item>
+	<item id="51797" name="sighting bed">
+	</item>
+	<item id="52987" name="mole hammer">
+	</item>
+	<item id="52991" article="an" name="empty bucket">
+		<attribute key="primarytype" value="quest objects" />
+	</item>
+	<item id="52992" article="a" name="bucket full of water">
+		<attribute key="weight" value="2500" />
+	</item>
+	<item id="52996" name="green worm-away">
+	</item>
+	<item id="52997" name="blue worm-away">
+	</item>
+	<item id="52998" name="red worm-away">
+	</item>
+	<item id="52999" name="yellow worm-away">
+	</item>
+	<item id="53009" name="wooden trash">
+		<attribute key="primarytype" value="rubbish" />
+		<attribute key="weight" value="570" />
+	</item>
+	<item id="53142" article="a" name="pirate navigator soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53143" article="a" name="pirate gunner soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53144" article="a" name="pirate cook soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53145" article="a" name="pirate quartermaster soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53146" article="a" name="sea captain soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53147" article="a" name="lizard henchman soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53148" article="a" name="lizard magician soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53149" article="a" name="lizard swordmaster soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53150" article="a" name="lizard executioner soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53151" article="a" name="lizard commander soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53152" article="an" name="infernoid blob soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53153" article="an" name="infernoid hound soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53154" article="an" name="infernoid soul soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53155" article="an" name="infernoid spiritual soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53174" name="yellow rubber duck">
+	</item>
+	<item id="53175" name="red rubber duck">
+	</item>
+	<item id="53176" name="green rubber duck">
+	</item>
+	<item id="53177" name="blue rubber duck">
+	</item>
+	<item id="53178" name="purple rubber duck">
+	</item>
+	<item id="53179" name="royal rubber duck">
+	</item>
+	<item id="53180" name="undead rubber duck">
+	</item>
+	<item id="53181" name="mermaid rubber duck">
+	</item>
+	<item id="53182" name="ferumbras rubber duck">
+	</item>
+	<item id="53183" name="warrior rubber duck">
+	</item>
+	<item id="53184" name="dark rubber duck">
+	</item>
+	<item id="53185" name="orc rubber duck">
+	</item>
+	<item id="53186" name="demon rubber duck">
+	</item>
+	<item id="53187" name="pirate rubber duck">
+	</item>
+	<item id="53188" name="frozen rubber duck">
+	</item>
+	<item id="53189" name="dragon rubber duck">
+	</item>
+	<item id="53190" name="captain&#x27;s sabre">
+	</item>
+	<item id="53191" name="captain&#x27;s hat">
+	</item>
+	<item id="53192" article="a" name="sailor&#x27;s backpack">
+		<attribute key="primarytype" value="containers" />
+		<attribute key="weight" value="1500" />
+		<attribute key="imbuementslot" value="1">
+			<attribute key="increase capacity" value="3" />
+		</attribute>
+	</item>
+	<item id="53197" article="an" name="enchanted flamingo amulet of valor">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="4" />
+		<attribute key="skillsword" value="4" />
+		<attribute key="skillaxe" value="4" />
+		<attribute key="skillclub" value="4" />
+		<attribute key="skillshield" value="1" />
+		<attribute key="absorbpercentphysical" value="7" />
+		<attribute key="absorbpercentfire" value="12" />
+		<attribute key="transformEquipTo" value="53198" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="510" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53198" article="an" name="enchanted flamingo amulet of valor">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="4" />
+		<attribute key="skillsword" value="4" />
+		<attribute key="skillaxe" value="4" />
+		<attribute key="skillclub" value="4" />
+		<attribute key="skillshield" value="1" />
+		<attribute key="absorbpercentphysical" value="7" />
+		<attribute key="absorbpercentfire" value="12" />
+		<attribute key="transformDeEquipTo" value="53197" />
+		<attribute key="showduration" value="1" />
+		<attribute key="duration" value="10800" />
+		<attribute key="decayTo" value="54510" />
+		<attribute key="weight" value="510" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53199" article="an" name="enchanted flamingo amulet of precision">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="4" />
+		<attribute key="skilldist" value="4" />
+		<attribute key="holymagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="5" />
+		<attribute key="absorbpercentfire" value="14" />
+		<attribute key="transformEquipTo" value="53200" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="460" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Paladin;true, Royal Paladin" />
+		</attribute>
+	</item>
+	<item id="53200" article="an" name="enchanted flamingo amulet of precision">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="4" />
+		<attribute key="skilldist" value="4" />
+		<attribute key="holymagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="5" />
+		<attribute key="absorbpercentfire" value="14" />
+		<attribute key="transformDeEquipTo" value="53199" />
+		<attribute key="showduration" value="1" />
+		<attribute key="duration" value="10800" />
+		<attribute key="decayTo" value="54511" />
+		<attribute key="weight" value="460" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Paladin;true, Royal Paladin" />
+		</attribute>
+	</item>
+	<item id="53201" article="an" name="enchanted flamingo amulet of destruction">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="3" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="energymagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentfire" value="11" />
+		<attribute key="transformEquipTo" value="53202" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="470" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="53202" article="an" name="enchanted flamingo amulet of destruction">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="3" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="energymagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentfire" value="11" />
+		<attribute key="transformDeEquipTo" value="53201" />
+		<attribute key="showduration" value="1" />
+		<attribute key="duration" value="10800" />
+		<attribute key="decayTo" value="54512" />
+		<attribute key="weight" value="470" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="53203" article="an" name="enchanted flamingo amulet of nature">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="3" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="icemagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentfire" value="11" />
+		<attribute key="transformEquipTo" value="53204" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="430" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="53204" article="an" name="enchanted flamingo amulet of nature">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="armor" value="3" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="icemagiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentfire" value="11" />
+		<attribute key="transformDeEquipTo" value="53203" />
+		<attribute key="showduration" value="1" />
+		<attribute key="duration" value="10800" />
+		<attribute key="decayTo" value="54513" />
+		<attribute key="weight" value="430" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="53205" article="an" name="enchanted swan amulet of balance">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="skillfist" value="4" />
+		<attribute key="magiclevelpoints" value="2" />
+		<attribute key="absorbpercentphysical" value="4" />
+		<attribute key="absorbpercentice" value="12" />
+		<attribute key="transformEquipTo" value="53206" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+		<attribute key="weight" value="530" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Monk;true, Exalted Monk" />
+		</attribute>
+	</item>
+	<item id="53206" article="an" name="enchanted swan amulet of balance">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="skillfist" value="4" />
+		<attribute key="magiclevelpoints" value="2" />
+		<attribute key="absorbpercentphysical" value="4" />
+		<attribute key="absorbpercentice" value="12" />
+		<attribute key="transformDeEquipTo" value="53205" />
+		<attribute key="showduration" value="1" />
+		<attribute key="duration" value="10800" />
+		<attribute key="decayTo" value="54514" />
+		<attribute key="weight" value="530" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Monk;true, Exalted Monk" />
+		</attribute>
+	</item>
+	<item id="53207" article="a" name="moonsilver epee">
+		<attribute key="primarytype" value="sword weapons" />
+		<attribute key="weaponType" value="sword" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="33" />
+		<attribute key="extradef" value="3" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillsword" value="6" />
+		<attribute key="weight" value="6100" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="sword" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53208" article="a" name="stellar moonsilver epee">
+		<attribute key="primarytype" value="sword weapons" />
+		<attribute key="weaponType" value="sword" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="33" />
+		<attribute key="extradef" value="3" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillsword" value="6" />
+		<attribute key="weight" value="6200" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="sword" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53209" article="a" name="moonsilver claymore">
+		<attribute key="primarytype" value="sword weapons" />
+		<attribute key="weaponType" value="sword" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementfire" value="54" />
+		<attribute key="skillsword" value="6" />
+		<attribute key="weight" value="8700" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+	</item>
+	<item id="53210" article="a" name="stellar moonsilver claymore">
+		<attribute key="primarytype" value="sword weapons" />
+		<attribute key="weaponType" value="sword" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementfire" value="54" />
+		<attribute key="skillsword" value="6" />
+		<attribute key="weight" value="8900" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+	</item>
+	<item id="53211" article="a" name="moonsilver axe">
+		<attribute key="primarytype" value="axe weapons" />
+		<attribute key="weaponType" value="axe" />
+		<attribute key="attack" value="6" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillaxe" value="6" />
+		<attribute key="weight" value="7500" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="axe" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53212" article="a" name="stellar moonsilver axe">
+		<attribute key="primarytype" value="axe weapons" />
+		<attribute key="weaponType" value="axe" />
+		<attribute key="attack" value="6" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillaxe" value="6" />
+		<attribute key="weight" value="7650" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="axe" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53213" article="a" name="moonsilver chopper">
+		<attribute key="primarytype" value="axe weapons" />
+		<attribute key="weaponType" value="axe" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementenergy" value="54" />
+		<attribute key="skillaxe" value="6" />
+		<attribute key="weight" value="8900" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="axe" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53214" article="a" name="stellar moonsilver chopper">
+		<attribute key="primarytype" value="axe weapons" />
+		<attribute key="weaponType" value="axe" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementenergy" value="54" />
+		<attribute key="skillaxe" value="6" />
+		<attribute key="weight" value="9170" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="axe" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53215" article="a" name="moonsilver crusher">
+		<attribute key="primarytype" value="club weapons" />
+		<attribute key="weaponType" value="club" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="33" />
+		<attribute key="extradef" value="3" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillclub" value="6" />
+		<attribute key="weight" value="6900" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost club" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="club" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53216" article="a" name="stellar moonsilver crusher">
+		<attribute key="primarytype" value="club weapons" />
+		<attribute key="weaponType" value="club" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="33" />
+		<attribute key="extradef" value="3" />
+		<attribute key="elementearth" value="50" />
+		<attribute key="skillclub" value="6" />
+		<attribute key="weight" value="7050" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost club" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="club" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53217" article="a" name="moonsilver mace">
+		<attribute key="primarytype" value="club weapons" />
+		<attribute key="weaponType" value="club" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementice" value="54" />
+		<attribute key="skillclub" value="6" />
+		<attribute key="weight" value="9300" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost club" value="3" />
+		</attribute>
+	</item>
+	<item id="53218" article="a" name="stellar moonsilver mace">
+		<attribute key="primarytype" value="club weapons" />
+		<attribute key="weaponType" value="club" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="6" />
+		<attribute key="defense" value="36" />
+		<attribute key="elementice" value="54" />
+		<attribute key="skillclub" value="6" />
+		<attribute key="weight" value="9500" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost club" value="3" />
+		</attribute>
+	</item>
+	<item id="53219" article="a" name="moonsilver channeler">
+		<attribute key="primarytype" value="wands" />
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="death" />
+		<attribute key="magiclevelpoints" value="6" />
+		<attribute key="deathmagiclevelpoints" value="1" />
+		<attribute key="absorbpercentenergy" value="7" />
+		<attribute key="range" value="6" />
+		<attribute key="weight" value="2350" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="wand" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="wandType" value="death" />
+			<attribute key="fromDamage" value="103" />
+			<attribute key="toDamage" value="133" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="53220" article="a" name="stellar moonsilver channeler">
+		<attribute key="primarytype" value="wands" />
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="death" />
+		<attribute key="magiclevelpoints" value="6" />
+		<attribute key="deathmagiclevelpoints" value="1" />
+		<attribute key="absorbpercentenergy" value="7" />
+		<attribute key="range" value="6" />
+		<attribute key="weight" value="2480" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="wand" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="wandType" value="death" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="53221" article="a" name="moonsilver sceptre">
+		<attribute key="primarytype" value="rods" />
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="ice" />
+		<attribute key="magiclevelpoints" value="6" />
+		<attribute key="icemagiclevelpoints" value="1" />
+		<attribute key="healingmagiclevelpoints" value="2" />
+		<attribute key="absorbpercentearth" value="7" />
+		<attribute key="range" value="6" />
+		<attribute key="weight" value="2800" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="wand" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="wandType" value="ice" />
+			<attribute key="fromDamage" value="103" />
+			<attribute key="toDamage" value="127" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="53222" article="a" name="stellar moonsilver sceptre">
+		<attribute key="primarytype" value="rods" />
+		<attribute key="weaponType" value="wand" />
+		<attribute key="shootType" value="ice" />
+		<attribute key="magiclevelpoints" value="6" />
+		<attribute key="icemagiclevelpoints" value="1" />
+		<attribute key="healingmagiclevelpoints" value="2" />
+		<attribute key="absorbpercentearth" value="7" />
+		<attribute key="range" value="6" />
+		<attribute key="weight" value="2900" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="critical hit" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent;weapon">
+			<attribute key="level" value="1000" />
+			<attribute key="weaponType" value="wand" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="wandType" value="ice" />
+			<attribute key="slot" value="hand" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="53223" article="a" name="moonsilver katar">
+		<attribute key="primarytype" value="fist fighting weapons" />
+		<attribute key="weaponType" value="fist" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="46" />
+		<attribute key="defense" value="22" />
+		<attribute key="skillfist" value="6" />
+		<attribute key="magiclevelpoints" value="2" />
+		<attribute key="weight" value="7200" />
+		<attribute key="imbuementslot" value="3" />
+	</item>
+	<item id="53224" article="a" name="stellar moonsilver katar">
+		<attribute key="primarytype" value="fist fighting weapons" />
+		<attribute key="weaponType" value="fist" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="attack" value="46" />
+		<attribute key="defense" value="22" />
+		<attribute key="skillfist" value="6" />
+		<attribute key="magiclevelpoints" value="2" />
+		<attribute key="weight" value="7300" />
+		<attribute key="imbuementslot" value="3" />
+	</item>
+	<item id="53225" article="a" name="moonsilver bow">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="weaponType" value="distance" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="skilldist" value="5" />
+		<attribute key="absorbpercentfire" value="7" />
+		<attribute key="weight" value="5100" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost distance" value="3" />
+		</attribute>
+	</item>
+	<item id="53226" article="a" name="stellar moonsilver bow">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="weaponType" value="distance" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="skilldist" value="5" />
+		<attribute key="absorbpercentfire" value="7" />
+		<attribute key="weight" value="5200" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost distance" value="3" />
+		</attribute>
+	</item>
+	<item id="53227" article="a" name="moonsilver crossbow">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="weaponType" value="distance" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="skilldist" value="5" />
+		<attribute key="absorbpercentholy" value="7" />
+		<attribute key="weight" value="5500" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost distance" value="3" />
+		</attribute>
+	</item>
+	<item id="53228" article="a" name="stellar moonsilver crossbow">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="weaponType" value="distance" />
+		<attribute key="slotType" value="two-handed" />
+		<attribute key="skilldist" value="5" />
+		<attribute key="absorbpercentholy" value="7" />
+		<attribute key="weight" value="5600" />
+		<attribute key="imbuementslot" value="3">
+			<attribute key="critical hit" value="3" />
+			<attribute key="elemental damage" value="3" />
+			<attribute key="life leech" value="3" />
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost distance" value="3" />
+		</attribute>
+	</item>
+	<item id="53229" article="a" name="moonsilver battle visor">
+		<attribute key="primarytype" value="helmets" />
+		<attribute key="armor" value="14" />
+		<attribute key="skillsword" value="4" />
+		<attribute key="skillaxe" value="4" />
+		<attribute key="skillclub" value="4" />
+		<attribute key="magiclevelpoints" value="1" />
+		<attribute key="absorbpercentphysical" value="8" />
+		<attribute key="absorbpercentfire" value="10" />
+		<attribute key="weight" value="1450" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+			<attribute key="skillboost club" value="3" />
+			<attribute key="skillboost distance" value="3" />
+			<attribute key="skillboost shielding" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="800" />
+			<attribute key="slot" value="head" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="53230" article="a" name="moonsilver trail hood">
+		<attribute key="primarytype" value="helmets" />
+		<attribute key="armor" value="12" />
+		<attribute key="skilldist" value="4" />
+		<attribute key="holymagiclevelpoints" value="2" />
+		<attribute key="absorbpercentphysical" value="6" />
+		<attribute key="absorbpercentearth" value="10" />
+		<attribute key="weight" value="1200" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost axe" value="3" />
+			<attribute key="skillboost club" value="3" />
+			<attribute key="skillboost distance" value="3" />
+			<attribute key="skillboost magic level" value="2" />
+			<attribute key="skillboost shielding" value="3" />
+			<attribute key="skillboost sword" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="800" />
+			<attribute key="slot" value="head" />
+			<attribute key="vocation" value="Paladin;true, Royal Paladin" />
+		</attribute>
+	</item>
+	<item id="53231" article="a" name="moonsilver nimbus hat">
+		<attribute key="primarytype" value="helmets" />
+		<attribute key="armor" value="10" />
+		<attribute key="magiclevelpoints" value="4" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentice" value="8" />
+		<attribute key="weight" value="1300" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="800" />
+			<attribute key="slot" value="head" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="53232" article="a" name="moonsilver spirit mask">
+		<attribute key="primarytype" value="helmets" />
+		<attribute key="armor" value="10" />
+		<attribute key="magiclevelpoints" value="4" />
+		<attribute key="absorbpercentphysical" value="3" />
+		<attribute key="absorbpercentenergy" value="8" />
+		<attribute key="weight" value="3800" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost magic level" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="800" />
+			<attribute key="slot" value="head" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="53233" article="a" name="moonsilver strike helm">
+		<attribute key="primarytype" value="helmets" />
+		<attribute key="armor" value="8" />
+		<attribute key="skillfist" value="4" />
+		<attribute key="magiclevelpoints" value="3" />
+		<attribute key="absorbpercentphysical" value="5" />
+		<attribute key="absorbpercentearth" value="8" />
+		<attribute key="weight" value="4100" />
+		<attribute key="imbuementslot" value="2">
+			<attribute key="mana leech" value="3" />
+			<attribute key="skillboost fist" value="3" />
+		</attribute>
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="800" />
+			<attribute key="slot" value="head" />
+			<attribute key="vocation" value="Monk;true, Exalted Monk" />
+		</attribute>
+	</item>
+	<item id="53287" article="a" name="mariner&#x27;s fishing rod">
+		<attribute key="primarytype" value="tools" />
+		<attribute key="weight" value="720" />
+	</item>
+	<item id="53288" article="a" name="mariner&#x27;s anchor">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="weight" value="250" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="53423" article="a" name="cursed coin">
+		<attribute key="primarytype" value="quest items" />
+		<attribute key="absorbpercentphysical" value="-20" />
+		<attribute key="weight" value="750" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="53573" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53574" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53575" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53576" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53577" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53578" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53579" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53580" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53581" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53582" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53583" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53584" article="a" name="cyclops steel bed">
+		<attribute key="primarytype" value="furniture" />
+	</item>
+	<item id="53585" name="skull carpet">
+		<attribute key="transformEquipTo" value="53586" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53586" name="skull carpet">
+		<attribute key="transformDeEquipTo" value="53585" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53587" name="dark mosaic floor">
+		<attribute key="transformEquipTo" value="53588" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53588" name="dark mosaic floor">
+		<attribute key="transformDeEquipTo" value="53587" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53589" name="sand floor in a bucket">
+	</item>
+	<item id="53590" name="sand floor">
+	</item>
+	<item id="53609" article="a" name="cyclops baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="53610" article="a" name="cyclops baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="53611" article="a" name="cyclops baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="53612" article="a" name="cyclops baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="53613" article="a" name="cyclops baby">
+		<attribute key="primarytype" value="decorations" />
+	</item>
+	<item id="53615" article="a" name="framework room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53616" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53616" article="a" name="framework room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53615" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53617" article="a" name="dark framework room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53618" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53618" article="a" name="dark framework room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53617" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53619" article="an" name="ancient stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53620" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53620" article="an" name="ancient stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53619" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53621" article="a" name="sandstone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53622" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53622" article="a" name="sandstone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53621" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53623" article="a" name="stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53624" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53624" article="a" name="stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53623" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53625" article="a" name="white stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53626" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53626" article="a" name="white stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53625" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53627" article="a" name="gothic stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53628" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53628" article="a" name="gothic stone room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53627" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53629" article="a" name="bamboo room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformEquipTo" value="53630" />
+		<attribute key="stopduration" value="1" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53630" article="a" name="bamboo room divider">
+		<attribute key="primarytype" value="decorations" />
+		<attribute key="transformDeEquipTo" value="53629" />
+		<attribute key="showduration" value="1" />
+	</item>
+	<item id="53633" article="a" name="beaver of wisdom">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="600" />
+	</item>
+	<item id="53634" article="a" name="war backpack">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="1800" />
+	</item>
+	<item id="53635" article="a" name="bonelord tome">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="4690" />
+	</item>
+	<item id="53636" article="a" name="wicked witch">
+		<attribute key="primarytype" value="fansite items" />
+		<attribute key="weight" value="1990" />
+	</item>
+	<item id="53637" name="Tibiapedia">
+		<attribute key="primarytype" value="valuables" />
+	</item>
+	<item id="53692" article="a" name="sample of bluish tide veil">
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="53693" article="a" name="sample of bluish whisper reed">
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="53695" article="a" name="lunar ascension orb">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="53696" article="an" name="empty crystal flask">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="53751" article="a" name="basic bash scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53752" article="a" name="basic blockade scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53753" article="a" name="basic chop scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53754" article="a" name="basic cloud fabric scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53755" article="a" name="basic demon presence scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53756" article="a" name="basic dragon hide scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53757" article="a" name="basic electrify scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53758" article="a" name="basic epiphany scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53759" article="a" name="basic featherweight scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53760" article="a" name="basic frost scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53761" article="a" name="basic lich shroud scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53762" article="a" name="basic precision scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53763" article="a" name="basic punch scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53764" article="a" name="basic quara scale scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53765" article="a" name="basic reap scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53766" article="a" name="basic scorch scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53767" article="a" name="basic slash scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53768" article="a" name="basic snake skin scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53769" article="a" name="basic strike scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53770" article="a" name="basic swiftness scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53771" article="a" name="basic vampirism scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53772" article="a" name="basic venom scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53773" article="a" name="basic vibrancy scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53774" article="a" name="basic void scroll">
+		<attribute key="primarytype" value="documents and papers" />
+		<attribute key="weight" value="250" />
+	</item>
+	<item id="53778" article="a" name="catnip">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="110" />
+	</item>
+	<item id="53783" article="a" name="shell gauge">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="53855" name="snowball with ice shards">
+		<attribute key="primarytype" value="distance weapons" />
+		<attribute key="weaponType" value="distance" />
+		<attribute key="attack" value="25" />
+		<attribute key="weight" value="94" />
+		<attribute key="script" value="moveevent">
+			<attribute key="weaponType" value="distance" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="slot" value="hand" />
+		</attribute>
+	</item>
+	<item id="54128" article="an" name="ice shard">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="18" />
+	</item>
+	<item id="54236" article="a" name="noxious catnip">
+	</item>
+	<item id="54262" name="key">
+	</item>
+	<item id="54267" article="a" name="moonsilver crystals">
+		<attribute key="weight" value="300" />
+	</item>
+	<item id="54268" name="figurine of Mimar Haffar">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="54269" name="figurine of Maior Domus">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="54270" name="figurine of Phosphorus">
+		<attribute key="primarytype" value="creature products" />
+	</item>
+	<item id="54355" article="a" name="tatty robe">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="230" />
+	</item>
+	<item id="54356" article="a" name="broken arrow">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="90" />
+	</item>
+	<item id="54357" article="a" name="book of faith">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="270" />
+	</item>
+	<item id="54358" article="a" name="ceremonial bowl">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="310" />
+	</item>
+	<item id="54359" article="a" name="golden belt">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="140" />
+	</item>
+	<item id="54360" name="loose prayer beads">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="160" />
+	</item>
+	<item id="54361" article="a" name="cloud familiar">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="50" />
+	</item>
+	<item id="54362" article="a" name="gilded bell">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="80" />
+	</item>
+	<item id="54363" article="a" name="moonspawn tentacle">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="180" />
+	</item>
+	<item id="54364" article="a" name="moonspawn headpiece">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="320" />
+	</item>
+	<item id="54480" article="an" name="auric moon sigil">
+		<attribute key="primarytype" value="valuables" />
+		<attribute key="weight" value="180" />
+	</item>
+	<item id="54510" article="a" name="flamingo amulet of valor">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="weight" value="510" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Knight;true, Elite Knight" />
+		</attribute>
+	</item>
+	<item id="54511" article="a" name="flamingo amulet of precision">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="weight" value="460" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Paladin;true, Royal Paladin" />
+		</attribute>
+	</item>
+	<item id="54512" article="a" name="flamingo amulet of destruction">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="weight" value="470" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Sorcerer;true, Master Sorcerer" />
+		</attribute>
+	</item>
+	<item id="54513" article="a" name="flamingo amulet of nature">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="weight" value="430" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Druid;true, Elder Druid" />
+		</attribute>
+	</item>
+	<item id="54514" article="a" name="swan amulet of balance">
+		<attribute key="primarytype" value="amulets and necklaces" />
+		<attribute key="weight" value="530" />
+		<attribute key="script" value="moveevent">
+			<attribute key="level" value="270" />
+			<attribute key="slot" value="necklace" />
+			<attribute key="vocation" value="Monk;true, Exalted Monk" />
+		</attribute>
+	</item>
+	<item id="54564" article="a" name="crystal flask with blue lava">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="54566" article="a" name="crystal flask with blessed blue lava">
+		<attribute key="weight" value="150" />
+	</item>
+	<item id="54587" article="a" name="winged jaracal soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54588" article="an" name="iceplume strider soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54589" article="a" name="silverfrost sentinel soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54590" article="a" name="true feverbloom asura soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54591" article="a" name="radiant warden soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54592" article="a" name="devoted radiant warden soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54593" article="a" name="radiant paragon soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54594" article="a" name="devoted radiant paragon soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54595" article="a" name="radiant acolyte soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54596" article="a" name="devoted radiant acolyte soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54597" article="a" name="radiant templar soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54598" article="a" name="devoted radiant templar soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54599" article="a" name="radiant inquisitor soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54600" article="a" name="devoted radiant inquisitor soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54601" article="a" name="radiant zealot soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54602" article="a" name="devoted radiant zealot soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54603" article="a" name="moonspawn blightspitter soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54604" article="a" name="moonspawn oozecrown soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54609" article="a" name="torch">
+		<attribute key="primarytype" value="light sources" />
+		<attribute key="weight" value="500" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="54610" article="a" name="lit torch">
+		<attribute key="primarytype" value="light sources" />
+		<attribute key="weight" value="500" />
+		<attribute key="script" value="moveevent">
+			<attribute key="slot" value="ammo" />
+		</attribute>
+	</item>
+	<item id="54611" article="a" name="frozen peacock feather">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="65" />
+	</item>
+	<item id="54630" article="a" name="jaracal soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54631" article="a" name="moonstone excavator soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54632" article="a" name="moonstone overseer soul core">
+		<attribute key="primarytype" value="soul cores" />
+		<attribute key="weight" value="1000" />
+	</item>
+	<item id="54638" article="a" name="skewered fish">
+		<attribute key="primarytype" value="taming items" />
+		<attribute key="weight" value="200" />
+	</item>
+	<item id="54639" article="a" name="pyrophyte seed pod">
+		<attribute key="primarytype" value="creature products" />
+		<attribute key="weight" value="320" />
+	</item>
+	<item id="54640" article="a" name="scraps of a radiant attire">
+		<attribute key="weight" value="30" />
+	</item>
+	<item id="54651" name="cloud in a bottle">
+		<attribute key="primarytype" value="valuables" />
+	</item>
+	<item id="54711" name="midnight dancer">
+	</item>
+	<item id="54712" name="midnight dancer">
+	</item>
+	<item id="54713" name="midnight dancer">
+	</item>
+	<item id="54714" name="midnight dancer">
+	</item>
+	<item id="54715" name="midnight dancer">
+	</item>
+	<item id="54716" name="midnight dancer">
+	</item>
+	<item id="54755" name="noble bath tub kit">
+	</item>
 </items>
