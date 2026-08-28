@@ -1723,6 +1723,12 @@ private:
 	friend class PlayerLock;
 	std::mutex mutex;
 
+	// Built once on first use instead of on every kv() call. The scope depends only
+	// on the GUID, which does not change for a loaded player, but rebuilding it cost
+	// two make_shared allocations and three fmt::format strings each time -- on a
+	// path reached from combat.
+	mutable std::shared_ptr<KV> m_kv;
+
 	static uint32_t playerFirstID;
 	static uint32_t playerLastID;
 

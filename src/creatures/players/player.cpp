@@ -1380,7 +1380,10 @@ void Player::addStorageValueByName(const std::string &storageName, const int32_t
 }
 
 std::shared_ptr<KV> Player::kv() const {
-	return g_kv().scoped("player")->scoped(fmt::format("{}", getGUID()));
+	if (!m_kv) {
+		m_kv = g_kv().scoped("player")->scoped(fmt::format("{}", getGUID()));
+	}
+	return m_kv;
 }
 
 bool Player::canSee(const Position &pos) {
