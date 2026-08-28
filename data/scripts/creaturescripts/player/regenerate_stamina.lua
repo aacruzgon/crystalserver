@@ -20,9 +20,16 @@ function regenerateStamina.onLogin(player)
 	local regainStaminaMinutes = offlineTime / configManager.getNumber(configKeys.STAMINA_REGEN_MINUTE)
 
 	if regainStaminaMinutes > maxNormalStaminaRegen then
-		local normalStaminaSeconds = maxNormalStaminaRegen * configManager.getNumber(configKeys.STAMINA_REGEN_MINUTE)
-		local happyHourStaminaRegen = (offlineTime - normalStaminaSeconds) / configManager.getNumber(configKeys.STAMINA_REGEN_PREMIUM)
-		staminaMinutes = math.min(2520, math.max(2340, staminaMinutes) + happyHourStaminaRegen)
+		-- The 39h - 42h band is premium only, the same rule the protection zone
+		-- refill applies. Free accounts fill to 39h and stop there; they never
+		-- lose stamina they already had above it.
+		if player:isPremium() then
+			local normalStaminaSeconds = maxNormalStaminaRegen * configManager.getNumber(configKeys.STAMINA_REGEN_MINUTE)
+			local happyHourStaminaRegen = (offlineTime - normalStaminaSeconds) / configManager.getNumber(configKeys.STAMINA_REGEN_PREMIUM)
+			staminaMinutes = math.min(2520, math.max(2340, staminaMinutes) + happyHourStaminaRegen)
+		else
+			staminaMinutes = math.max(staminaMinutes, 2340)
+		end
 	else
 		staminaMinutes = staminaMinutes + regainStaminaMinutes
 	end
