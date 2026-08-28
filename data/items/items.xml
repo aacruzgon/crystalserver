@@ -7079,7 +7079,7 @@
 		<attribute key="weight" value="2500" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="26" />
-			<attribute key="mana" value="8" />
+			<attribute key="manaOnAttack" value="8" />
 			<attribute key="fromDamage" value="37" />
 			<attribute key="toDamage" value="53" />
 			<attribute key="weaponType" value="wand" />
@@ -7097,7 +7097,7 @@
 		<attribute key="weight" value="1900" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="6" />
-			<attribute key="mana" value="2" />
+			<attribute key="manaOnAttack" value="2" />
 			<attribute key="fromDamage" value="8" />
 			<attribute key="toDamage" value="18" />
 			<attribute key="weaponType" value="wand" />
@@ -7115,7 +7115,7 @@
 		<attribute key="weight" value="2700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="33" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -7137,7 +7137,7 @@
 		<attribute key="weight" value="2300" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="19" />
-			<attribute key="mana" value="5" />
+			<attribute key="manaOnAttack" value="5" />
 			<attribute key="fromDamage" value="23" />
 			<attribute key="toDamage" value="37" />
 			<attribute key="weaponType" value="wand" />
@@ -7155,7 +7155,7 @@
 		<attribute key="weight" value="2100" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="13" />
-			<attribute key="mana" value="3" />
+			<attribute key="manaOnAttack" value="3" />
 			<attribute key="fromDamage" value="13" />
 			<attribute key="toDamage" value="25" />
 			<attribute key="weaponType" value="wand" />
@@ -7172,7 +7172,7 @@
 		<attribute key="weight" value="2700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="33" />
-			<attribute key="mana" value="8" />
+			<attribute key="manaOnAttack" value="8" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -7189,7 +7189,7 @@
 		<attribute key="weight" value="2300" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="19" />
-			<attribute key="mana" value="5" />
+			<attribute key="manaOnAttack" value="5" />
 			<attribute key="fromDamage" value="23" />
 			<attribute key="toDamage" value="37" />
 			<attribute key="weaponType" value="wand" />
@@ -7206,7 +7206,7 @@
 		<attribute key="weight" value="2500" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="26" />
-			<attribute key="mana" value="8" />
+			<attribute key="manaOnAttack" value="8" />
 			<attribute key="fromDamage" value="37" />
 			<attribute key="toDamage" value="53" />
 			<attribute key="weaponType" value="wand" />
@@ -7223,7 +7223,7 @@
 		<attribute key="weight" value="1900" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="6" />
-			<attribute key="mana" value="1" />
+			<attribute key="manaOnAttack" value="1" />
 			<attribute key="fromDamage" value="8" />
 			<attribute key="toDamage" value="18" />
 			<attribute key="weaponType" value="wand" />
@@ -7246,7 +7246,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="13" />
-			<attribute key="mana" value="3" />
+			<attribute key="manaOnAttack" value="3" />
 			<attribute key="fromDamage" value="13" />
 			<attribute key="toDamage" value="25" />
 			<attribute key="weaponType" value="wand" />
@@ -22227,7 +22227,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="42" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -22251,7 +22251,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="22" />
-			<attribute key="mana" value="5" />
+			<attribute key="manaOnAttack" value="5" />
 			<attribute key="fromDamage" value="23" />
 			<attribute key="toDamage" value="37" />
 			<attribute key="weaponType" value="wand" />
@@ -22269,7 +22269,7 @@
 		<attribute key="weight" value="2700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="37" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -22309,7 +22309,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="37" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -22332,7 +22332,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="22" />
-			<attribute key="mana" value="5" />
+			<attribute key="manaOnAttack" value="5" />
 			<attribute key="fromDamage" value="23" />
 			<attribute key="toDamage" value="37" />
 			<attribute key="weaponType" value="wand" />
@@ -22355,7 +22355,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="42" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -30713,7 +30713,7 @@
 		<attribute key="weight" value="2800" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="37" />
-			<attribute key="mana" value="9" />
+			<attribute key="manaOnAttack" value="9" />
 			<attribute key="fromDamage" value="44" />
 			<attribute key="toDamage" value="62" />
 			<attribute key="weaponType" value="wand" />
@@ -31027,7 +31027,7 @@
 		<attribute key="weight" value="3100" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="40" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -31094,7 +31094,7 @@
 		<attribute key="weight" value="3100" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="40" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -34246,7 +34246,7 @@
 		<attribute key="weight" value="3700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="65" />
-			<attribute key="mana" value="17" />
+			<attribute key="manaOnAttack" value="17" />
 			<attribute key="fromDamage" value="75" />
 			<attribute key="toDamage" value="95" />
 			<attribute key="weaponType" value="wand" />
@@ -34464,7 +34464,7 @@
 		<attribute key="weight" value="3700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="65" />
-			<attribute key="mana" value="17" />
+			<attribute key="manaOnAttack" value="17" />
 			<attribute key="fromDamage" value="75" />
 			<attribute key="toDamage" value="95" />
 			<attribute key="weaponType" value="wand" />
@@ -34497,7 +34497,7 @@
 		<attribute key="weight" value="3700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="65" />
-			<attribute key="mana" value="17" />
+			<attribute key="manaOnAttack" value="17" />
 			<attribute key="fromDamage" value="75" />
 			<attribute key="toDamage" value="95" />
 			<attribute key="weaponType" value="wand" />
@@ -34516,7 +34516,7 @@
 		<attribute key="weight" value="3700" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="65" />
-			<attribute key="mana" value="17" />
+			<attribute key="manaOnAttack" value="17" />
 			<attribute key="fromDamage" value="75" />
 			<attribute key="toDamage" value="95" />
 			<attribute key="weaponType" value="wand" />
@@ -35279,7 +35279,7 @@
 		<attribute key="weight" value="1900" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="1" />
-			<attribute key="mana" value="2" />
+			<attribute key="manaOnAttack" value="2" />
 			<attribute key="fromDamage" value="8" />
 			<attribute key="toDamage" value="18" />
 			<attribute key="weaponType" value="wand" />
@@ -42520,7 +42520,7 @@
 		<attribute key="weight" value="1500" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="1" />
-			<attribute key="mana" value="1" />
+			<attribute key="manaOnAttack" value="1" />
 			<attribute key="fromDamage" value="4" />
 			<attribute key="toDamage" value="8" />
 			<attribute key="weaponType" value="wand" />
@@ -42538,7 +42538,7 @@
 		<attribute key="weight" value="1500" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="1" />
-			<attribute key="mana" value="1" />
+			<attribute key="manaOnAttack" value="1" />
 			<attribute key="fromDamage" value="4" />
 			<attribute key="toDamage" value="8" />
 			<attribute key="weaponType" value="wand" />
@@ -44550,7 +44550,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="37" />
-			<attribute key="mana" value="13" />
+			<attribute key="manaOnAttack" value="13" />
 			<attribute key="fromDamage" value="56" />
 			<attribute key="toDamage" value="74" />
 			<attribute key="weaponType" value="wand" />
@@ -45621,7 +45621,7 @@
 		<attribute key="weight" value="2900" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="65" />
-			<attribute key="mana" value="17" />
+			<attribute key="manaOnAttack" value="17" />
 			<attribute key="fromDamage" value="65" />
 			<attribute key="toDamage" value="95" />
 			<attribute key="weaponType" value="wand" />
@@ -45641,7 +45641,7 @@
 		<attribute key="weight" value="2250" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="100" />
-			<attribute key="mana" value="19" />
+			<attribute key="manaOnAttack" value="19" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="110" />
 			<attribute key="weaponType" value="wand" />
@@ -48993,7 +48993,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="80" />
-			<attribute key="mana" value="18" />
+			<attribute key="manaOnAttack" value="18" />
 			<attribute key="fromDamage" value="63" />
 			<attribute key="toDamage" value="77" />
 			<attribute key="weaponType" value="wand" />
@@ -49224,7 +49224,7 @@
 		<attribute key="weight" value="3200" />
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="41" />
-			<attribute key="mana" value="15" />
+			<attribute key="manaOnAttack" value="15" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="100" />
 			<attribute key="weaponType" value="wand" />
@@ -52138,7 +52138,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="200" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="110" />
 			<attribute key="weaponType" value="wand" />
@@ -52161,7 +52161,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="200" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="110" />
 			<attribute key="weaponType" value="wand" />
@@ -54404,7 +54404,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="fromDamage" value="87" />
 			<attribute key="toDamage" value="101" />
 			<attribute key="weaponType" value="wand" />
@@ -54429,7 +54429,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="fromDamage" value="86" />
 			<attribute key="toDamage" value="102" />
 			<attribute key="weaponType" value="wand" />
@@ -55007,7 +55007,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="180" />
-			<attribute key="mana" value="23" />
+			<attribute key="manaOnAttack" value="23" />
 			<attribute key="fromDamage" value="86" />
 			<attribute key="toDamage" value="98" />
 			<attribute key="weaponType" value="wand" />
@@ -55034,7 +55034,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="230" />
-			<attribute key="mana" value="23" />
+			<attribute key="manaOnAttack" value="23" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="120" />
 			<attribute key="weaponType" value="wand" />
@@ -55888,7 +55888,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="180" />
-			<attribute key="mana" value="24" />
+			<attribute key="manaOnAttack" value="24" />
 			<attribute key="fromDamage" value="88" />
 			<attribute key="toDamage" value="108" />
 			<attribute key="weaponType" value="wand" />
@@ -57694,7 +57694,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="270" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="fromDamage" value="94" />
 			<attribute key="toDamage" value="100" />
 			<attribute key="weaponType" value="wand" />
@@ -57720,7 +57720,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="220" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="fromDamage" value="70" />
 			<attribute key="toDamage" value="110" />
 			<attribute key="weaponType" value="wand" />
@@ -64480,7 +64480,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="400" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="fromDamage" value="100" />
 			<attribute key="toDamage" value="120" />
 			<attribute key="weaponType" value="wand" />
@@ -64509,7 +64509,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="400" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="fromDamage" value="98" />
 			<attribute key="toDamage" value="118" />
 			<attribute key="weaponType" value="wand" />
@@ -64899,7 +64899,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="270" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="fromDamage" value="85" />
 			<attribute key="toDamage" value="105" />
 			<attribute key="weaponType" value="wand" />
@@ -64925,7 +64925,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="220" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="fromDamage" value="89" />
 			<attribute key="toDamage" value="109" />
 			<attribute key="weaponType" value="wand" />
@@ -66325,7 +66325,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="150" />
-			<attribute key="mana" value="19" />
+			<attribute key="manaOnAttack" value="19" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="100" />
 			<attribute key="weaponType" value="wand" />
@@ -66350,7 +66350,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="150" />
-			<attribute key="mana" value="19" />
+			<attribute key="manaOnAttack" value="19" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="100" />
 			<attribute key="weaponType" value="wand" />
@@ -67913,7 +67913,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="85" />
 			<attribute key="toDamage" value="105" />
@@ -67942,7 +67942,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="85" />
 			<attribute key="toDamage" value="105" />
@@ -68057,7 +68057,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="85" />
 			<attribute key="toDamage" value="105" />
@@ -68085,7 +68085,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="85" />
 			<attribute key="toDamage" value="105" />
@@ -71961,7 +71961,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="120" />
@@ -71988,7 +71988,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="250" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="110" />
@@ -76498,7 +76498,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="600" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="113" />
 			<attribute key="toDamage" value="125" />
@@ -76537,7 +76537,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="600" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="103" />
 			<attribute key="toDamage" value="125" />
@@ -76606,7 +76606,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="600" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="100" />
 			<attribute key="toDamage" value="124" />
@@ -76645,7 +76645,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="600" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="100" />
 			<attribute key="toDamage" value="124" />
@@ -77793,7 +77793,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="330" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="82" />
 			<attribute key="toDamage" value="95" />
@@ -77820,7 +77820,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="330" />
-			<attribute key="mana" value="20" />
+			<attribute key="manaOnAttack" value="20" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="80" />
 			<attribute key="toDamage" value="95" />
@@ -82415,7 +82415,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="95" />
 			<attribute key="toDamage" value="115" />
@@ -82442,7 +82442,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="110" />
@@ -83303,7 +83303,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="95" />
 			<attribute key="toDamage" value="115" />
@@ -83330,7 +83330,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="95" />
 			<attribute key="toDamage" value="115" />
@@ -83357,7 +83357,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="95" />
 			<attribute key="toDamage" value="115" />
@@ -83384,7 +83384,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="110" />
@@ -83411,7 +83411,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="110" />
@@ -83438,7 +83438,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
-			<attribute key="mana" value="21" />
+			<attribute key="manaOnAttack" value="21" />
 			<attribute key="unproperly" value="true" />
 			<attribute key="fromDamage" value="90" />
 			<attribute key="toDamage" value="110" />
@@ -86901,7 +86901,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="450" />
-			<attribute key="mana" value="23" />
+			<attribute key="manaOnAttack" value="23" />
 			<attribute key="fromDamage" value="94" />
 			<attribute key="toDamage" value="116" />
 			<attribute key="weaponType" value="wand" />
@@ -86927,7 +86927,7 @@
 		</attribute>
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="450" />
-			<attribute key="mana" value="22" />
+			<attribute key="manaOnAttack" value="22" />
 			<attribute key="fromDamage" value="95" />
 			<attribute key="toDamage" value="115" />
 			<attribute key="weaponType" value="wand" />

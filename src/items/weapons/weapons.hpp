@@ -117,11 +117,8 @@ public:
 		wieldUnproperly = unproperly;
 	}
 
-	uint32_t getMana() const {
-		return mana;
-	}
-	void setMana(uint32_t m) {
-		mana = m;
+	void setManaGain(uint32_t m) {
+		manaGain = m;
 	}
 
 	uint32_t getManaPercent() const {
@@ -248,7 +245,7 @@ private:
 
 	uint32_t level = 0;
 	uint32_t magLevel = 0;
-	uint32_t mana = 0;
+	uint32_t manaGain = 0;
 	uint32_t manaPercent = 0;
 	uint32_t health = 0;
 	uint32_t healthPercent = 0;

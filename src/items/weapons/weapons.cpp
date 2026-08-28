@@ -410,10 +410,10 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 
 	// Vocation Adjustment: "Attacks now generate mana instead of consuming mana." addManaSpent still
 	// runs so wands and rods keep training magic level as they always have.
-	const uint32_t manaGain = getManaGain(player);
-	if (manaGain != 0) {
-		player->addManaSpent(manaGain);
-		player->changeMana(static_cast<int32_t>(manaGain));
+	const uint32_t gained = getManaGain(player);
+	if (gained != 0) {
+		player->addManaSpent(gained);
+		player->changeMana(static_cast<int32_t>(gained));
 	}
 
 	const uint32_t healthCost = getHealthCost(player);
@@ -457,8 +457,8 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 }
 
 uint32_t Weapon::getManaGain(const std::shared_ptr<Player> &player) const {
-	if (mana != 0) {
-		return mana;
+	if (manaGain != 0) {
+		return manaGain;
 	}
 
 	if (manaPercent == 0) {

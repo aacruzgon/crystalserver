@@ -218,7 +218,7 @@ int WeaponFunctions::luaWeaponMana(lua_State* L) {
 	// weapon:mana(mana)
 	const WeaponShared_ptr &weapon = Lua::getUserdataShared<Weapon>(L, 1);
 	if (weapon) {
-		weapon->setMana(Lua::getNumber<uint32_t>(L, 2));
+		weapon->setManaGain(Lua::getNumber<uint32_t>(L, 2));
 		Lua::pushBoolean(L, true);
 	} else {
 		lua_pushnil(L);

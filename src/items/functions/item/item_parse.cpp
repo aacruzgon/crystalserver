@@ -1155,8 +1155,8 @@ void ItemParse::createAndRegisterScript(ItemType &itemType, pugi::xml_node attri
 			}
 		} else if (stringKey == "breakchance" && weapon) {
 			weapon->setBreakChance(subValueAttribute.as_uint());
-		} else if (stringKey == "mana" && weapon) {
-			weapon->setMana(subValueAttribute.as_uint());
+		} else if (stringKey == "manaonattack" && weapon) {
+			weapon->setManaGain(subValueAttribute.as_uint());
 		} else if (stringKey == "unproperly" && weapon) {
 			weapon->setWieldUnproperly(subValueAttribute.as_bool());
 		} else if (stringKey == "fromdamage" && weapon) {
