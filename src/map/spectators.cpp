@@ -19,6 +19,7 @@
 
 #include "creatures/creature.hpp"
 #include "game/game.hpp"
+#include "game/scheduling/dispatcher.hpp"
 
 phmap::flat_hash_map<Position, SpectatorsCache> Spectators::spectatorsCache;
 
@@ -182,6 +183,21 @@ Spectators Spectators::find(const Position &centerPos, bool multifloor, bool onl
 	maxRangeX = (maxRangeX == 0 ? MAP_MAX_VIEW_PORT_X : maxRangeX);
 	minRangeY = (minRangeY == 0 ? -MAP_MAX_VIEW_PORT_Y : -minRangeY);
 	maxRangeY = (maxRangeY == 0 ? MAP_MAX_VIEW_PORT_Y : maxRangeY);
+
+	// spectatorsCache is a file-scope hash map with no synchronisation, so it may
+	// only be touched from the dispatcher thread. Every async call site currently
+	// passes useCache = false, but that invariant is written down nowhere and
+	// enforced by nothing: one Spectators().find<Player>(pos) added inside a
+	// parallel task, taking the default argument, is a concurrent rehash and a
+	// crash rather than a wrong answer.
+	//
+	// Fail loudly where assertions are live, and fall back to the uncached path
+	// everywhere else. Release builds define NDEBUG, so an assert alone would be
+	// inert in exactly the configuration the crash would happen in.
+	if (useCache && DispatcherContext::isOn() && g_dispatcher().context().isAsync()) {
+		assert(false && "Spectators cache reached from an async task; falling back to an uncached lookup");
+		useCache = false;
+	}
 
 	if (!useCache) {
 		insertAll(getSpectators(centerPos, multifloor, onlyPlayers, onlyMonsters, onlyNpcs, minRangeX, maxRangeX, minRangeY, maxRangeY));
