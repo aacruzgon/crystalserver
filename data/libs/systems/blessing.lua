@@ -154,13 +154,13 @@ Blessings.getBlessingCost = function(level, byCommand, enhanced)
 		enhanced = false
 	end
 
+	-- The three branches are continuous at their boundaries: 200 * (30 - 20) is the
+	-- 2000 floor and 200 * (120 - 20) is the 20000 ceiling, enhanced likewise at 1.3x.
 	local cost
 	if level <= 30 then
-		cost = 2000
+		cost = enhanced and 2600 or 2000
 	elseif level >= 120 then
-		local base_cost = enhanced and 26000 or 20000
-		local multiplier = enhanced and 100 or 75
-		cost = base_cost + multiplier * (level - 120)
+		cost = enhanced and 26000 or 20000
 	else
 		local multiplier = enhanced and 260 or 200
 		cost = multiplier * (level - 20)
