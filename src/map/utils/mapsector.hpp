@@ -73,25 +73,41 @@ public:
 	MapSector(const MapSector &&) = delete;
 	MapSector &operator=(const MapSector &&) = delete;
 
-	std::shared_ptr<Floor> createFloor(uint32_t z) {
+	// A Floor, once created, lives until the process exits: nothing resets or
+	// reassigns a slot, and MapSectors are never erased from MapCache::mapSectors.
+	// That is what makes handing out a raw pointer safe here, and it is why the
+	// read path below needs no lock and no refcount.
+	Floor* createFloor(uint32_t z) {
 		if (z >= MAP_MAX_LAYERS) {
 			g_logger().error("Attempt to create floor on invalid coordinate: {}", z);
 			return nullptr;
 		}
-		std::scoped_lock lock(floors_mutex);
-		if (!floors[z]) {
-			floors[z] = std::make_shared<Floor>(static_cast<uint8_t>(z));
+
+		if (Floor* existing = floors[z].load(std::memory_order_acquire)) {
+			return existing;
 		}
-		return floors[z];
+
+		std::scoped_lock lock(floors_mutex);
+		// Re-check under the lock: two threads can pass the load above together.
+		if (!floorStorage[z]) {
+			floorStorage[z] = std::make_unique<Floor>(static_cast<uint8_t>(z));
+			// Release so that a reader observing this pointer also observes the
+			// fully constructed Floor behind it.
+			floors[z].store(floorStorage[z].get(), std::memory_order_release);
+		}
+		return floors[z].load(std::memory_order_relaxed);
 	}
 
-	std::shared_ptr<Floor> getFloor(uint8_t z) {
+	// Hot path: reached from Map::getTile, which pathfinding calls thousands of
+	// times per request from every WalkParallel worker at once. This used to take
+	// an *exclusive* std::mutex for a pure read and return a refcounted copy, so
+	// the parallel group serialised itself on one lock per sector.
+	Floor* getFloor(uint8_t z) const {
 		if (z >= MAP_MAX_LAYERS) {
 			g_logger().error("Attempt to get floor on invalid coordinate: {}", z);
 			return nullptr;
 		}
-		std::scoped_lock lock(floors_mutex);
-		return floors[z];
+		return floors[z].load(std::memory_order_acquire);
 	}
 
 	void addCreature(const std::shared_ptr<Creature> &c);
@@ -109,9 +125,13 @@ private:
 	std::vector<std::shared_ptr<Creature>> monster_list;
 	std::vector<std::shared_ptr<Creature>> npc_list;
 
+	// Guards creation only; the read path is lock-free.
 	mutable std::mutex floors_mutex;
 
-	std::shared_ptr<Floor> floors[MAP_MAX_LAYERS] = {};
+	// Ownership. Written under floors_mutex, never reset.
+	std::unique_ptr<Floor> floorStorage[MAP_MAX_LAYERS] = {};
+	// Published view of the above, for lock-free reads.
+	std::atomic<Floor*> floors[MAP_MAX_LAYERS] = {};
 
 	uint32_t floorBits = 0;
 

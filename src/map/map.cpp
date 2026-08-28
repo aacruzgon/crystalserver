@@ -166,7 +166,7 @@ std::shared_ptr<Tile> Map::getLoadedTile(uint16_t x, uint16_t y, uint8_t z) {
 		return nullptr;
 	}
 
-	const auto &floor = leaf->getFloor(z);
+	auto* floor = leaf->getFloor(z);
 	if (!floor) {
 		return nullptr;
 	}
@@ -190,7 +190,7 @@ std::shared_ptr<Tile> Map::getTile(uint16_t x, uint16_t y, uint8_t z) {
 		return nullptr;
 	}
 
-	const auto &floor = sector->getFloor(z);
+	auto* floor = sector->getFloor(z);
 	if (!floor) {
 		return nullptr;
 	}
@@ -609,7 +609,11 @@ bool Map::getPathMatching(const std::shared_ptr<Creature> &creature, const Posit
 	Position pos = withoutCreature ? _targetPos : creature->getPosition();
 	Position endPos;
 
-	AStarNodes nodes(pos.x, pos.y, AStarNodes::getTileWalkCost(creature, getTile(pos.x, pos.y, pos.z)));
+	// Reused per thread rather than built on the stack each call: the arena is
+	// 17-25 KB and every WalkParallel worker runs this concurrently. reset()
+	// clears only the prefix the previous search touched.
+	thread_local AStarNodes nodes;
+	nodes.reset(pos.x, pos.y, AStarNodes::getTileWalkCost(creature, getTile(pos.x, pos.y, pos.z)));
 
 	int32_t bestMatch = 0;
 
@@ -775,7 +779,11 @@ bool Map::getPathMatchingCond(const std::shared_ptr<Creature> &creature, const P
 	Position pos = creature->getPosition();
 	Position endPos;
 
-	AStarNodes nodes(pos.x, pos.y, AStarNodes::getTileWalkCost(creature, getTile(pos.x, pos.y, pos.z)));
+	// Reused per thread rather than built on the stack each call: the arena is
+	// 17-25 KB and every WalkParallel worker runs this concurrently. reset()
+	// clears only the prefix the previous search touched.
+	thread_local AStarNodes nodes;
+	nodes.reset(pos.x, pos.y, AStarNodes::getTileWalkCost(creature, getTile(pos.x, pos.y, pos.z)));
 
 	int32_t bestMatch = 0;
 

@@ -105,7 +105,7 @@ std::shared_ptr<Item> MapCache::createItem(const std::shared_ptr<BasicItem> &Bas
 	return item;
 }
 
-std::shared_ptr<Tile> MapCache::getOrCreateTileFromCache(const std::shared_ptr<Floor> &floor, uint16_t x, uint16_t y) {
+std::shared_ptr<Tile> MapCache::getOrCreateTileFromCache(Floor* floor, uint16_t x, uint16_t y) {
 	const auto &cachedTile = floor->getTileCache(x, y);
 	const auto oldTile = floor->getTile(x, y);
 	if (!cachedTile) {
