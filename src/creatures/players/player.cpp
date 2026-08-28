@@ -13018,12 +13018,14 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 
 	const WeaponProficiencyData &playerProficiencyData = it->second;
 
+	// Reset before the lookup can bail: returning early here used to leave the previously
+	// equipped weapon's bonuses applied when the new weapon had no proficiency definition.
+	equippedWeaponProficiency.reset();
+
 	const WeaponProficiencyStruct* proficiencyData = g_proficiencies().getProficiencyByItemId(itemId);
 	if (!proficiencyData) {
 		return;
 	}
-
-	equippedWeaponProficiency.reset();
 
 	for (const auto &lvl : proficiencyData->proficiencyDataLevel) {
 		for (const auto &perk : lvl.proficiencyDataPerks) {
