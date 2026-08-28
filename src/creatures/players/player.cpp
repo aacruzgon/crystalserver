@@ -5669,6 +5669,50 @@ bool Player::checkAutoLoot(bool isBoss) const {
 	return false;
 }
 
+bool Player::isInspectAllowedByAll() const {
+	auto featureKV = kv()->scoped("features")->get("inspectAllowAll");
+	return featureKV.has_value() && featureKV->get<bool>();
+}
+
+void Player::setInspectAllowedByAll(bool allowed) const {
+	kv()->scoped("features")->set("inspectAllowAll", allowed);
+}
+
+void Player::sendOpenWheelWindow(uint32_t ownerId, const std::shared_ptr<Player> &owner) const {
+	if (client) {
+		client->sendOpenWheelWindow(ownerId, owner);
+	}
+}
+
+uint8_t Player::getInspectionState() const {
+	return isInspectAllowedByAll() ? INSPECT_STATE_INSPECT_AND_INVITE : INSPECT_STATE_ASK_AND_INVITE;
+}
+
+void Player::sendInspectionState(uint32_t creatureId, uint8_t state) const {
+	if (client) {
+		client->sendInspectionState(creatureId, state);
+	}
+}
+
+void Player::broadcastInspectionState() {
+	const uint8_t state = getInspectionState();
+	for (const auto &spectator : Spectators().find<Player>(getPosition(), true)) {
+		const auto &observer = spectator->getPlayer();
+		if (observer && observer.get() != this) {
+			observer->sendInspectionState(getID(), state);
+		}
+	}
+}
+
+void Player::sendVisibleInspectionStates() {
+	for (const auto &spectator : Spectators().find<Player>(getPosition(), true)) {
+		const auto &visiblePlayer = spectator->getPlayer();
+		if (visiblePlayer && visiblePlayer.get() != this) {
+			sendInspectionState(visiblePlayer->getID(), visiblePlayer->getInspectionState());
+		}
+	}
+}
+
 bool Player::checkChainSystem() const {
 	if (!g_configManager().getBoolean(TOGGLE_CHAIN_SYSTEM)) {
 		kv()->scoped("features")->set("chainSystem", false);

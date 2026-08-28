@@ -1489,6 +1489,9 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 		case 0xCD:
 			parseInspectionObject(msg);
 			break;
+		case 0xCE:
+			parseInspectionCharacter(msg);
+			break;
 		case 0xCF:
 			sendBlessingWindow();
 			break;
@@ -2370,6 +2373,67 @@ void ProtocolGame::parseInspectionObject(NetworkMessage &msg) {
 		uint16_t itemCount = msg.getByte();
 		g_game().playerInspectItem(player, itemId, static_cast<int8_t>(itemCount), inspectionType);
 	}
+}
+
+// Client -> server inspect-character actions. The client's InspectionParseFlags numbering:
+// 1 invite, 2 ask, 3 allow, 4 inspect, 5 revoke, 6 allow all, 7 dismiss all.
+//
+// Only the two account-wide actions and the inspect request are acted on here. The per-pair
+// invite/ask/allow/revoke negotiation would also need the server to broadcast inspection
+// state (0x77), which nothing here sends yet, so those arrive and are logged rather than
+// being silently dropped into the unknown-packet path.
+void ProtocolGame::parseInspectionCharacter(NetworkMessage &msg) {
+	if (oldProtocol || !player) {
+		return;
+	}
+
+	uint8_t action = msg.getByte();
+	uint32_t creatureId = msg.get<uint32_t>();
+
+	switch (action) {
+		case INSPECT_CHARACTER_ALLOW_ALL:
+			player->setInspectAllowedByAll(true);
+			player->broadcastInspectionState();
+			break;
+		case INSPECT_CHARACTER_DISMISS_ALL:
+			player->setInspectAllowedByAll(false);
+			player->broadcastInspectionState();
+			break;
+		case INSPECT_CHARACTER_INSPECT: {
+			if (creatureId == 0 || creatureId == player->getID()) {
+				sendCyclopediaCharacterInspection();
+				break;
+			}
+
+			const auto &target = g_game().getPlayerByID(creatureId);
+			if (!target || !target->isInspectAllowedByAll()) {
+				player->sendTextMessage(MESSAGE_FAILURE, "You are not allowed to inspect this character.");
+				break;
+			}
+
+			sendCyclopediaCharacterInspection(target);
+			break;
+		}
+		default:
+			g_logger().debug("[{}] unhandled inspect action {} for creature {}", __FUNCTION__, action, creatureId);
+			break;
+	}
+}
+
+// Server -> client inspection relationship state. Without this the client never learns that
+// someone allows inspection, so its context menu only ever offers "Ask to inspect" and the
+// direct inspect request is unreachable. Note 0x77 is only this in the server -> client
+// direction; inbound 0x77 is parseHotkeyEquip.
+void ProtocolGame::sendInspectionState(uint32_t creatureId, uint8_t state) {
+	if (oldProtocol || !player) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x77);
+	msg.add<uint32_t>(creatureId);
+	msg.addByte(state);
+	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendSessionEndInformation(SessionEndInformations information) {
@@ -4709,10 +4773,14 @@ void ProtocolGame::sendCyclopediaCharacterStoreSummary() {
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendCyclopediaCharacterInspection() {
+void ProtocolGame::sendCyclopediaCharacterInspection(const std::shared_ptr<Player> &target) {
 	if (!player || oldProtocol) {
 		return;
 	}
+
+	// Whose character is being described. Defaults to our own; parseInspectionCharacter
+	// passes someone else when that player has "Allow All to Inspect Me" enabled.
+	const auto &subject = target ? target : player;
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
@@ -4722,7 +4790,7 @@ void ProtocolGame::sendCyclopediaCharacterInspection() {
 	auto startInventory = msg.getBufferPosition();
 	msg.skipBytes(1);
 	for (std::underlying_type<Slots_t>::type slot = CONST_SLOT_FIRST; slot <= CONST_SLOT_LAST; slot++) {
-		std::shared_ptr<Item> inventoryItem = player->getInventoryItem(static_cast<Slots_t>(slot));
+		std::shared_ptr<Item> inventoryItem = subject->getInventoryItem(static_cast<Slots_t>(slot));
 		if (inventoryItem) {
 			++inventoryItems;
 
@@ -4756,8 +4824,8 @@ void ProtocolGame::sendCyclopediaCharacterInspection() {
 			}
 		}
 	}
-	msg.addString(player->getName());
-	AddOutfit(msg, player->getDefaultOutfit(), false);
+	msg.addString(subject->getName());
+	AddOutfit(msg, subject->getDefaultOutfit(), false);
 
 	// Player overall summary
 	uint8_t playerDescriptionSize = 0;
@@ -4765,31 +4833,31 @@ void ProtocolGame::sendCyclopediaCharacterInspection() {
 	msg.skipBytes(1);
 
 	// Player title
-	if (player->title()->getCurrentTitle() != 0) {
+	if (subject->title()->getCurrentTitle() != 0) {
 		playerDescriptionSize++;
 		msg.addString("Character Title");
-		msg.addString(player->title()->getCurrentTitleName());
+		msg.addString(subject->title()->getCurrentTitleName());
 	}
 
 	// Level description
 	playerDescriptionSize++;
 	msg.addString("Level");
-	msg.addString(std::to_string(player->getLevel()));
+	msg.addString(std::to_string(subject->getLevel()));
 
 	// Vocation description
 	playerDescriptionSize++;
 	msg.addString("Vocation");
-	msg.addString(player->getVocation()->getVocName());
+	msg.addString(subject->getVocation()->getVocName());
 
 	// Loyalty title
-	if (!player->getLoyaltyTitle().empty()) {
+	if (!subject->getLoyaltyTitle().empty()) {
 		playerDescriptionSize++;
 		msg.addString("Loyalty Title");
-		msg.addString(player->getLoyaltyTitle());
+		msg.addString(subject->getLoyaltyTitle());
 	}
 
 	// Marriage description
-	if (const auto spouseId = player->getMarriageSpouse(); spouseId > 0) {
+	if (const auto spouseId = subject->getMarriageSpouse(); spouseId > 0) {
 		if (const auto &spouse = g_game().getPlayerByID(spouseId, true); spouse) {
 			playerDescriptionSize++;
 			msg.addString("Married to");
@@ -4799,7 +4867,7 @@ void ProtocolGame::sendCyclopediaCharacterInspection() {
 
 	// Prey description
 	for (uint8_t slotId = PreySlot_First; slotId <= PreySlot_Last; slotId++) {
-		if (const auto &slot = player->getPreySlotById(static_cast<PreySlot_t>(slotId));
+		if (const auto &slot = subject->getPreySlotById(static_cast<PreySlot_t>(slotId));
 		    slot && slot->isOccupied()) {
 			playerDescriptionSize++;
 			std::string activePrey = fmt::format("Active Prey {}", slotId + 1);
@@ -4832,7 +4900,7 @@ void ProtocolGame::sendCyclopediaCharacterInspection() {
 	// Outfit description
 	playerDescriptionSize++;
 	msg.addString("Outfit");
-	if (const auto outfit = Outfits::getInstance().getOutfitByLookType(player, player->getDefaultOutfit().lookType)) {
+	if (const auto outfit = Outfits::getInstance().getOutfitByLookType(subject, subject->getDefaultOutfit().lookType)) {
 		msg.addString(outfit->name);
 	} else {
 		msg.addString("unknown");
@@ -8185,6 +8253,12 @@ void ProtocolGame::sendAddCreature(const std::shared_ptr<Creature> &creature, co
 		AddCreature(msg, creature, known, removedKnown);
 		writeToOutputBuffer(msg);
 
+		// A player walking into view has to arrive with their inspection state, or our menu
+		// would offer "Ask to inspect" for someone who already allows everyone.
+		if (const auto &otherPlayer = creature->getPlayer()) {
+			sendInspectionState(otherPlayer->getID(), otherPlayer->getInspectionState());
+		}
+
 		if (isLogin) {
 			if (std::shared_ptr<Player> creaturePlayer = creature->getPlayer()) {
 				if (!creaturePlayer->isAccessPlayer() || creaturePlayer->getAccountType() == ACCOUNT_TYPE_NORMAL) {
@@ -8241,6 +8315,10 @@ void ProtocolGame::sendAddCreature(const std::shared_ptr<Creature> &creature, co
 	sendEnterWorld();
 	sendMapDescription(pos);
 	loggedIn = true;
+
+	// sendMapDescription delivers everyone already on screen in one go rather than as
+	// individual AddCreature packets, so their inspection states have to follow separately.
+	player->sendVisibleInspectionStates();
 
 	if (isLogin) {
 		sendMagicEffect(pos, CONST_ME_TELEPORT);
@@ -10953,13 +11031,18 @@ void ProtocolGame::parseWheelGemAction(NetworkMessage &msg) {
 	g_game().playerWheelGemAction(player->getID(), msg);
 }
 
-void ProtocolGame::sendOpenWheelWindow(uint32_t ownerId) {
+// owner == nullptr serialises our own wheel. The inspect window's "Show Wheel of Destiny"
+// button passes the inspected player instead, so the payload has to be built from THEIR
+// PlayerWheel; ownerId alone only labels the packet.
+void ProtocolGame::sendOpenWheelWindow(uint32_t ownerId, const std::shared_ptr<Player> &owner) {
 	if (!player || oldProtocol || !g_configManager().getBoolean(TOGGLE_WHEELSYSTEM)) {
 		return;
 	}
 
+	const auto &source = owner ? owner : player;
+
 	NetworkMessage msg;
-	player->wheel()->sendOpenWheelWindow(msg, ownerId);
+	source->wheel()->sendOpenWheelWindow(msg, ownerId);
 	writeToOutputBuffer(msg);
 }
 

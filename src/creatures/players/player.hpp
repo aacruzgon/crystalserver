@@ -1536,6 +1536,26 @@ public:
 	bool checkChainSystem() const;
 	bool checkMute() const;
 
+	// "Allow All to Inspect Me" on the client's Misc. > Game Play page, sent as the AllowAll
+	// / DismissAll actions of the inspect-character packet. Persisted so it outlives a relog,
+	// the way the official client's account-wide setting does.
+	bool isInspectAllowedByAll() const;
+	void setInspectAllowedByAll(bool allowed) const;
+
+	// The inspection relationship byte this player presents to anyone looking at them, sent
+	// over 0x77. Only the "may I inspect them" half is modelled: per-pair invite/allow/revoke
+	// is not implemented, so the allowance half stays Invite. A client whose own "Allow All"
+	// is enabled hides that half of the menu anyway.
+	uint8_t getInspectionState() const;
+	// Opens the wheel window on our client; owner != nullptr renders that player's wheel
+	// instead of ours, which is what the inspect window's wheel button asks for.
+	void sendOpenWheelWindow(uint32_t ownerId, const std::shared_ptr<Player> &owner = nullptr) const;
+	void sendInspectionState(uint32_t creatureId, uint8_t state) const;
+	// Tells everyone who can see this player that their inspectability changed.
+	void broadcastInspectionState();
+	// The reverse: tells this player the inspection state of everyone already in view.
+	void sendVisibleInspectionStates();
+
 	QuickLootFilter_t getQuickLootFilter() const;
 
 	// Get specific inventory item from itemid

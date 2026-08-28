@@ -98,6 +98,32 @@ enum InspectObjectTypes : uint8_t {
 	INSPECT_PROFICIENCY = 4,
 };
 
+// Inspection relationship state broadcast to a client over 0x77. Mirrors InspectionFlags in
+// the client's modules/gamelib/const.lua, which reads the byte as two halves: bit 2 (value 4)
+// means "you may inspect them", and the 0/1/8 part describes your own allowance toward them
+// (Invite / Revoke / Allow). Per-pair allowances are not implemented, so only the inspect
+// half ever varies here; see Player::getInspectionState.
+enum InspectCharacterState : uint8_t {
+	INSPECT_STATE_ASK_AND_INVITE = 0,
+	INSPECT_STATE_ASK_AND_REVOKE = 1,
+	INSPECT_STATE_INSPECT_AND_INVITE = 4,
+	INSPECT_STATE_INSPECT_AND_REVOKE = 5,
+	INSPECT_STATE_ASK_AND_ALLOW = 8,
+	INSPECT_STATE_INSPECT_AND_ALLOW = 12,
+};
+
+// Actions of the inspect-character packet (0xCE). Mirrors InspectionParseFlags in the
+// client's modules/gamelib/const.lua; keep the two in step.
+enum InspectCharacterAction : uint8_t {
+	INSPECT_CHARACTER_INVITE = 1,
+	INSPECT_CHARACTER_ASK = 2,
+	INSPECT_CHARACTER_ALLOW = 3,
+	INSPECT_CHARACTER_INSPECT = 4,
+	INSPECT_CHARACTER_REVOKE = 5,
+	INSPECT_CHARACTER_ALLOW_ALL = 6,
+	INSPECT_CHARACTER_DISMISS_ALL = 7,
+};
+
 enum CyclopediaCharacterInfo_OutfitType_t : uint8_t {
 	CYCLOPEDIA_CHARACTERINFO_OUTFITTYPE_NONE = 0,
 	CYCLOPEDIA_CHARACTERINFO_OUTFITTYPE_QUEST = 1,

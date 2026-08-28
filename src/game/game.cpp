@@ -11440,8 +11440,28 @@ void Game::playerOpenWheel(uint32_t playerId, uint32_t ownerId) {
 		return;
 	}
 
+	// Opening someone else's wheel is legitimate from the inspect window - the official
+	// client offers "Show Wheel of Destiny" there - but only for a player who has enabled
+	// "Allow All to Inspect Me". Anything else is still a protocol error worth logging.
 	if (playerId != ownerId) {
-		g_logger().error("[{}] player {} is trying to open wheel of another player", __FUNCTION__, player->getName());
+		const auto &owner = getPlayerByID(ownerId);
+		if (!owner) {
+			g_logger().error("[{}] player {} is trying to open wheel of an unknown player", __FUNCTION__, player->getName());
+			return;
+		}
+
+		if (!owner->isInspectAllowedByAll()) {
+			player->sendTextMessage(MESSAGE_FAILURE, "You are not allowed to inspect this character.");
+			return;
+		}
+
+		if (!player->canDoExAction()) {
+			player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
+			return;
+		}
+
+		player->sendOpenWheelWindow(ownerId, owner);
+		player->setNextExAction(OTSYS_TIME() + g_configManager().getNumber(UI_ACTIONS_DELAY_INTERVAL) - 10);
 		return;
 	}
 
