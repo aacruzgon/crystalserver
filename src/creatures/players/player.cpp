@@ -4141,9 +4141,14 @@ void Player::death(const std::shared_ptr<Creature> &lastHitCreature) {
 			}
 		}
 
+		// Half, not a token hit: every temple NPC tells the player this counts only when
+		// "at least half of the damage leading to your death was caused by others". At the
+		// old 5% an ally could chip a sliver off a player and let a monster land the kill,
+		// turning it into a PvP death so Twist of Fate absorbed it instead of blessings
+		// 2-8 - and no unjustified kill, since nobody actually killed anyone.
 		bool pvpDeath = false;
 		if (playerDmg > 0 || othersDmg > 0) {
-			pvpDeath = (Player::lastHitIsPlayer(lastHitCreature) || playerDmg / (playerDmg + static_cast<double>(othersDmg)) >= 0.05);
+			pvpDeath = (Player::lastHitIsPlayer(lastHitCreature) || playerDmg / (playerDmg + static_cast<double>(othersDmg)) >= 0.5);
 		}
 
 		uint8_t unfairFightReduction = 100;
