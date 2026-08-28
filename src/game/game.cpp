@@ -30,6 +30,7 @@
 #include "creatures/players/achievement/player_achievement.hpp"
 #include "creatures/players/cyclopedia/player_badge.hpp"
 #include "creatures/players/cyclopedia/player_cyclopedia.hpp"
+#include "creatures/players/grouping/familiars.hpp"
 #include "creatures/players/grouping/party.hpp"
 #include "creatures/players/grouping/team_finder.hpp"
 #include "creatures/players/highscore_category.hpp"
@@ -6593,6 +6594,16 @@ void Game::playerChangeOutfit(uint32_t playerId, Outfit_t outfit, bool isMounted
 	const auto &player = getPlayerByID(playerId);
 	if (!player) {
 		return;
+	}
+
+	// A familiar the player does not own would be stored verbatim and later applied to
+	// the summoned monster, so keep the one already stored instead of trusting the client.
+	// This has to happen before changeOutfit(), which already assigns defaultOutfit.
+	if (outfit.lookFamiliarsType != 0) {
+		const auto &familiar = Familiars::getInstance().getFamiliarByLookType(player->getVocationId(), outfit.lookFamiliarsType);
+		if (!familiar || !player->getFamiliar(familiar)) {
+			outfit.lookFamiliarsType = player->defaultOutfit.lookFamiliarsType;
+		}
 	}
 
 	if (!player->changeOutfit(outfit, true)) {

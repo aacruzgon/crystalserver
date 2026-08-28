@@ -376,7 +376,18 @@ function Player:createFamiliar(familiarName, timeLeft)
 		return false
 	end
 
-	myFamiliar:setOutfit({ lookType = self:getFamiliarLooktype() })
+	-- A familiar monster carries no lookType of its own, so a stored looktype of 0
+	-- would summon an invisible creature. Fall back to the vocation's default.
+	local familiarLooktype = self:getFamiliarLooktype()
+	if familiarLooktype == 0 then
+		local vocationFamiliar = FAMILIAR_ID[self:getVocation():getBaseId()]
+		familiarLooktype = vocationFamiliar and vocationFamiliar.id or 0
+		if familiarLooktype ~= 0 then
+			self:setFamiliarLooktype(familiarLooktype)
+		end
+	end
+
+	myFamiliar:setOutfit({ lookType = familiarLooktype })
 	myFamiliar:registerEvent("FamiliarDeath")
 	myFamiliar:changeSpeed(math.max(self:getSpeed() - myFamiliar:getBaseSpeed(), 0))
 	playerPosition:sendMagicEffect(CONST_ME_MAGIC_BLUE)
