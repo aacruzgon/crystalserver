@@ -166,9 +166,17 @@ function playerLoginGlobal.onLogin(player)
 	end
 
 	local playerId = player:getId()
-	_G.NextUseStaminaTime[playerId] = 1
-	_G.NextUseXpStamina[playerId] = 1
-	_G.NextUseConcoctionTime[playerId] = 1
+
+	-- These hold the timestamp at which the next tick falls due. Seeding them to
+	-- the epoch made the first experience gain of a session look ~1.7 billion
+	-- seconds overdue, so it always took the catch-up branch and cost two
+	-- stamina minutes, two XP boost minutes and 120s of concoction instead of
+	-- one, one and 60s. Start the clocks now instead.
+	local sessionStart = os.time()
+
+	_G.NextUseStaminaTime[playerId] = sessionStart
+	_G.NextUseXpStamina[playerId] = sessionStart
+	_G.NextUseConcoctionTime[playerId] = sessionStart
 	DailyReward.init(playerId)
 
 	local stats = player:inBossFight()
