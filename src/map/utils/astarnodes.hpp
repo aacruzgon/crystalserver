@@ -29,7 +29,15 @@ struct AStarNode {
 
 class AStarNodes {
 public:
-	AStarNodes(uint32_t x, uint32_t y, int_fast32_t extraCost);
+	// Default-constructed once per thread and reused. Constructing this on the
+	// stack per search meant 17-25 KB of frame (platform dependent -- int_fast32_t
+	// is 4 bytes on arm64, 8 on x86-64 glibc) value-initialised every time, for a
+	// search that typically touches well under a hundred nodes.
+	AStarNodes();
+
+	// Prepares the arena for a new search from (x, y). Only the prefix the previous
+	// search dirtied is restored; everything past it is still in its initial state.
+	void reset(uint32_t x, uint32_t y, int_fast32_t extraCost);
 
 	bool createOpenNode(AStarNode* parent, uint32_t x, uint32_t y, int_fast32_t f, int_fast32_t heuristic, int_fast32_t extraCost);
 	AStarNode* getBestNode();

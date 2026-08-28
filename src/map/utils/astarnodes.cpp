@@ -21,41 +21,39 @@
 #include "creatures/monsters/monster.hpp"
 #include "items/tile.hpp"
 
-AStarNodes::AStarNodes(uint32_t x, uint32_t y, int_fast32_t extraCost) :
-#if defined(__AVX2__) || defined(__SSE2__)
-	nodesTable(), // 1. nodesTable
-	calculatedNodes(), // 2. calculatedNodes
-	nodes(), // 3. nodes
-	closedNodes(0), // 4. closedNodes
-	curNode(0), // 5. curNode
-	openNodes() // 6. openNodes
+AStarNodes::AStarNodes() {
+	// Full initialisation, paid once per thread rather than once per search.
+	// calculatedNodes must start at INT_MAX everywhere: getBestNode's SIMD loops
+	// read whole blocks, so entries beyond curNode are still compared and would
+	// win the minimum if they held anything smaller.
+#if defined(__SSE2__)
+	std::fill_n(calculatedNodes, MAX_NODES, std::numeric_limits<int32_t>::max());
+	std::fill_n(nodesTable, MAX_NODES, 0u);
 #else
-	nodes(), // 1. nodes
-	nodesTable(), // 2. nodesTable
-	closedNodes(0), // 3. closedNodes
-	curNode(0), // 4. curNode
-	openNodes() // 5. openNodes
+	std::fill_n(nodesTable, MAX_NODES, 0u);
 #endif
-{
-#if defined(__AVX2__)
-	__m256i defaultCost = _mm256_set1_epi32(std::numeric_limits<int32_t>::max());
-	for (int32_t i = 0; i < MAX_NODES; i += 32) {
-		_mm256_stream_si256(reinterpret_cast<__m256i*>(&calculatedNodes[i + 0]), defaultCost);
-		_mm256_stream_si256(reinterpret_cast<__m256i*>(&calculatedNodes[i + 8]), defaultCost);
-		_mm256_stream_si256(reinterpret_cast<__m256i*>(&calculatedNodes[i + 16]), defaultCost);
-		_mm256_stream_si256(reinterpret_cast<__m256i*>(&calculatedNodes[i + 24]), defaultCost);
-	}
-	_mm_sfence();
-#elif defined(__SSE2__)
-	__m128i defaultCost = _mm_set1_epi32(std::numeric_limits<int32_t>::max());
-	for (int32_t i = 0; i < MAX_NODES; i += 16) {
-		_mm_stream_si128(reinterpret_cast<__m128i*>(&calculatedNodes[i + 0]), defaultCost);
-		_mm_stream_si128(reinterpret_cast<__m128i*>(&calculatedNodes[i + 4]), defaultCost);
-		_mm_stream_si128(reinterpret_cast<__m128i*>(&calculatedNodes[i + 8]), defaultCost);
-		_mm_stream_si128(reinterpret_cast<__m128i*>(&calculatedNodes[i + 12]), defaultCost);
-	}
-	_mm_sfence();
+	std::fill_n(openNodes, MAX_NODES, false);
+	closedNodes = 0;
+	curNode = 0;
+}
+
+void AStarNodes::reset(uint32_t x, uint32_t y, int_fast32_t extraCost) {
+	// Restore only what the previous search dirtied.
+	//
+	// nodes[] and nodesTable[] are deliberately not cleared: both are written by
+	// createOpenNode before anything reads them, and every reader is bounded by
+	// curNode -- getNodeByPosition steps 16, then 8, then 1, never past it.
+	//
+	// calculatedNodes and openNodes are different, because getBestNode's SIMD
+	// loops read up to the block boundary above curNode. Round the restored
+	// prefix up to 16 (the widest block, AVX-512) so those lanes read INT_MAX and
+	// a stale entry can never be selected. MAX_NODES is a multiple of 16, so the
+	// rounding cannot overrun.
+	const int32_t dirty = std::min<int32_t>(MAX_NODES, (curNode + 15) & ~15);
+#if defined(__SSE2__)
+	std::fill_n(calculatedNodes, dirty, std::numeric_limits<int32_t>::max());
 #endif
+	std::fill_n(openNodes, dirty, false);
 
 	curNode = 1;
 	closedNodes = 0;
@@ -63,13 +61,13 @@ AStarNodes::AStarNodes(uint32_t x, uint32_t y, int_fast32_t extraCost) :
 
 	AStarNode &startNode = nodes[0];
 	startNode.parent = nullptr;
-	startNode.x = x;
-	startNode.y = y;
+	startNode.x = static_cast<uint16_t>(x);
+	startNode.y = static_cast<uint16_t>(y);
 	startNode.f = 0;
 	startNode.g = 0;
 	startNode.c = extraCost;
 	nodesTable[0] = (x << 16) | y;
-#if defined(__SSE2__) || defined(__AVX2__)
+#if defined(__SSE2__)
 	calculatedNodes[0] = 0;
 #endif
 }
