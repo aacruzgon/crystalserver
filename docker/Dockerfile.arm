@@ -27,7 +27,11 @@ FROM dependencies AS build
 COPY . /srv/
 WORKDIR /srv
 
-RUN export VCPKG_ROOT=/opt/vcpkg/ && VCPKG_FORCE_SYSTEM_BINARIES=1 cmake --preset linux-release && cmake --build --preset linux-release
+# Oldest arm64 CPU this image is allowed to require: ARMv8.2 + crypto, which covers
+# Graviton2 and later and Ampere Altra. Do NOT use -march=native here: an image built
+# on an Apple M-series host would target ARMv8.6 and fault on those servers.
+ARG ARCH_BASELINE=armv8.2-a+crypto
+RUN export VCPKG_ROOT=/opt/vcpkg/ && VCPKG_FORCE_SYSTEM_BINARIES=1 cmake --preset linux-release -DCRYSTAL_ARCH_BASELINE=${ARCH_BASELINE} && cmake --build --preset linux-release
 
 # Stage 3: load data and execute
 FROM ubuntu:24.04

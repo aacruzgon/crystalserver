@@ -136,7 +136,10 @@ endif()
 # === Optimization Flags ===
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "Release")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(${PROJECT_NAME}_lib PRIVATE -O3 -march=native)
+        # The target CPU is CRYSTAL_ARCH_BASELINE, set once in the top-level
+        # CMakeLists.txt. Do not add -march here: it lands after CMAKE_CXX_FLAGS
+        # and would override that baseline for this target only.
+        target_compile_options(${PROJECT_NAME}_lib PRIVATE -O3)
     elseif(MSVC)
         target_compile_options(${PROJECT_NAME}_lib PRIVATE /O2)
     endif()

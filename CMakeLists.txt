@@ -32,10 +32,23 @@ endif()
 # *****************************************************************************
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
-# Configure build options for compatibility with commodity CPUs
-if(NOT MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64|i[3-6]86)$")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -mtune=generic -mno-avx -mno-sse4")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64 -mtune=generic -mno-avx -mno-sse4")
+# The oldest CPU the shipped binary must run on. Set it here, once, so the same
+# source produces the same binary no matter which machine compiled it -- never
+# -march=native, which silently ties the binary to the build host.
+#
+#   x86-64-v2          SSE4.2, POPCNT             (Nehalem/Bulldozer, ~2009+)
+#   x86-64-v3          AVX2, BMI, FMA             (Haswell/Excavator, ~2015+; typical VPS)
+#   armv8.2-a+crypto   Graviton2+, Ampere Altra
+#   <empty>            the compiler's own default
+#
+# Leave it empty on Apple Silicon. Apple clang already targets the host CPU tuple
+# there, and forcing -march= drops it onto a generic armv8.x profile that loses
+# the AES, SHA2/3/512 and FP16 extensions the default target has.
+set(CRYSTAL_ARCH_BASELINE "" CACHE STRING
+    "Oldest CPU the binary must run on, as an -march= value. Empty = compiler default.")
+
+if(NOT MSVC AND CRYSTAL_ARCH_BASELINE)
+    add_compile_options(-march=${CRYSTAL_ARCH_BASELINE})
 endif()
 
 # *****************************************************************************

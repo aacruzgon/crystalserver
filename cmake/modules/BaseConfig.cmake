@@ -169,10 +169,11 @@ function(configure_linking target_name)
                     # Disable LTO for Debug builds with GCC 14
                     target_compile_options(${target_name} PRIVATE -fno-lto)
                     target_link_options(${target_name} PRIVATE -fno-lto)
-                else()
-                    target_compile_options(${target_name} PRIVATE -flto=auto)
-                    target_link_options(${target_name} PRIVATE -flto=auto)
                 endif()
+                # No -flto flag here on purpose. INTERPROCEDURAL_OPTIMIZATION above
+                # already emits the right one per compiler (-flto=thin on Clang,
+                # -flto=auto on GCC); adding a second by hand put both on the command
+                # line, with GCC's spelling passed to Clang.
             endif()
         else()
             log_option_disabled("IPO/LTO is not supported for target ${target_name}: ${ipo_output}")

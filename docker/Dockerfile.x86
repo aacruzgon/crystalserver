@@ -27,7 +27,10 @@ FROM dependencies AS build
 COPY . /srv/
 WORKDIR /srv
 
-RUN export VCPKG_ROOT=/opt/vcpkg/ && cmake --preset linux-release && cmake --build --preset linux-release
+# Oldest x86-64 CPU this image is allowed to require: AVX2 + BMI + FMA (Haswell, 2015+).
+# Drop to x86-64-v2 if you deploy to anything older.
+ARG ARCH_BASELINE=x86-64-v3
+RUN export VCPKG_ROOT=/opt/vcpkg/ && cmake --preset linux-release -DCRYSTAL_ARCH_BASELINE=${ARCH_BASELINE} && cmake --build --preset linux-release
 
 # Stage 3: load data and execute
 FROM ubuntu:24.04
