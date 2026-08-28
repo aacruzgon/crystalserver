@@ -8641,14 +8641,17 @@
 		</attribute>
 	</item>
 	<item id="3289" article="a" name="staff">
-		<attribute key="primarytype" value="club weapons" />
-		<attribute key="weaponType" value="club" />
+		<attribute key="primarytype" value="fist weapons" />
+		<attribute key="weaponType" value="fist" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="10" />
-		<attribute key="defense" value="25" />
+		<attribute key="attack" value="22" />
+		<attribute key="defense" value="14" />
 		<attribute key="weight" value="3800" />
 		<attribute key="script" value="moveevent;weapon">
-			<attribute key="weaponType" value="club" />
+			<attribute key="level" value="15" />
+			<attribute key="unproperly" value="true" />
+			<attribute key="weaponType" value="fist" />
+			<attribute key="vocation" value="Monk;true, Exalted Monk" />
 		</attribute>
 	</item>
 	<item id="3290" article="a" name="silver dagger">
@@ -22186,7 +22189,7 @@
 		<attribute key="speed" value="10" />
 		<attribute key="duration" value="1200" />
 		<attribute key="decayTo" value="8077" />
-		<attribute key="defense" value="47" />
+		<attribute key="defense" value="49" />
 		<attribute key="weight" value="6900" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="100" />
@@ -55775,7 +55778,7 @@
 		<attribute key="absorbpercentphysical" value="2" />
 		<attribute key="absorbpercentpoison" value="6" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="42" />
+		<attribute key="defense" value="34" />
 		<attribute key="weight" value="3500" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -84096,7 +84099,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="44" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="21" />
 		<attribute key="skillfist" value="3" />
 		<attribute key="magiclevelpoints" value="1" />
@@ -86864,10 +86867,10 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="skillfist" value="4" />
-		<attribute key="magiclevelpoints" value="2" />
-		<attribute key="attack" value="12" />
+		<attribute key="magiclevelpoints" value="1" />
+		<attribute key="attack" value="45" />
 		<attribute key="mantra" value="58" />
-		<attribute key="defense" value="33" />
+		<attribute key="defense" value="20" />
 		<attribute key="weight" value="6800" />
 		<attribute key="imbuementslot" value="3">
 			<attribute key="elemental damage" value="3" />
