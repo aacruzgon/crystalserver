@@ -186,6 +186,28 @@ Blessings.getPvpBlessingCost = function(level, byCommand)
 	return byCommand and Blessings.getCommandFee(cost) or cost
 end
 
+-- Every blessing that reduces the death penalty: the five regular ones and the two
+-- enhanced Mountain blessings. Twist of Fate is a PvP blessing and is sold separately.
+Blessings.isDeathPenaltyBlessing = function(bless)
+	return bless.type == Blessings.Types.REGULAR or bless.type == Blessings.Types.ENHANCED
+end
+
+-- Price for every death penalty blessing the player is still missing. Buying the set
+-- in one go carries the same 10% surcharge over the individual prices that the
+-- inquisition blessing does, so a bundle can never undercut buying them one by one.
+Blessings.getAllBlessingsPrice = function(player)
+	local level = player:getLevel()
+	local missing, cost = 0, 0
+	for id, bless in pairs(Blessings.All) do
+		if Blessings.isDeathPenaltyBlessing(bless) and not player:hasBlessing(id) then
+			missing = missing + 1
+			cost = cost + Blessings.getBlessingCost(level, false, bless.type == Blessings.Types.ENHANCED)
+		end
+	end
+
+	return missing, math.floor(cost * Blessings.Config.InquisitonBlessPriceMultiplier + 0.5)
+end
+
 Blessings.useCharm = function(player, item)
 	for index, value in pairs(Blessings.All) do
 		if item.itemid == value.charm then
@@ -314,6 +336,15 @@ function Player.getBlessings(self, filter, hasblessingFilter)
 	end
 
 	return blessings
+end
+
+function Player.addMissingDeathPenaltyBless(self)
+	for id, bless in pairs(Blessings.All) do
+		if Blessings.isDeathPenaltyBlessing(bless) and not self:hasBlessing(id) then
+			self:addBlessing(id, 1)
+		end
+	end
+	self:sendBlessStatus()
 end
 
 function Player.addMissingBless(self, all, tof)

@@ -1,5 +1,10 @@
 -- Advanced NPC System by Jiddo
 
+-- Declared outside the guard below: that guard only runs once per process, so a tag
+-- introduced after a server is already up would still be nil after /reload npcs and
+-- blow up the parseInfo tables that index by it.
+TAG_ALLBLESSCOST = "|ALLBLESSCOST|"
+
 if NpcHandler == nil then
 	-- Constant talkdelay behaviors.
 	TALKDELAY_NONE = 0 -- No talkdelay. Npc will reply immedeatly.

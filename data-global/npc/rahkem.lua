@@ -143,7 +143,7 @@ keywordHandler:addKeyword({ "stake" }, StdModule.say, { npcHandler = npcHandler,
 
 -- Basic
 keywordHandler:addKeyword({ "pilgrimage" }, StdModule.say, { npcHandler = npcHandler, text = "Whenever you receive a lethal wound, your vital force is damaged and there is a chance that you lose some of your equipment. With every single of the five {blessings} you have, this damage and chance of loss will be reduced." })
-keywordHandler:addKeyword({ "blessings" }, StdModule.say, { npcHandler = npcHandler, text = "There are five blessings available in five sacred places: the {spiritual} shielding, the spark of the {phoenix}, the {embrace} of Tibia, the fire of the {suns} and the wisdom of {solitude}. Additionally, you can receive the {twist of fate} here." })
+keywordHandler:addKeyword({ "blessings" }, StdModule.say, { npcHandler = npcHandler, text = "There are five blessings available in five sacred places: the {spiritual} shielding, the spark of the {phoenix}, the {embrace} of Tibia, the fire of the {suns} and the wisdom of {solitude}. Additionally, you can receive the {twist of fate} here. If you ask me for a {blessing} I will bestow every one that shields you from death upon you at once, for a small surcharge." })
 keywordHandler:addKeyword({ "spiritual" }, StdModule.say, { npcHandler = npcHandler, text = "I see you received the spiritual shielding in the whiteflower temple south of Thais." }, function(player)
 	return player:hasBlessing(1)
 end)
@@ -445,6 +445,22 @@ nodeLevels:addChildKeyword({ "10" }, StdModule.say, { npcHandler = npcHandler, o
 nodeLevels:addChildKeyword({ "9" }, StdModule.say, { npcHandler = npcHandler, onlyFocus = true, text = "For level 9 I have {Magic Rope} for 200 gold." })
 nodeLevels:addChildKeyword({ "8" }, StdModule.say, { npcHandler = npcHandler, onlyFocus = true, text = "For level 8 I have {Apprentice's Strike} for free, {Find Person} for 80 gold, {Light} for free and {Light Healing} for free." })
 nodeLevels:addChildKeyword({ "1" }, StdModule.say, { npcHandler = npcHandler, onlyFocus = true, text = "For level 1 I have {Chill Out} for free, {Magic Patch} for free and {Mud Attack} for free." })
+
+-- Every death penalty blessing at once
+keywordHandler:addKeyword({ "bless" }, StdModule.say, {
+	npcHandler = npcHandler,
+	text = "You already carry every blessing I can bestow, child.",
+}, function(player)
+	local missing = Blessings.getAllBlessingsPrice(player)
+	return missing == 0
+end)
+
+local allBlessKeyword = keywordHandler:addKeyword({ "bless" }, StdModule.say, {
+	npcHandler = npcHandler,
+	text = "I can call upon every god on your behalf at once. Do you want to receive all the blessings you are still missing for |ALLBLESSCOST| gold?",
+})
+allBlessKeyword:addChildKeyword({ "yes" }, StdModule.blessAll, { npcHandler = npcHandler, text = "So receive the blessings of all the gods, pilgrim." })
+allBlessKeyword:addChildKeyword({ "" }, StdModule.say, { npcHandler = npcHandler, text = "Fine. You are free to decline my offer.", reset = true })
 
 npcHandler:addModule(FocusModule:new(), npcConfig.name, true, true, true)
 

@@ -62,6 +62,7 @@ if Modules == nil then
 			[TAG_TIME] = getFormattedWorldTime(),
 			[TAG_BLESSCOST] = Blessings.getBlessingCost(player:getLevel(), false, (npc:getName() == "Kais" or npc:getName() == "Nomad") and true),
 			[TAG_PVPBLESSCOST] = Blessings.getPvpBlessingCost(player:getLevel(), false),
+			[TAG_ALLBLESSCOST] = select(2, Blessings.getAllBlessingsPrice(player)),
 			[TAG_TRAVELCOST] = costMessage,
 		}
 		if parameters.replacements then
@@ -186,6 +187,35 @@ if Modules == nil then
 			end
 			player:addBlessing(parameters.bless, 1)
 			player:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+		end
+
+		npcHandler:resetNpc(player)
+		return true
+	end
+
+	-- Grants every death penalty blessing the player is still missing - the five
+	-- regular ones and both Mountain blessings - in a single purchase. Price and count
+	-- come from the same helper that feeds |ALLBLESSCOST|, so the quoted price and the
+	-- charged one cannot drift apart.
+	function StdModule.blessAll(npc, player, message, keywords, parameters, node)
+		local npcHandler = parameters.npcHandler
+		if npcHandler == nil then
+			error("StdModule.blessAll called without any npcHandler instance.")
+		end
+
+		if not npcHandler:checkInteraction(npc, player) or Game.getWorldType() == WORLDTYPE_HARDCORE then
+			return false
+		end
+
+		local missing, cost = Blessings.getAllBlessingsPrice(player)
+		if missing == 0 then
+			npcHandler:say("You already carry every blessing I can bestow.", npc, player)
+		elseif not player:removeMoneyBank(cost) then
+			npcHandler:say("Oh. You do not have enough money.", npc, player)
+		else
+			npcHandler:say(parameters.text or "You have been blessed by all of the gods!", npc, player)
+			player:addMissingDeathPenaltyBless()
+			player:getPosition():sendMagicEffect(CONST_ME_HOLYAREA)
 		end
 
 		npcHandler:resetNpc(player)
