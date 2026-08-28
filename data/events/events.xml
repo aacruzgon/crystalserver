@@ -8,7 +8,11 @@ Therefore, we strongly encourage avoiding the use of this file when possible, as
 <events>
 	<!-- Creature Methods -->
 	<event class="Creature" method="onChangeOutfit" enabled="1" />
-	<event class="Creature" method="onDrainHealth" enabled="1" />
+	<!-- Disabled: the handler returns its arguments unchanged, so every damage event
+	     paid a round-trip into Lua for nothing. Events::eventCreatureOnDrainHealth
+	     skips the call entirely while this is off (info.creatureOnDrainHealth == -1).
+	     Re-enable if a datapack ever needs to modify damage here. -->
+	<event class="Creature" method="onDrainHealth" enabled="0" />
 	<event class="Creature" method="onTargetCombat" enabled="1" />
 
 	<!-- Party Methods -->
@@ -32,6 +36,9 @@ Therefore, we strongly encourage avoiding the use of this file when possible, as
 	<event class="Player" method="onReportRuleViolation" enabled="1" />
 	<event class="Player" method="onTradeRequest" enabled="1" />
 	<event class="Player" method="onTurn" enabled="1" />
-	<event class="Player" method="onCombat" enabled="1" />
+	<!-- Disabled: the handler does an ItemType lookup and builds a table for a
+	     table.contains check, then discards the result and returns its arguments
+	     unchanged. Ran on every player attack. -->
+	<event class="Player" method="onCombat" enabled="0" />
 
 </events>
