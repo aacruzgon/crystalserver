@@ -27410,7 +27410,7 @@
 	</item>
 	<item id="10392" article="a" name="twin hooks">
 		<attribute key="primarytype" value="sword weapons" />
-		<attribute key="weaponType" value="axe" />
+		<attribute key="weaponType" value="sword" />
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="attack" value="32" />
 		<attribute key="defense" value="22" />
@@ -44515,7 +44515,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="50" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="axe" />
+			<attribute key="weaponType" value="club" />
 		</attribute>
 	</item>
 	<item id="22172" article="an" name="ogre choppa">
@@ -82906,7 +82906,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -82929,7 +82929,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -82952,7 +82952,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -82975,7 +82975,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -82998,7 +82998,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -83020,7 +83020,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="300" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="sword" />
+			<attribute key="weaponType" value="axe" />
 			<attribute key="vocation" value="Knight;true, Elite Knight" />
 			<attribute key="slot" value="hand" />
 		</attribute>
@@ -86882,7 +86882,7 @@
 		<attribute key="script" value="moveevent;weapon">
 			<attribute key="level" value="450" />
 			<attribute key="unproperly" value="true" />
-			<attribute key="weaponType" value="club" />
+			<attribute key="weaponType" value="fist" />
 			<attribute key="vocation" value="Monk;true, Exalted Monk" />
 			<attribute key="slot" value="hand" />
 		</attribute>
