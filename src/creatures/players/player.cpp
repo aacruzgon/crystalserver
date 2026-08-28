@@ -2391,6 +2391,23 @@ void Player::removeBlessing(uint8_t index, uint8_t count) {
 	blessings[index - 1] -= count;
 }
 
+void Player::consumeBlessing(uint8_t index) {
+	removeBlessing(index, 1);
+
+	// The store tally is the share of the remaining charges that were bought in the store,
+	// so it only follows the charge down once the charges obtained in game are used up.
+	const auto &storeScope = kv()->scoped("summary")->scoped("blessings")->scoped(fmt::format("{}", index));
+	const auto storeAmount = storeScope->get("amount");
+	if (!storeAmount) {
+		return;
+	}
+
+	const auto remaining = static_cast<int>(getBlessingCount(index));
+	if (static_cast<int>(storeAmount->getNumber()) > remaining) {
+		storeScope->set("amount", remaining);
+	}
+}
+
 bool Player::hasBlessing(uint8_t index) const {
 	return blessings[index - 1] != 0;
 }
@@ -4296,29 +4313,12 @@ void Player::death(const std::shared_ptr<Creature> &lastHitCreature) {
 			uint8_t maxBlessing = 8;
 			if (twistProtectsAol) {
 				consumedBlessingProtection = true;
-				auto storeCount = getBlessingCount(1, true);
-				if (storeCount > 0) {
-					auto currentStore = kv()->scoped("summary")->scoped("blessings")->scoped(fmt::format("{}", 1))->get("amount");
-					if (currentStore) {
-						auto newAmount = std::max(0, static_cast<int>(currentStore->getNumber()) - 1);
-						kv()->scoped("summary")->scoped("blessings")->scoped(fmt::format("{}", 1))->set("amount", newAmount);
-					}
-				} else {
-					removeBlessing(1, 1);
-				}
+				consumeBlessing(1);
 			} else {
-				for (int i = 2; i <= maxBlessing; i++) {
-					auto storeCount = getBlessingCount(i, true);
-					if (storeCount > 0) {
+				for (uint8_t i = 2; i <= maxBlessing; i++) {
+					if (hasBlessing(i)) {
 						consumedBlessingProtection = true;
-						auto currentStore = kv()->scoped("summary")->scoped("blessings")->scoped(fmt::format("{}", i))->get("amount");
-						if (currentStore) {
-							auto newAmount = std::max(0, static_cast<int>(currentStore->getNumber()) - 1);
-							kv()->scoped("summary")->scoped("blessings")->scoped(fmt::format("{}", i))->set("amount", newAmount);
-						}
-					} else if (hasBlessing(i)) {
-						consumedBlessingProtection = true;
-						removeBlessing(i, 1);
+						consumeBlessing(i);
 					}
 				}
 			}

@@ -500,6 +500,7 @@ public:
 
 	void addBlessing(uint8_t index, uint8_t count);
 	void removeBlessing(uint8_t index, uint8_t count);
+	void consumeBlessing(uint8_t index);
 	bool hasBlessing(uint8_t index) const;
 
 	uint8_t getBlessingCount(uint8_t index, bool storeCount = false) const;
