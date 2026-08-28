@@ -27,6 +27,7 @@ function regenerateStamina.onLogin(player)
 	end
 
 	player:setStamina(staminaMinutes)
+	player:updateStaminaXpBoost()
 
 	staminaRegained = math.floor(staminaMinutes - initialStamina)
 	player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You have regenerated " .. staminaRegained .. " stamina minutes while you were offline.")

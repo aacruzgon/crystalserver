@@ -28,6 +28,7 @@ function RegenStamina(id, delay)
 		end
 		if actualStamina < 2520 then
 			player:setStamina(actualStamina + 1)
+			player:updateStaminaXpBoost()
 			player:sendTextMessage(MESSAGE_FAILURE, "One minute of stamina has been refilled.")
 		end
 	end

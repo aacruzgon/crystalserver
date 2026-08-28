@@ -506,8 +506,7 @@ function Player:onGainExperience(target, exp, rawExp)
 	local staminaBonusXp = 1
 	if configManager.getBoolean(configKeys.STAMINA_SYSTEM) then
 		useStamina(self, true)
-		staminaBonusXp = self:getFinalBonusStamina()
-		self:setStaminaXpBoost(staminaBonusXp * 100)
+		staminaBonusXp = self:updateStaminaXpBoost() / 100
 	end
 
 	-- Concoction System

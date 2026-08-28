@@ -132,7 +132,7 @@ function playerLoginGlobal.onLogin(player)
 		player:setBaseXpGain(baseRate)
 	end
 
-	player:setStaminaXpBoost(player:getFinalBonusStamina() * 100)
+	player:updateStaminaXpBoost()
 	player:getFinalLowLevelBonus()
 
 	-- Updates the player's VIP status and executes corresponding actions if applicable.

@@ -8,6 +8,7 @@ local configs = {
 		amount = 60, -- minutes
 		callback = function(player, config)
 			player:setStamina(player:getStamina() + config.amount)
+			player:updateStaminaXpBoost()
 			player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You have been granted " .. config.amount .. " minutes of stamina.")
 		end,
 	},

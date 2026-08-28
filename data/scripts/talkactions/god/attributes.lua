@@ -254,7 +254,11 @@ local playerFunctions = {
 	["stamina"] = {
 		isActive = true,
 		targetFunction = function(player, target)
-			return player:setStamina(target)
+			local result = player:setStamina(target)
+
+			player:updateStaminaXpBoost()
+
+			return result
 		end,
 	},
 	["town"] = {

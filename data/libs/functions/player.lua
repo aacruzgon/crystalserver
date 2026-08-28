@@ -455,6 +455,20 @@ function Player.getFinalBonusStamina(self)
 	return staminaBonus
 end
 
+-- The client shows the stamina multiplier on its XP gain rate row, so the
+-- stored value has to follow the stamina bands rather than only being refreshed
+-- when the player gains experience. Writing it also sends the stats packet, so
+-- only write when the band actually changed.
+function Player.updateStaminaXpBoost(self)
+	local staminaBonus = math.floor(self:getFinalBonusStamina() * 100)
+
+	if self:getStaminaXpBoost() ~= staminaBonus then
+		self:setStaminaXpBoost(staminaBonus)
+	end
+
+	return staminaBonus
+end
+
 function Player.getFinalLowLevelBonus(self)
 	local level = self:getLevel()
 	if level > 0 and level <= 50 then
