@@ -109,11 +109,14 @@ jobs:
             ${{ github.workspace }}/build/${{ matrix.buildtype }}/bin/
 
       - name: Run Unit Tests
-        run: |
-          cd ${{ github.workspace }}/build/${{ matrix.buildtype }}/tests/unit
-          ctest --verbose
+        run: >-
+          ctest --test-dir ${{ github.workspace }}/build/${{ matrix.buildtype }}
+          -R '^unit$' --output-on-failure --no-tests=error
 
+# The integration suite is deliberately not run here: it talks to a real
+# database. It is registered as the ctest test named "integration", so it can be
+# enabled with -R '^integration$' once CI has a database service.
 #      - name: Run Integration Tests
-#        run: |
-#          cd ${{ github.workspace }}/build/${{ matrix.buildtype }}/tests/integration
-#          ctest --verbose
+#        run: >-
+#          ctest --test-dir ${{ github.workspace }}/build/${{ matrix.buildtype }}
+#          -R '^integration$' --output-on-failure --no-tests=error

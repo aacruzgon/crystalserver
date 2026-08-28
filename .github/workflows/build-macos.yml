@@ -96,6 +96,6 @@ jobs:
             ${{ github.workspace }}/build/${{ matrix.buildtype }}/bin/
 
       - name: Run Unit Tests
-        run: |
-          cd ${{ github.workspace }}/build/${{ matrix.buildtype }}/tests/unit
-          ctest --verbose
+        run: >-
+          ctest --test-dir ${{ github.workspace }}/build/${{ matrix.buildtype }}
+          -R '^unit$' --output-on-failure --no-tests=error

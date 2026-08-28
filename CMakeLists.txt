@@ -107,5 +107,11 @@ option(RUN_TESTS_AFTER_BUILD "Run tests when building" OFF) # By default, tests 
 add_subdirectory(src)
 
 if(BUILD_TESTS OR PACKAGE_TESTS)
+    # Must be called here, not only in tests/CMakeLists.txt. CTest writes a
+    # CTestTestfile.cmake into the directory where enable_testing() runs and into
+    # its children; called only from the subdirectory, nothing is generated at the
+    # build root, so `ctest` run from there reports "No tests were found" and exits
+    # non-zero even though the suites built fine.
+    enable_testing()
     add_subdirectory(tests)
 endif()
