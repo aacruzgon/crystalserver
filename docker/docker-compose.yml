@@ -40,13 +40,31 @@ services:
         condition: service_healthy
 
   login:
+    # Built locally from https://github.com/opentibiabr/login-server -- upstream
+    # stopped publishing images in Nov 2021 (amd64 only, Go 1.16), while the source
+    # has kept moving. Notably the published build formats client input straight
+    # into its auth SQL; current source uses bound parameters. Rebuild with:
+    #
+    #   git clone https://github.com/opentibiabr/login-server
+    #   cd login-server && docker build --platform linux/arm64 \
+    #     -f docker/Dockerfile -t crystalserver/login-server:latest .
+    #
+    # Use --platform linux/amd64 for an x86 host. pull_policy is never because this
+    # tag exists only locally; without it compose tries to pull and fails.
     image: crystalserver/login-server:latest
+    pull_policy: never
     restart: unless-stopped
     ports:
       - '$LOGIN_HTTP_PORT:$LOGIN_HTTP_PORT'
       - '$LOGIN_GRPC_PORT:$LOGIN_GRPC_PORT'
     env_file:
       - '.env'
+    environment:
+      # Current versions read serverName and the event schedule out of the game
+      # server's own config, so the repo root has to be visible to this container.
+      SERVER_PATH: /srv/crystalserver
+    volumes:
+      - '../:/srv/crystalserver:ro'
     networks:
       - crystalserver-net
     depends_on:
