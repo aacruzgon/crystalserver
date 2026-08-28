@@ -502,15 +502,15 @@
 	</item>
 	<item id="283" article="an" name="empty potion flask">
 		<attribute key="description" value="Return it to a potion store for your deposit or refill it with a potion keg or cask" />
-		<attribute key="weight" value="160" />
+		<attribute key="weight" value="100" />
 	</item>
 	<item id="284" article="an" name="empty potion flask">
 		<attribute key="description" value="Return it to a potion store for your deposit or refill it with a potion keg or cask" />
-		<attribute key="weight" value="180" />
+		<attribute key="weight" value="135" />
 	</item>
 	<item id="285" article="an" name="empty potion flask">
 		<attribute key="description" value="Return it to a potion store for your deposit or refill it with a potion keg or cask" />
-		<attribute key="weight" value="150" />
+		<attribute key="weight" value="75" />
 	</item>
 	<item id="286" article="a" name="dead cat">
 		<attribute key="containerSize" value="5" />
@@ -10371,7 +10371,7 @@
 	<item id="3417" article="a" name="shield of honour">
 		<attribute key="description" value="A mighty shield awarded by the gods of Tibia" />
 		<attribute key="weaponType" value="shield" />
-		<attribute key="defense" value="33" />
+		<attribute key="defense" value="43" />
 		<attribute key="weight" value="5400" />
 		<attribute key="script" value="moveevent">
 			<attribute key="slot" value="shield" />
@@ -22064,7 +22064,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="1" />
-		<attribute key="defense" value="18" />
+		<attribute key="defense" value="29" />
 		<attribute key="weight" value="1950" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -22085,7 +22085,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="1" />
-		<attribute key="defense" value="22" />
+		<attribute key="defense" value="36" />
 		<attribute key="weight" value="2100" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -22106,7 +22106,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="2" />
-		<attribute key="defense" value="16" />
+		<attribute key="defense" value="26" />
 		<attribute key="weight" value="2450" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="50" />
@@ -22118,7 +22118,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="2" />
-		<attribute key="defense" value="20" />
+		<attribute key="defense" value="32" />
 		<attribute key="weight" value="2560" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="60" />
@@ -22130,7 +22130,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="12" />
+		<attribute key="defense" value="20" />
 		<attribute key="weight" value="2650" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="70" />
@@ -22283,7 +22283,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="16" />
+		<attribute key="defense" value="26" />
 		<attribute key="weight" value="2850" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="80" />
@@ -25351,7 +25351,7 @@
 	<item id="9377" article="a" name="shield of the white knight">
 		<attribute key="description" value="It seems a bit chunky, but what was good enough for a white knight should be good for everyone" />
 		<attribute key="weaponType" value="shield" />
-		<attribute key="defense" value="8" />
+		<attribute key="defense" value="11" />
 		<attribute key="weight" value="500" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -25405,7 +25405,7 @@
 	<item id="9380" article="a" name="shield of care">
 		<attribute key="description" value="This shield will surely care for anyone who can bear it" />
 		<attribute key="weaponType" value="shield" />
-		<attribute key="defense" value="8" />
+		<attribute key="defense" value="11" />
 		<attribute key="weight" value="1700" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -27346,7 +27346,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="28" />
+		<attribute key="attack" value="27" />
 		<attribute key="defense" value="15" />
 		<attribute key="weight" value="5000" />
 		<attribute key="imbuementslot" value="2">
@@ -27389,7 +27389,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="41" />
+		<attribute key="attack" value="39" />
 		<attribute key="defense" value="16" />
 		<attribute key="weight" value="6000" />
 		<attribute key="imbuementslot" value="2">
@@ -29179,7 +29179,7 @@
 		<attribute key="weaponType" value="shield" />
 		<attribute key="showAttributes" value="1" />
 		<attribute key="skillsword" value="3" />
-		<attribute key="defense" value="36" />
+		<attribute key="defense" value="47" />
 		<attribute key="weight" value="4900" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -29225,7 +29225,7 @@
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="shield" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="14" />
+		<attribute key="defense" value="23" />
 		<attribute key="weight" value="2800" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="100" />
@@ -32456,7 +32456,7 @@
 	</item>
 	<item id="14042" article="a" name="warrior's shield">
 		<attribute key="weaponType" value="shield" />
-		<attribute key="defense" value="33" />
+		<attribute key="defense" value="43" />
 		<attribute key="weight" value="7500" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -32881,7 +32881,7 @@
 	<item id="14250" article="a" name="deepling squelcher">
 		<attribute key="primarytype" value="club weapons" />
 		<attribute key="weaponType" value="club" />
-		<attribute key="attack" value="44" />
+		<attribute key="attack" value="42" />
 		<attribute key="defense" value="28" />
 		<attribute key="weight" value="8900" />
 		<attribute key="imbuementslot" value="2">
@@ -33123,7 +33123,7 @@
 		<attribute key="showAttributes" value="1" />
 		<attribute key="absorbpercentdeath" value="5" />
 		<attribute key="magiclevelpoints" value="4" />
-		<attribute key="defense" value="19" />
+		<attribute key="defense" value="31" />
 		<attribute key="weight" value="2500" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="150" />
@@ -34345,7 +34345,7 @@
 		<attribute key="absorbpercentpoison" value="3" />
 		<attribute key="absorbpercentfire" value="-3" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="20" />
+		<attribute key="defense" value="32" />
 		<attribute key="weight" value="2700" />
 		<attribute key="script" value="moveevent">
 			<attribute key="level" value="130" />
@@ -36237,7 +36237,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="40" />
+		<attribute key="attack" value="38" />
 		<attribute key="defense" value="15" />
 		<attribute key="weight" value="4500" />
 		<attribute key="imbuementslot" value="2">
@@ -42640,7 +42640,7 @@
 	<item id="21400" article="a" name="spellbook of the novice">
 		<attribute key="description" value="It shows your spells and can also shield against attacks when worn" />
 		<attribute key="weaponType" value="spellbook" />
-		<attribute key="defense" value="8" />
+		<attribute key="defense" value="13" />
 		<attribute key="weight" value="1400" />
 		<attribute key="script" value="moveevent">
 			<attribute key="slot" value="shield" />
@@ -45483,7 +45483,7 @@
 	<item id="22755" article="a" name="book of lies">
 		<attribute key="weaponType" value="shield" />
 		<attribute key="magiclevelpoints" value="4" />
-		<attribute key="defense" value="18" />
+		<attribute key="defense" value="29" />
 		<attribute key="weight" value="2400" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -55901,7 +55901,7 @@
 		<attribute key="weaponType" value="shield" />
 		<attribute key="absorbpercentpoison" value="7" />
 		<attribute key="magiclevelpoints" value="3" />
-		<attribute key="defense" value="19" />
+		<attribute key="defense" value="31" />
 		<attribute key="weight" value="2700" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -74332,7 +74332,7 @@
 		<attribute key="magiclevelpoints" value="2" />
 		<attribute key="firemagiclevelpoints" value="2" />
 		<attribute key="energymagiclevelpoints" value="2" />
-		<attribute key="defense" value="20" />
+		<attribute key="defense" value="32" />
 		<attribute key="weight" value="1300" />
 		<attribute key="imbuementslot" value="1">
 			<attribute key="elemental protection death" value="3" />
@@ -84009,7 +84009,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="47" />
+		<attribute key="attack" value="45" />
 		<attribute key="criticalhitdamage" value="1200" />
 		<attribute key="criticalhitchance" value="1000" />
 		<attribute key="magiclevelpoints" value="2" />
@@ -84039,7 +84039,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="47" />
+		<attribute key="attack" value="45" />
 		<attribute key="defense" value="21" />
 		<attribute key="criticalhitdamage" value="1200" />
 		<attribute key="criticalhitchance" value="1000" />
@@ -84072,7 +84072,7 @@
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="criticalhitchance" value="1000" />
 		<attribute key="criticalhitdamage" value="1000" />
-		<attribute key="attack" value="46" />
+		<attribute key="attack" value="44" />
 		<attribute key="defense" value="21" />
 		<attribute key="skillfist" value="5" />
 		<attribute key="magiclevelpoints" value="1" />
@@ -84122,7 +84122,7 @@
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="lifeleechamount" value="1400" />
 		<attribute key="lifeleechchance" value="10000" />
-		<attribute key="attack" value="45" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="20" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="weight" value="8200" />
@@ -84145,7 +84145,7 @@
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="criticalhitchance" value="1000" />
 		<attribute key="criticalhitdamage" value="2900" />
-		<attribute key="attack" value="45" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="19" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="weight" value="7800" />
@@ -84167,7 +84167,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="41" />
+		<attribute key="attack" value="39" />
 		<attribute key="defense" value="16" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="7900" />
@@ -84184,7 +84184,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="42" />
+		<attribute key="attack" value="40" />
 		<attribute key="defense" value="17" />
 		<attribute key="skillfist" value="2" />
 		<attribute key="weight" value="7400" />
@@ -84207,7 +84207,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="43" />
+		<attribute key="attack" value="41" />
 		<attribute key="defense" value="18" />
 		<attribute key="skillfist" value="3" />
 		<attribute key="weight" value="6900" />
@@ -84245,7 +84245,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="44" />
+		<attribute key="attack" value="42" />
 		<attribute key="defense" value="20" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="lifeleechchance" value="10000" />
@@ -84270,7 +84270,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="42" />
+		<attribute key="attack" value="40" />
 		<attribute key="defense" value="17" />
 		<attribute key="weight" value="7000" />
 		<attribute key="imbuementslot" value="3">
@@ -84292,7 +84292,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="44" />
+		<attribute key="attack" value="42" />
 		<attribute key="defense" value="20" />
 		<attribute key="skillfist" value="2" />
 		<attribute key="magiclevelpoints" value="2" />
@@ -84318,7 +84318,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="44" />
+		<attribute key="attack" value="42" />
 		<attribute key="defense" value="20" />
 		<attribute key="skillfist" value="2" />
 		<attribute key="magiclevelpoints" value="2" />
@@ -84343,7 +84343,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="18" />
+		<attribute key="attack" value="17" />
 		<attribute key="defense" value="12" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="augments" value="1">
@@ -84362,7 +84362,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="42" />
+		<attribute key="attack" value="40" />
 		<attribute key="defense" value="18" />
 		<attribute key="skillfist" value="2" />
 		<attribute key="magiclevelpoints" value="1" />
@@ -84385,7 +84385,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="22" />
+		<attribute key="attack" value="21" />
 		<attribute key="defense" value="14" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="1200" />
@@ -84402,7 +84402,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="32" />
+		<attribute key="attack" value="31" />
 		<attribute key="defense" value="15" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="2500" />
@@ -84419,7 +84419,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="38" />
+		<attribute key="attack" value="36" />
 		<attribute key="defense" value="16" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="4900" />
@@ -84606,7 +84606,6 @@
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="510" />
 		<attribute key="script" value="moveevent">
-			<attribute key="level" value="8" />
 			<attribute key="slot" value="necklace" />
 			<attribute key="vocation" value="Monk;true, Exalted Monk" />
 		</attribute>
@@ -84647,7 +84646,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="46" />
+		<attribute key="attack" value="44" />
 		<attribute key="defense" value="20" />
 		<attribute key="skillfist" value="5" />
 		<attribute key="magiclevelpoints" value="1" />
@@ -84709,7 +84708,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="45" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="21" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="weight" value="8400" />
@@ -84754,7 +84753,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="45" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="21" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="lifeleechchance" value="10000" />
@@ -84779,7 +84778,7 @@
 		<attribute key="slotType" value="two-handed" />
 		<attribute key="manaleechchance" value="10000" />
 		<attribute key="manaleechamount" value="1000" />
-		<attribute key="attack" value="45" />
+		<attribute key="attack" value="43" />
 		<attribute key="defense" value="21" />
 		<attribute key="skillfist" value="4" />
 		<attribute key="weight" value="8400" />
@@ -85097,7 +85096,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="42" />
+		<attribute key="attack" value="40" />
 		<attribute key="defense" value="19" />
 		<attribute key="skillfist" value="2" />
 		<attribute key="weight" value="3800" />
@@ -85120,7 +85119,7 @@
 		<attribute key="weaponType" value="fist" />
 		<attribute key="elementalbond" value="energy" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="24" />
+		<attribute key="attack" value="23" />
 		<attribute key="defense" value="14" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="1800" />
@@ -85149,7 +85148,7 @@
 		<attribute key="meleeAttackEffect" value="monkdaggers" />
 		<attribute key="elementalbond" value="earth" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="42" />
+		<attribute key="attack" value="40" />
 		<attribute key="defense" value="16" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="weight" value="5900" />
@@ -85173,7 +85172,7 @@
 		<attribute key="meleeAttackEffect" value="monkstaff" />
 		<attribute key="elementalbond" value="physical" />
 		<attribute key="slotType" value="two-handed" />
-		<attribute key="attack" value="34" />
+		<attribute key="attack" value="33" />
 		<attribute key="defense" value="15" />
 		<attribute key="skillfist" value="1" />
 		<attribute key="imbuementslot" value="1">
