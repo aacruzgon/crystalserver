@@ -264,6 +264,19 @@ void Items::loadFromProtobuf() {
 			iType.proficiencyId = 0;
 		}
 
+		iType.marketRestrictVocation = 0;
+		if (object.flags().has_market()) {
+			for (const auto profession : object.flags().market().restrict_to_profession()) {
+				if (profession > 0 && profession <= 16) {
+					iType.marketRestrictVocation |= static_cast<uint16_t>(1u << (profession - 1));
+				}
+			}
+		}
+
+		iType.appearanceWeaponType = object.flags().has_weapon_type()
+			? static_cast<uint8_t>(object.flags().weapon_type())
+			: 0;
+
 		if (!iType.name.empty()) {
 			nameToItems.insert({ asLowerCaseString(iType.name), iType.id });
 		}
