@@ -13016,6 +13016,134 @@ uint16_t Player::getHighestCombatSkillLevel() const {
 	return highest;
 }
 
+uint32_t Player::getWeaponProficiencyExperience(const uint16_t itemId) const {
+	const auto it = weaponProficiencies.find(itemId);
+	return it == weaponProficiencies.end() ? 0 : it->second.experience;
+}
+
+uint8_t Player::getWeaponProficiencyLevel(const uint16_t itemId) const {
+	return g_proficiencies().getProficiencyLevelForItem(itemId, getWeaponProficiencyExperience(itemId));
+}
+
+bool Player::hasWeaponProficiencyMastery(const uint16_t itemId) const {
+	return g_proficiencies().hasMasteryForItem(itemId, getWeaponProficiencyExperience(itemId));
+}
+
+bool Player::hasUnusedWeaponProficiencyPerk(const uint16_t itemId) const {
+	const auto it = weaponProficiencies.find(itemId);
+	if (it == weaponProficiencies.end()) {
+		return false;
+	}
+
+	const uint8_t unlocked = getWeaponProficiencyLevel(itemId);
+	for (uint8_t level = 1; level <= unlocked; ++level) {
+		const bool picked = std::any_of(
+			it->second.activePerks.begin(), it->second.activePerks.end(),
+			[level](const WeaponProficiencyPerk &perk) { return perk.proficiencyLevel == level; }
+		);
+		if (!picked) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Player::canEditWeaponProficiencyPerks() const {
+	const auto &playerTile = getTile();
+	return playerTile && playerTile->hasFlag(TILESTATE_PROTECTIONZONE);
+}
+
+bool Player::setWeaponProficiencyPerks(const uint16_t itemId, const std::vector<WeaponProficiencyPerk> &requested) {
+	// The client is not trusted with any of this. Before 2026-08 the requested set was
+	// copied straight into activePerks, so a modified client could light up every perk on
+	// every level of every weapon at zero experience.
+	const ItemType &itemType = Item::items[itemId];
+	if (!itemType.proficiencyId) {
+		return false;
+	}
+
+	const WeaponProficiencyStruct* proficiencyData = g_proficiencies().getProficiencyByItemId(itemId);
+	if (!proficiencyData) {
+		return false;
+	}
+
+	const uint32_t experience = getWeaponProficiencyExperience(itemId);
+	const uint8_t unlockedLevel = g_proficiencies().getProficiencyLevelForItem(itemId, experience);
+
+	// One perk per level, each within its level's slot count, and only on levels the
+	// player's experience has actually unlocked.
+	std::map<uint8_t, uint8_t> validated;
+	for (const auto &perk : requested) {
+		if (perk.proficiencyLevel == 0 || perk.proficiencyLevel > unlockedLevel) {
+			g_logger().debug("[{}] {} requested perk on locked level {} of item {}", __FUNCTION__, getName(), perk.proficiencyLevel, itemId);
+			return false;
+		}
+
+		const uint8_t maxPerks = g_proficiencies().getMaxPerksPerProficiencyLevelForItem(itemId, perk.proficiencyLevel);
+		if (perk.perkPosition == 0 || perk.perkPosition > maxPerks) {
+			g_logger().debug("[{}] {} requested perk position {} outside 1..{} on item {}", __FUNCTION__, getName(), perk.perkPosition, maxPerks, itemId);
+			return false;
+		}
+
+		if (!validated.emplace(perk.proficiencyLevel, perk.perkPosition).second) {
+			g_logger().debug("[{}] {} requested two perks on level {} of item {}", __FUNCTION__, getName(), perk.proficiencyLevel, itemId);
+			return false;
+		}
+	}
+
+	// "Selecting a perk if none is selected can be done anywhere, but changing or removing
+	// a perk is only possible in Protection Zones." Only an edit to an existing pick is
+	// gated - filling an empty level is free.
+	const auto it = weaponProficiencies.find(itemId);
+	if (it != weaponProficiencies.end()) {
+		for (const auto &current : it->second.activePerks) {
+			const auto match = validated.find(current.proficiencyLevel);
+			const bool removedOrChanged = match == validated.end() || match->second != current.perkPosition;
+			if (removedOrChanged && !canEditWeaponProficiencyPerks()) {
+				sendCancelMessage("You can only adjust your perks while in a protection zone.");
+				return false;
+			}
+		}
+	}
+
+	// Don't materialise a record just to store an empty pick list - that would let a client
+	// grow (and persist) the map by naming every proficiency weapon in the game.
+	if (it == weaponProficiencies.end() && validated.empty()) {
+		return true;
+	}
+
+	auto &proficiency = weaponProficiencies[itemId];
+	proficiency.activePerks.clear();
+	proficiency.activePerks.reserve(validated.size());
+	for (const auto &[level, position] : validated) {
+		proficiency.activePerks.push_back({ level, position });
+	}
+
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
+bool Player::resetWeaponProficiencyPerks(const uint16_t itemId) {
+	if (!Item::items[itemId].proficiencyId) {
+		return false;
+	}
+
+	const auto it = weaponProficiencies.find(itemId);
+	if (it == weaponProficiencies.end() || it->second.activePerks.empty()) {
+		return false;
+	}
+
+	// Clearing picks is an edit, so it carries the same protection-zone rule.
+	if (!canEditWeaponProficiencyPerks()) {
+		sendCancelMessage("You can only adjust your perks while in a protection zone.");
+		return false;
+	}
+
+	resetAllWeaponProficiencyPerks(itemId);
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
 void Player::resetAllWeaponProficiencyPerks(const uint16_t itemId) {
 	auto it = weaponProficiencies.find(itemId);
 	if (it == weaponProficiencies.end()) {

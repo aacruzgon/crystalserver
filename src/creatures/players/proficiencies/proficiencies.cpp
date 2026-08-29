@@ -152,6 +152,87 @@ const WeaponProficiencyStruct* Proficiencies::getProficiencyByItemId(uint16_t it
 	return &it->second;
 }
 
+namespace {
+
+// Proficiency experience required to reach each level, by lane. Index 0 is level 1.
+// Levels 8 and 9 grant no perks and exist only for Mastery.
+constexpr uint32_t kProficiencyExperience[PROFICIENCY_MAX_LEVEL][3] = {
+	//  Standard,   Knight,     Crossbow
+	{ 1750, 1250, 600 },
+	{ 25000, 20000, 8000 },
+	{ 100000, 80000, 30000 },
+	{ 400000, 300000, 150000 },
+	{ 2000000, 1500000, 650000 },
+	{ 8000000, 6000000, 2500000 },
+	{ 30000000, 20000000, 10000000 },
+	{ 60000000, 40000000, 20000000 },
+	{ 90000000, 60000000, 30000000 },
+};
+
+// PLAYER_PROFESSION_KNIGHT is 1, and the market bitmask is the OR of 2^(profession - 1),
+// so a knight-only weapon is exactly the value 1.
+constexpr uint16_t kMarketVocationKnightOnly = 1;
+// appearances.proto WEAPON_TYPE_CROSSBOW.
+constexpr uint8_t kAppearanceWeaponTypeCrossbow = 6;
+
+} // namespace
+
+ProficiencyLane_t Proficiencies::getLaneForItem(uint16_t itemId) {
+	const ItemType &itemType = Item::items[itemId];
+	if (itemType.marketRestrictVocation == kMarketVocationKnightOnly) {
+		return ProficiencyLane_t::Knight;
+	}
+	if (itemType.appearanceWeaponType == kAppearanceWeaponTypeCrossbow) {
+		return ProficiencyLane_t::Crossbow;
+	}
+	return ProficiencyLane_t::Standard;
+}
+
+uint32_t Proficiencies::getExperienceForLevel(uint8_t level, ProficiencyLane_t lane) {
+	if (level == 0 || level > PROFICIENCY_MAX_LEVEL) {
+		return 0;
+	}
+	return kProficiencyExperience[level - 1][static_cast<uint8_t>(lane)];
+}
+
+uint8_t Proficiencies::getProficiencyLevelForItem(uint16_t itemId, uint32_t experience) const {
+	const auto* proficiency = getProficiencyByItemId(itemId);
+	if (!proficiency) {
+		return 0;
+	}
+
+	const ProficiencyLane_t lane = getLaneForItem(itemId);
+	const uint8_t maxLevel = std::min(proficiency->maxProficiencyLevel, PROFICIENCY_MAX_PERK_LEVEL);
+
+	uint8_t unlocked = 0;
+	for (uint8_t level = 1; level <= maxLevel; ++level) {
+		if (experience >= getExperienceForLevel(level, lane)) {
+			unlocked = level;
+		} else {
+			break;
+		}
+	}
+	return unlocked;
+}
+
+uint32_t Proficiencies::getMasteryExperienceForItem(uint16_t itemId) const {
+	const auto* proficiency = getProficiencyByItemId(itemId);
+	if (!proficiency) {
+		return 0;
+	}
+
+	const uint8_t masteryLevel = std::min<uint8_t>(
+		proficiency->maxProficiencyLevel + PROFICIENCY_MASTERY_EXTRA_LEVELS,
+		PROFICIENCY_MAX_LEVEL
+	);
+	return getExperienceForLevel(masteryLevel, getLaneForItem(itemId));
+}
+
+bool Proficiencies::hasMasteryForItem(uint16_t itemId, uint32_t experience) const {
+	const uint32_t needed = getMasteryExperienceForItem(itemId);
+	return needed > 0 && experience >= needed;
+}
+
 uint8_t Proficiencies::getMaxProficiencyLevelForItem(uint16_t itemId) const {
 	// getProficiencyByItemId takes an ITEM id and resolves the proficiency id itself; both
 	// helpers used to hand it itemType.proficiencyId, which looked the definition up against

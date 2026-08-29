@@ -81,6 +81,17 @@ public:
 	uint8_t getMaxProficiencyLevelForItem(uint16_t itemId) const;
 	uint8_t getMaxPerksPerProficiencyLevelForItem(uint16_t itemId, uint8_t level) const;
 
+	// Progression. The client owns a copy of this table for display; the server needs its
+	// own because it is what decides whether a perk pick is legal.
+	static ProficiencyLane_t getLaneForItem(uint16_t itemId);
+	static uint32_t getExperienceForLevel(uint8_t level, ProficiencyLane_t lane);
+	// Highest perk-bearing level unlocked by `experience`, capped at the weapon's own level
+	// count. 0 means no perk level is unlocked yet.
+	uint8_t getProficiencyLevelForItem(uint16_t itemId, uint32_t experience) const;
+	// Experience needed for Mastery on this weapon: two levels past its last perk level.
+	uint32_t getMasteryExperienceForItem(uint16_t itemId) const;
+	bool hasMasteryForItem(uint16_t itemId, uint32_t experience) const;
+
 protected:
 	bool loaded = false;
 

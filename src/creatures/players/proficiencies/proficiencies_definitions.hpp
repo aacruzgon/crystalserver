@@ -17,6 +17,22 @@
 
 #pragma once
 
+// Progression constants. Perk-bearing levels stop at 7; every weapon then has two further
+// levels that grant nothing but Mastery, so a weapon with N perk levels masters at N + 2
+// (a 3-level weapon masters at level 5).
+inline constexpr uint8_t PROFICIENCY_MAX_PERK_LEVEL = 7;
+inline constexpr uint8_t PROFICIENCY_MASTERY_EXTRA_LEVELS = 2;
+inline constexpr uint8_t PROFICIENCY_MAX_LEVEL = PROFICIENCY_MAX_PERK_LEVEL + PROFICIENCY_MASTERY_EXTRA_LEVELS;
+
+// Which experience column a weapon uses. Knight weapons are those the market restricts to
+// the knight profession alone; crossbows are identified by the appearance WEAPON_TYPE,
+// since our own WEAPON_DISTANCE covers bows too.
+enum class ProficiencyLane_t : uint8_t {
+	Standard = 0,
+	Knight = 1,
+	Crossbow = 2,
+};
+
 enum WeaponProficiencyPerkType_t : uint16_t {
 	PROFICIENCY_PERK_ATTACK_DAMAGE = 0,
 	PROFICIENCY_PERK_DEFENSE = 1,

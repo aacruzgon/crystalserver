@@ -1164,6 +1164,22 @@ public:
 	// Highest of the five offensive combat skills, for the "highest combat skill" perks.
 	uint16_t getHighestCombatSkillLevel() const;
 
+	// True when the player may *change* or *remove* an already-picked perk. Picking into an
+	// empty slot is allowed anywhere; only edits are zone-restricted.
+	bool canEditWeaponProficiencyPerks() const;
+	// Validates a requested perk set against the weapon's definition and the player's
+	// earned experience, then applies it. Returns false and leaves the current set intact
+	// if anything about the request is illegal.
+	bool setWeaponProficiencyPerks(uint16_t itemId, const std::vector<WeaponProficiencyPerk> &requested);
+	bool resetWeaponProficiencyPerks(uint16_t itemId);
+	// Convenience accessors used by the protocol layer and the proficiency validation.
+	uint32_t getWeaponProficiencyExperience(uint16_t itemId) const;
+	uint8_t getWeaponProficiencyLevel(uint16_t itemId) const;
+	bool hasWeaponProficiencyMastery(uint16_t itemId) const;
+	// True when some unlocked level on this weapon still has no perk picked - drives the
+	// notification's has_unused_perk flag and the status bar highlight.
+	bool hasUnusedWeaponProficiencyPerk(uint16_t itemId) const;
+
 	void removeEquippedWeaponProficiency(const uint16_t itemId);
 	void sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t addProficiencyExperience);
 
