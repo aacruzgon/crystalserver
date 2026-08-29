@@ -188,6 +188,12 @@ struct EquippedWeaponProficiencyBonuses {
 	std::map<skills_t, float> skillPercentageAsExtraDamageForAutoAttack;
 	std::map<skills_t, float> skillPercentageAsExtraDamageForSpells;
 	std::map<skills_t, float> skillPercentageAsExtraHealingForSpells;
+	// The "highest combat skill" variants pick their skill at damage time rather than at
+	// equip time, so they are scalars rather than skill-keyed maps - the highest skill can
+	// change between equipping the weapon and swinging it.
+	float highestCombatSkillPercentageAsExtraDamageForAutoAttack = 0;
+	float highestCombatSkillPercentageAsExtraDamageForSpells = 0;
+	float highestCombatSkillPercentageAsExtraHealingForSpells = 0;
 	float alphaStrikeExtraDamage = 0; // +X% damage vs targets above 95% HP
 	float omegaStrikeExtraDamage = 0; // +Y% damage vs targets below 30% HP
 	float armorPenetration = 0; // ignores X% of target's physical armor
@@ -231,6 +237,9 @@ struct EquippedWeaponProficiencyBonuses {
 		skillPercentageAsExtraDamageForAutoAttack.clear();
 		skillPercentageAsExtraDamageForSpells.clear();
 		skillPercentageAsExtraHealingForSpells.clear();
+		highestCombatSkillPercentageAsExtraDamageForAutoAttack = 0;
+		highestCombatSkillPercentageAsExtraDamageForSpells = 0;
+		highestCombatSkillPercentageAsExtraHealingForSpells = 0;
 		alphaStrikeExtraDamage = 0;
 		omegaStrikeExtraDamage = 0;
 		armorPenetration = 0;
@@ -1151,6 +1160,10 @@ public:
 	void sendWeaponProficiencyInfo(const uint16_t itemId) const;
 	void resetAllWeaponProficiencyPerks(const uint16_t itemId);
 	void applyEquippedWeaponProficiency(const uint16_t itemId);
+
+	// Highest of the five offensive combat skills, for the "highest combat skill" perks.
+	uint16_t getHighestCombatSkillLevel() const;
+
 	void removeEquippedWeaponProficiency(const uint16_t itemId);
 	void sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t addProficiencyExperience);
 

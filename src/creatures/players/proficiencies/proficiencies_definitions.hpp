@@ -51,6 +51,11 @@ enum WeaponProficiencyPerkType_t : uint16_t {
 	PROFICIENCY_PERK_ARMOR_PENETRATION = 30,
 	PROFICIENCY_PERK_ELEMENTAL_PIERCE = 31,
 	PROFICIENCY_PERK_HOMING_MISSILE = 32,
+	// Defined by the official client but unused by the 15.32 proficiency table. They are
+	// reachable in play all the same: the 15.30 shaping pool can roll them onto a slot.
+	PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_DAMAGE_FOR_AUTOATTACK = 33,
+	PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_DAMAGE_FOR_SPELLS = 34,
+	PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_HEALING_FOR_SPELLS = 35,
 };
 
 enum WeaponProficiencyPerkSkills_t : int8_t {

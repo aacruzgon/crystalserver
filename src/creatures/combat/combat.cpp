@@ -830,6 +830,20 @@ void Combat::CombatHealthFunc(const std::shared_ptr<Creature> &caster, const std
 
 					g_logger().debug("[{}] skillPercentageAsExtraDamageForAutoAttack after {} / {} bonus {} skill id {}", __FUNCTION__, damage.primary.value, damage.secondary.value, bonus, static_cast<uint8_t>(skillType));
 				}
+
+				// Proficiency Perk: highestCombatSkillPercentageAsExtraDamageForAutoAttack
+				if (proficiencyPerk.highestCombatSkillPercentageAsExtraDamageForAutoAttack > 0) {
+					const uint16_t skillLevel = attackerPlayer->getHighestCombatSkillLevel();
+					const int32_t bonus = static_cast<int32_t>(std::ceil(skillLevel * proficiencyPerk.highestCombatSkillPercentageAsExtraDamageForAutoAttack));
+
+					if (damage.primary.value < 0) {
+						damage.primary.value -= bonus;
+					}
+
+					if (damage.secondary.value < 0) {
+						damage.secondary.value -= bonus;
+					}
+				}
 			}
 		}
 
@@ -856,6 +870,12 @@ void Combat::CombatHealthFunc(const std::shared_ptr<Creature> &caster, const std
 
 					g_logger().debug("[{}] skillPercentageAsExtraHealingForSpells after {} / bonus {} skill id {}", __FUNCTION__, damage.primary.value, bonus, static_cast<uint8_t>(skillType));
 				}
+
+				// Proficiency Perk: highestCombatSkillPercentageAsExtraHealingForSpells
+				if (proficiencyPerk.highestCombatSkillPercentageAsExtraHealingForSpells > 0 && damage.primary.value > 0) {
+					const uint16_t skillLevel = attackerPlayer->getHighestCombatSkillLevel();
+					damage.primary.value += static_cast<int32_t>(std::ceil(skillLevel * proficiencyPerk.highestCombatSkillPercentageAsExtraHealingForSpells));
+				}
 			}
 
 			// Proficiency Perk: skillPercentageAsExtraDamageForSpells
@@ -875,6 +895,20 @@ void Combat::CombatHealthFunc(const std::shared_ptr<Creature> &caster, const std
 					}
 
 					g_logger().debug("[{}] skillPercentageAsExtraDamageForSpells after {} / {} bonus {} skill id {}", __FUNCTION__, damage.primary.value, damage.secondary.value, bonus, static_cast<uint8_t>(skillType));
+				}
+
+				// Proficiency Perk: highestCombatSkillPercentageAsExtraDamageForSpells
+				if (proficiencyPerk.highestCombatSkillPercentageAsExtraDamageForSpells > 0) {
+					const uint16_t skillLevel = attackerPlayer->getHighestCombatSkillLevel();
+					const int32_t bonus = static_cast<int32_t>(std::ceil(skillLevel * proficiencyPerk.highestCombatSkillPercentageAsExtraDamageForSpells));
+
+					if (damage.primary.value < 0) {
+						damage.primary.value -= bonus;
+					}
+
+					if (damage.secondary.value < 0) {
+						damage.secondary.value -= bonus;
+					}
 				}
 			}
 		}

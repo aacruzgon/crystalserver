@@ -13005,6 +13005,17 @@ void Player::sendWeaponProficiencyInfo(const uint16_t itemId) const {
 	}
 }
 
+uint16_t Player::getHighestCombatSkillLevel() const {
+	// The five offensive weapon skills. Shielding is defensive and fishing is not a combat
+	// skill, so neither counts; magic level is a separate stat with its own perks.
+	static constexpr skills_t combatSkills[] = { SKILL_FIST, SKILL_CLUB, SKILL_SWORD, SKILL_AXE, SKILL_DISTANCE };
+	uint16_t highest = 0;
+	for (const auto skill : combatSkills) {
+		highest = std::max<uint16_t>(highest, getSkillLevel(skill));
+	}
+	return highest;
+}
+
 void Player::resetAllWeaponProficiencyPerks(const uint16_t itemId) {
 	auto it = weaponProficiencies.find(itemId);
 	if (it == weaponProficiencies.end()) {
@@ -13251,6 +13262,18 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 				}
 				case PROFICIENCY_PERK_ATTACK_RANGE: {
 					equippedWeaponProficiency.attackRange += static_cast<uint8_t>(perk.perkValue);
+					break;
+				}
+				case PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_DAMAGE_FOR_AUTOATTACK: {
+					equippedWeaponProficiency.highestCombatSkillPercentageAsExtraDamageForAutoAttack += perk.perkValue;
+					break;
+				}
+				case PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_DAMAGE_FOR_SPELLS: {
+					equippedWeaponProficiency.highestCombatSkillPercentageAsExtraDamageForSpells += perk.perkValue;
+					break;
+				}
+				case PROFICIENCY_PERK_HIGHEST_COMBAT_SKILL_AS_EXTRA_HEALING_FOR_SPELLS: {
+					equippedWeaponProficiency.highestCombatSkillPercentageAsExtraHealingForSpells += perk.perkValue;
 					break;
 				}
 				case PROFICIENCY_PERK_SKILLID_PERCENTAGE_AS_EXTRA_DAMAGE_FOR_AUTOATTACK: {
