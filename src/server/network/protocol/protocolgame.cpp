@@ -3699,6 +3699,9 @@ void ProtocolGame::sendResourceBalance(Resource_t resourceType) {
 		case RESOURCE_FORGE_DUST:
 			value = player->getForgeDusts();
 			break;
+		case RESOURCE_LUNAR_ASCENSION_ORBS:
+			value = player->getLunarAscensionOrbs();
+			break;
 		case RESOURCE_FORGE_SLIVER: {
 			const auto &[sliverCount, coreCount] = player->getForgeSliversAndCores();
 			value = sliverCount;

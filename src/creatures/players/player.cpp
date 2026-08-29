@@ -80,6 +80,7 @@
 #include "creatures/players/vocations/vocation.hpp"
 #include "creatures/players/wheel/wheel_definitions.hpp"
 #include "creatures/players/proficiencies/proficiencies.hpp"
+#include "creatures/players/proficiencies/proficiency_modifiers.hpp"
 #include "creatures/players/proficiencies/proficiencies_definitions.hpp"
 #include "creatures/combat/spells.hpp"
 #include "utils/tools.hpp"
@@ -13144,6 +13145,310 @@ bool Player::resetWeaponProficiencyPerks(const uint16_t itemId) {
 	return true;
 }
 
+uint64_t Player::getLunarAscensionOrbs() const {
+	const auto value = kv()->scoped("currency")->get("lunar-ascension-orbs");
+	if (!value) {
+		return 0;
+	}
+	const auto stored = static_cast<int64_t>(value->getNumber());
+	return stored > 0 ? static_cast<uint64_t>(stored) : 0;
+}
+
+void Player::addLunarAscensionOrbs(const uint64_t amount) {
+	if (amount == 0) {
+		return;
+	}
+	kv()->scoped("currency")->set("lunar-ascension-orbs", static_cast<int>(getLunarAscensionOrbs() + amount));
+	if (client) {
+		client->sendResourceBalance(RESOURCE_LUNAR_ASCENSION_ORBS, getLunarAscensionOrbs());
+	}
+}
+
+bool Player::removeLunarAscensionOrbs(const uint64_t amount) {
+	const uint64_t balance = getLunarAscensionOrbs();
+	if (balance < amount) {
+		return false;
+	}
+	kv()->scoped("currency")->set("lunar-ascension-orbs", static_cast<int>(balance - amount));
+	if (client) {
+		client->sendResourceBalance(RESOURCE_LUNAR_ASCENSION_ORBS, getLunarAscensionOrbs());
+	}
+	return true;
+}
+
+WeaponProficiencyShapedPerk* Player::findWeaponProficiencyShapedPerk(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	const auto it = weaponProficiencies.find(itemId);
+	if (it == weaponProficiencies.end()) {
+		return nullptr;
+	}
+
+	for (auto &shaped : it->second.shapedPerks) {
+		if (shaped.proficiencyLevel == level && shaped.perkPosition == position) {
+			return &shaped;
+		}
+	}
+	return nullptr;
+}
+
+bool Player::canShapeWeaponProficiencySlot(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!Item::items[itemId].proficiencyId) {
+		return false;
+	}
+
+	// Shaping replaces a perk that is already there, so it is an edit in every case.
+	if (!canEditWeaponProficiencyPerks()) {
+		sendCancelMessage("You can only adjust your perks while in a protection zone.");
+		return false;
+	}
+
+	if (level == 0 || level > getWeaponProficiencyLevel(itemId)) {
+		sendCancelMessage("That proficiency level has not been unlocked yet.");
+		return false;
+	}
+
+	const uint8_t maxPerks = g_proficiencies().getMaxPerksPerProficiencyLevelForItem(itemId, level);
+	if (position == 0 || position > maxPerks) {
+		return false;
+	}
+
+	return true;
+}
+
+uint16_t Player::rollWeaponProficiencyModifier(const std::vector<uint16_t> &exclude) const {
+	const auto &vocationPtr = getVocation();
+	const uint8_t baseVocation = vocationPtr ? vocationPtr->getBaseId() : 0;
+	const auto &pool = ProficiencyModifiers::rollablePool(baseVocation);
+	if (pool.empty()) {
+		return 0;
+	}
+
+	std::vector<uint16_t> candidates;
+	candidates.reserve(pool.size());
+	for (const uint16_t modifierEnum : pool) {
+		if (std::find(exclude.begin(), exclude.end(), modifierEnum) == exclude.end()) {
+			candidates.push_back(modifierEnum);
+		}
+	}
+
+	if (candidates.empty()) {
+		return 0;
+	}
+
+	return candidates[uniform_random(0, static_cast<int32_t>(candidates.size()) - 1)];
+}
+
+bool Player::shapeWeaponProficiencyPerk(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	if (findWeaponProficiencyShapedPerk(itemId, level, position)) {
+		return false; // already shaped - Refine/Reshape are the actions for that
+	}
+
+	auto &proficiency = weaponProficiencies[itemId];
+	const size_t shapedCount = proficiency.shapedPerks.size();
+	if (shapedCount >= PROFICIENCY_MAX_SHAPED_PERKS) {
+		sendCancelMessage(fmt::format("Only {} perks can be modified.", PROFICIENCY_MAX_SHAPED_PERKS));
+		return false;
+	}
+
+	// The first slot opens at proficiency level 3, the second only once the weapon is
+	// mastered.
+	uint64_t cost;
+	if (shapedCount == 0) {
+		if (getWeaponProficiencyLevel(itemId) < PROFICIENCY_SHAPE_FIRST_SLOT_LEVEL) {
+			sendCancelMessage(fmt::format("Level {} has not been unlocked yet.", PROFICIENCY_SHAPE_FIRST_SLOT_LEVEL));
+			return false;
+		}
+		cost = PROFICIENCY_SHAPE_FIRST_SLOT_DUST;
+	} else {
+		if (!hasWeaponProficiencyMastery(itemId)) {
+			sendCancelMessage("Mastery has not been achieved.");
+			return false;
+		}
+		cost = PROFICIENCY_SHAPE_SECOND_SLOT_DUST;
+	}
+
+	if (getForgeDusts() < cost) {
+		sendCancelMessage("Not enough dust available.");
+		return false;
+	}
+
+	std::vector<uint16_t> exclude;
+	for (const auto &shaped : proficiency.shapedPerks) {
+		exclude.push_back(shaped.modifierEnum);
+	}
+
+	const uint16_t rolled = rollWeaponProficiencyModifier(exclude);
+	if (rolled == 0) {
+		return false;
+	}
+
+	removeForgeDusts(cost);
+	if (client) {
+		client->sendResourceBalance(RESOURCE_FORGE_DUST, getForgeDusts());
+	}
+
+	proficiency.shapedPerks.push_back({ level, position, rolled, 0 });
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
+bool Player::refineWeaponProficiencyPerk(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	WeaponProficiencyShapedPerk* shaped = findWeaponProficiencyShapedPerk(itemId, level, position);
+	if (!shaped) {
+		return false;
+	}
+
+	if (shaped->refineLevel >= PROFICIENCY_MAX_REFINE_RANK) {
+		sendCancelMessage("Maximum rank has been reached.");
+		return false;
+	}
+
+	// Refining rank R -> R+1 costs 125 + 75 * R.
+	const uint64_t cost = PROFICIENCY_REFINE_DUST_BASE + PROFICIENCY_REFINE_DUST_PER_RANK * shaped->refineLevel;
+	if (getForgeDusts() < cost) {
+		sendCancelMessage("Not enough dust available.");
+		return false;
+	}
+
+	removeForgeDusts(cost);
+	if (client) {
+		client->sendResourceBalance(RESOURCE_FORGE_DUST, getForgeDusts());
+	}
+
+	shaped->refineLevel++;
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
+bool Player::maximiseWeaponProficiencyPerk(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	WeaponProficiencyShapedPerk* shaped = findWeaponProficiencyShapedPerk(itemId, level, position);
+	if (!shaped) {
+		return false;
+	}
+
+	if (shaped->refineLevel >= PROFICIENCY_MAX_REFINE_RANK) {
+		sendCancelMessage("Maximum rank has been reached.");
+		return false;
+	}
+
+	if (!removeLunarAscensionOrbs(PROFICIENCY_MAXIMISE_ORBS)) {
+		sendCancelMessage("Not enough Lunar Ascension Orbs available.");
+		return false;
+	}
+
+	shaped->refineLevel = PROFICIENCY_MAX_REFINE_RANK;
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
+bool Player::requestWeaponProficiencyReshape(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	const WeaponProficiencyShapedPerk* shaped = findWeaponProficiencyShapedPerk(itemId, level, position);
+	if (!shaped) {
+		return false;
+	}
+
+	if (getForgeDusts() < PROFICIENCY_RESHAPE_DUST) {
+		sendCancelMessage("Not enough dust available.");
+		return false;
+	}
+
+	// "You will be presented with N different perks, each with the same rank as your
+	// current perk." The offers exclude the perk being replaced and each other.
+	std::vector<uint16_t> exclude { shaped->modifierEnum };
+	std::vector<std::pair<uint16_t, uint8_t>> offers;
+	for (uint8_t i = 0; i < PROFICIENCY_RESHAPE_OFFER_COUNT; ++i) {
+		const uint16_t rolled = rollWeaponProficiencyModifier(exclude);
+		if (rolled == 0) {
+			break;
+		}
+		exclude.push_back(rolled);
+		offers.emplace_back(rolled, shaped->refineLevel);
+	}
+
+	if (offers.empty()) {
+		return false;
+	}
+
+	removeForgeDusts(PROFICIENCY_RESHAPE_DUST);
+	if (client) {
+		client->sendResourceBalance(RESOURCE_FORGE_DUST, getForgeDusts());
+	}
+
+	pendingReshapeOffers = { itemId, level, position, std::move(offers) };
+	return true;
+}
+
+bool Player::selectWeaponProficiencyReshapeOffer(const uint16_t itemId, const uint8_t level, const uint8_t position, const uint8_t offerIndex) {
+	// Only the offer set this player was actually shown may be redeemed.
+	if (pendingReshapeOffers.itemId != itemId
+	    || pendingReshapeOffers.proficiencyLevel != level
+	    || pendingReshapeOffers.perkPosition != position
+	    || offerIndex >= pendingReshapeOffers.offers.size()) {
+		return false;
+	}
+
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	WeaponProficiencyShapedPerk* shaped = findWeaponProficiencyShapedPerk(itemId, level, position);
+	if (!shaped) {
+		return false;
+	}
+
+	const auto &[modifierEnum, rank] = pendingReshapeOffers.offers[offerIndex];
+	shaped->modifierEnum = modifierEnum;
+	shaped->refineLevel = rank;
+	pendingReshapeOffers = {};
+
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
+bool Player::clearWeaponProficiencyShapedPerk(const uint16_t itemId, const uint8_t level, const uint8_t position) {
+	if (!canShapeWeaponProficiencySlot(itemId, level, position)) {
+		return false;
+	}
+
+	const auto it = weaponProficiencies.find(itemId);
+	if (it == weaponProficiencies.end()) {
+		return false;
+	}
+
+	auto &shapedPerks = it->second.shapedPerks;
+	const auto removed = std::remove_if(shapedPerks.begin(), shapedPerks.end(), [&](const WeaponProficiencyShapedPerk &shaped) {
+		return shaped.proficiencyLevel == level && shaped.perkPosition == position;
+	});
+
+	if (removed == shapedPerks.end()) {
+		return false;
+	}
+
+	// Clearing returns the perk to its original state and frees the slot to be spent again.
+	shapedPerks.erase(removed, shapedPerks.end());
+	if (pendingReshapeOffers.itemId == itemId && pendingReshapeOffers.proficiencyLevel == level && pendingReshapeOffers.perkPosition == position) {
+		pendingReshapeOffers = {};
+	}
+
+	applyEquippedWeaponProficiency(itemId);
+	return true;
+}
+
 void Player::resetAllWeaponProficiencyPerks(const uint16_t itemId) {
 	auto it = weaponProficiencies.find(itemId);
 	if (it == weaponProficiencies.end()) {
@@ -13171,16 +13476,30 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 	}
 
 	for (const auto &lvl : proficiencyData->proficiencyDataLevel) {
-		for (const auto &perk : lvl.proficiencyDataPerks) {
+		for (const auto &basePerk : lvl.proficiencyDataPerks) {
 			auto perkActive = std::find_if(
 				playerProficiencyData.activePerks.begin(), playerProficiencyData.activePerks.end(),
 				[&](const WeaponProficiencyPerk &p) {
-					return p.proficiencyLevel == lvl.proficiencyLevel && p.perkPosition == perk.positionSlot;
+					return p.proficiencyLevel == lvl.proficiencyLevel && p.perkPosition == basePerk.positionSlot;
 				}
 			);
 
 			if (perkActive == playerProficiencyData.activePerks.end()) {
 				continue;
+			}
+
+			// A shaped slot keeps its place in the tree but grants the pool perk it was
+			// modified into, at the value its refine rank gives. Everything downstream then
+			// treats it as an ordinary perk.
+			ProficiencyPerk perk = basePerk;
+			if (const auto* shaped = findWeaponProficiencyShapedPerk(itemId, lvl.proficiencyLevel, basePerk.positionSlot)) {
+				ProficiencyModifier modifier;
+				if (ProficiencyModifiers::get(shaped->modifierEnum, modifier)) {
+					perk = ProficiencyPerk(basePerk.positionSlot, modifier.perkType, ProficiencyModifiers::valueAtRank(modifier, shaped->refineLevel));
+					perk.spellId = modifier.spellId;
+					perk.augmentType = modifier.augmentType;
+					perk.bestiaryId = modifier.bestiaryId;
+				}
 			}
 
 			if (perk.perkValue < 0.0f && perk.perkType != PROFICIENCY_PERK_AUGMENT_TYPE) {

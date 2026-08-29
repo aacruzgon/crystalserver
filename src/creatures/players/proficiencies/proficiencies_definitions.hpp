@@ -17,12 +17,34 @@
 
 #pragma once
 
+// Serialisation of the `weapon_proficiencies` player blob. A leading 0xFFFF marks the
+// versioned format; anything else is the original layout, whose first field was the entry
+// count.
+inline constexpr uint16_t PLAYER_WEAPON_PROFICIENCY_BLOB_SENTINEL = 0xFFFF;
+inline constexpr uint8_t PLAYER_WEAPON_PROFICIENCY_BLOB_VERSION = 1;
+
 // Progression constants. Perk-bearing levels stop at 7; every weapon then has two further
 // levels that grant nothing but Mastery, so a weapon with N perk levels masters at N + 2
 // (a 3-level weapon masters at level 5).
 inline constexpr uint8_t PROFICIENCY_MAX_PERK_LEVEL = 7;
 inline constexpr uint8_t PROFICIENCY_MASTERY_EXTRA_LEVELS = 2;
 inline constexpr uint8_t PROFICIENCY_MAX_LEVEL = PROFICIENCY_MAX_PERK_LEVEL + PROFICIENCY_MASTERY_EXTRA_LEVELS;
+
+// Shaping (15.30). The first slot opens at proficiency level 3, the second once the weapon
+// is mastered; a shaped perk can be refined from rank 0 to rank 10.
+inline constexpr uint8_t PROFICIENCY_MAX_SHAPED_PERKS = 2;
+inline constexpr uint8_t PROFICIENCY_SHAPE_FIRST_SLOT_LEVEL = 3;
+inline constexpr uint8_t PROFICIENCY_MAX_REFINE_RANK = 10;
+
+// Costs, mirroring the values the client already displays.
+inline constexpr uint64_t PROFICIENCY_SHAPE_FIRST_SLOT_DUST = 250;
+inline constexpr uint64_t PROFICIENCY_SHAPE_SECOND_SLOT_DUST = 1000;
+inline constexpr uint64_t PROFICIENCY_RESHAPE_DUST = 250;
+inline constexpr uint64_t PROFICIENCY_MAXIMISE_ORBS = 1;
+inline constexpr uint8_t PROFICIENCY_RESHAPE_OFFER_COUNT = 2;
+// Refining rank R -> R+1 costs 125 + 75 * R dust.
+inline constexpr uint64_t PROFICIENCY_REFINE_DUST_BASE = 125;
+inline constexpr uint64_t PROFICIENCY_REFINE_DUST_PER_RANK = 75;
 
 // Which experience column a weapon uses. Knight weapons are those the market restricts to
 // the knight profession alone; crossbows are identified by the appearance WEAPON_TYPE,

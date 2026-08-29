@@ -1251,6 +1251,15 @@ void IOLoginDataLoad::loadPlayerWeaponProficiency(const std::shared_ptr<Player> 
 		return;
 	}
 
+	// Blobs written before shaped perks existed open with the entry count. Newer ones open
+	// with a sentinel and a version byte; see IOLoginDataSave::savePlayerFirst.
+	uint8_t blobVersion = 0;
+	if (mapSize == PLAYER_WEAPON_PROFICIENCY_BLOB_SENTINEL) {
+		if (!stream.read<uint8_t>(blobVersion) || !stream.read<uint16_t>(mapSize)) {
+			return;
+		}
+	}
+
 	for (uint16_t i = 0; i < mapSize; ++i) {
 		uint16_t itemId;
 		if (!stream.read<uint16_t>(itemId)) {
@@ -1278,6 +1287,25 @@ void IOLoginDataLoad::loadPlayerWeaponProficiency(const std::shared_ptr<Player> 
 			}
 
 			data.activePerks.push_back(perk);
+		}
+
+		if (blobVersion >= 1) {
+			uint8_t shapedCount;
+			if (!stream.read<uint8_t>(shapedCount)) {
+				break;
+			}
+
+			for (uint8_t j = 0; j < shapedCount; ++j) {
+				WeaponProficiencyShapedPerk shaped {};
+				if (!stream.read<uint8_t>(shaped.proficiencyLevel)
+				    || !stream.read<uint8_t>(shaped.perkPosition)
+				    || !stream.read<uint16_t>(shaped.modifierEnum)
+				    || !stream.read<uint8_t>(shaped.refineLevel)) {
+					break;
+				}
+
+				data.shapedPerks.push_back(shaped);
+			}
 		}
 
 		player->weaponProficiencies[itemId] = std::move(data);

@@ -148,9 +148,30 @@ struct WeaponProficiencyPerk {
 	uint8_t perkPosition = 0;
 };
 
+// A perk slot whose default bonus has been replaced through the 15.30 shaping system.
+// modifierEnum addresses the shared pool in proficiency_modifiers.hpp and refineLevel is
+// the perk's rank, 0..PROFICIENCY_MAX_REFINE_RANK.
+struct WeaponProficiencyShapedPerk {
+	uint8_t proficiencyLevel = 0;
+	uint8_t perkPosition = 0;
+	uint16_t modifierEnum = 0;
+	uint8_t refineLevel = 0;
+};
+
 struct WeaponProficiencyData {
 	uint32_t experience = 0;
 	std::vector<WeaponProficiencyPerk> activePerks;
+	std::vector<WeaponProficiencyShapedPerk> shapedPerks;
+};
+
+// A reshape offer set, held only between the client asking to reshape and picking one of
+// the replacements. Deliberately not persisted: a reconnect drops the offer, and the dust
+// is charged when the offers are generated, exactly as the client's flow expects.
+struct WeaponProficiencyReshapeOffers {
+	uint16_t itemId = 0;
+	uint8_t proficiencyLevel = 0;
+	uint8_t perkPosition = 0;
+	std::vector<std::pair<uint16_t, uint8_t>> offers;
 };
 
 struct WeaponProficiencyAugment {
@@ -1180,10 +1201,37 @@ public:
 	// notification's has_unused_perk flag and the status bar highlight.
 	bool hasUnusedWeaponProficiencyPerk(uint16_t itemId) const;
 
+	// Lunar Ascension Orbs. Kept in the player's KV store rather than a new column so the
+	// currency does not need a schema migration; it is only spent by Maximise.
+	uint64_t getLunarAscensionOrbs() const;
+	void addLunarAscensionOrbs(uint64_t amount);
+	bool removeLunarAscensionOrbs(uint64_t amount);
+
+	// Perk shaping (15.30). Each returns false, charges nothing and leaves the perk as it
+	// was if the request is not legal for this player and weapon.
+	bool shapeWeaponProficiencyPerk(uint16_t itemId, uint8_t level, uint8_t position);
+	bool refineWeaponProficiencyPerk(uint16_t itemId, uint8_t level, uint8_t position);
+	bool maximiseWeaponProficiencyPerk(uint16_t itemId, uint8_t level, uint8_t position);
+	bool requestWeaponProficiencyReshape(uint16_t itemId, uint8_t level, uint8_t position);
+	bool selectWeaponProficiencyReshapeOffer(uint16_t itemId, uint8_t level, uint8_t position, uint8_t offerIndex);
+	bool clearWeaponProficiencyShapedPerk(uint16_t itemId, uint8_t level, uint8_t position);
+	const WeaponProficiencyReshapeOffers &getPendingReshapeOffers() const {
+		return pendingReshapeOffers;
+	}
+
+private:
+	WeaponProficiencyShapedPerk* findWeaponProficiencyShapedPerk(uint16_t itemId, uint8_t level, uint8_t position);
+	// Shared preconditions for every shaping action: the slot must be a real perk slot on a
+	// level the player has unlocked, and the player must be somewhere perks may be edited.
+	bool canShapeWeaponProficiencySlot(uint16_t itemId, uint8_t level, uint8_t position);
+	uint16_t rollWeaponProficiencyModifier(const std::vector<uint16_t> &exclude) const;
+
+public:
 	void removeEquippedWeaponProficiency(const uint16_t itemId);
 	void sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t addProficiencyExperience);
 
 	std::unordered_map<uint16_t, WeaponProficiencyData> weaponProficiencies;
+	WeaponProficiencyReshapeOffers pendingReshapeOffers;
 
 	bool canExiva(const std::string &spellParam) const;
 

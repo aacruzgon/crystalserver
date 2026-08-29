@@ -343,6 +343,12 @@ bool IOLoginDataSave::savePlayerFirst(const std::shared_ptr<Player> &player) {
 	// Weapon Proficiency
 	PropWriteStream propWeaponProficiency;
 
+	// The original blob opened with a plain uint16 entry count. Shaped perks needed a
+	// second list per entry, so the stream now opens with a 0xFFFF sentinel followed by a
+	// format version; a leading value that is not the sentinel is read as the old count and
+	// parsed the old way, which keeps existing characters loadable.
+	propWeaponProficiency.write<uint16_t>(PLAYER_WEAPON_PROFICIENCY_BLOB_SENTINEL);
+	propWeaponProficiency.write<uint8_t>(PLAYER_WEAPON_PROFICIENCY_BLOB_VERSION);
 	propWeaponProficiency.write<uint16_t>(player->weaponProficiencies.size());
 	for (const auto &[itemId, proficiency] : player->weaponProficiencies) {
 		propWeaponProficiency.write<uint16_t>(itemId);
@@ -352,6 +358,14 @@ bool IOLoginDataSave::savePlayerFirst(const std::shared_ptr<Player> &player) {
 		for (const auto &perk : proficiency.activePerks) {
 			propWeaponProficiency.write<uint8_t>(perk.proficiencyLevel);
 			propWeaponProficiency.write<uint8_t>(perk.perkPosition);
+		}
+
+		propWeaponProficiency.write<uint8_t>(proficiency.shapedPerks.size());
+		for (const auto &shaped : proficiency.shapedPerks) {
+			propWeaponProficiency.write<uint8_t>(shaped.proficiencyLevel);
+			propWeaponProficiency.write<uint8_t>(shaped.perkPosition);
+			propWeaponProficiency.write<uint16_t>(shaped.modifierEnum);
+			propWeaponProficiency.write<uint8_t>(shaped.refineLevel);
 		}
 	}
 
