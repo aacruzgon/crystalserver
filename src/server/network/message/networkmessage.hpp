@@ -165,6 +165,9 @@ public:
 	}
 
 	std::string getString(uint16_t stringLen = 0, const std::source_location &location = std::source_location::current());
+	// Raw, untranscoded read. getString() converts ISO-8859-1 <-> UTF-8, which mangles any
+	// binary payload (a serialised protobuf, for one), so binary reads must come through here.
+	std::string getBytes(uint32_t size, const std::source_location &location = std::source_location::current());
 	Position getPosition();
 
 	// skips count unknown/unused bytes in an incoming message

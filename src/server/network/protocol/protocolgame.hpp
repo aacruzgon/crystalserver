@@ -579,6 +579,10 @@ private:
 	void parseWeaponProficiency(NetworkMessage &msg);
 	void sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t experience);
 	void sendWeaponProficiencyInfo(const uint16_t itemId);
+	void sendWeaponProficiencyReshapeOffers();
+	// Frames one serialised proficiency protobuf: opcode, uint16 length, raw bytes. Kept
+	// non-template and string-taking so the protobuf headers stay out of this header.
+	void sendProficiencyPayload(uint8_t opcode, const std::string &payload);
 
 	friend class Player;
 	friend class PlayerWheel;

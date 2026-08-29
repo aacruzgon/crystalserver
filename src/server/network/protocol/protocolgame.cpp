@@ -43,6 +43,8 @@
 #include "creatures/players/player.hpp"
 #include "creatures/players/vip/player_vip.hpp"
 #include "creatures/players/wheel/player_wheel.hpp"
+
+#include <proficiency.pb.h>
 #include "enums/player_icons.hpp"
 #include "game/game.hpp"
 #include "game/cyclopedia_map/cyclopedia_map.hpp"
@@ -11682,41 +11684,129 @@ void ProtocolGame::parseImbuementWindow(NetworkMessage &msg) {
 }
 
 void ProtocolGame::parseWeaponProficiency(NetworkMessage &msg) {
-	if (oldProtocol) {
+	if (oldProtocol || !player) {
 		return;
 	}
 
-	const WeaponProficiency_t type = static_cast<WeaponProficiency_t>(msg.getByte());
+	namespace proto = tibia::protobuf::protocol;
 
-	if (type == WEAPON_PROFICIENCY_ITEM_INFO) {
-		const uint16_t itemId = msg.get<uint16_t>();
-		player->sendWeaponProficiencyInfo(itemId);
+	const uint16_t payloadSize = msg.get<uint16_t>();
+	const std::string payload = msg.getBytes(payloadSize);
 
-	} else if (type == WEAPON_PROFICIENCY_LIST_INFO) {
-		for (const auto &[itemId, _] : player->weaponProficiencies) {
-			player->sendWeaponProficiencyInfo(itemId);
-		}
-
-	} else if (type == WEAPON_PROFICIENCY_RESET_PERKS) {
-		const uint16_t itemId = msg.get<uint16_t>();
-
-	} else if (type == WEAPON_PROFICIENCY_APPLY_PERKS) {
-		const uint16_t itemId = msg.get<uint16_t>();
-
-		auto &proficiency = player->weaponProficiencies[itemId];
-		proficiency.activePerks.clear();
-
-		const uint8_t sizeActivePerksList = msg.getByte();
-		for (uint8_t i = 0; i < sizeActivePerksList; i++) {
-			const uint8_t proficiencyLevel = msg.getByte();
-			const uint8_t perkPosition = msg.getByte();
-
-			proficiency.activePerks.push_back({ static_cast<uint8_t>(proficiencyLevel + 1),
-			                                    static_cast<uint8_t>(perkPosition + 1) });
-		}
-
-		player->applyEquippedWeaponProficiency(itemId);
+	proto::GameclientMessageWeaponProficiencyCommand command;
+	if (!command.ParseFromString(payload)) {
+		g_logger().debug("[{}] {} sent an unparseable weapon proficiency command", __FUNCTION__, player->getName());
+		return;
 	}
+
+	const uint16_t itemId = static_cast<uint16_t>(command.object_type_id());
+
+	// Levels and positions arrive 0-based; everything below the protocol layer is 1-based.
+	const auto slotOf = [&](const proto::WeaponProficiencyPerkPick &pick) {
+		return std::pair<uint8_t, uint8_t> {
+			static_cast<uint8_t>(pick.level() + 1),
+			static_cast<uint8_t>(pick.position() + 1)
+		};
+	};
+
+	switch (command.command()) {
+		case proto::WEAPON_PROFICIENCY_COMMAND_GET_PROFICIENCY: {
+			sendWeaponProficiencyInfo(itemId);
+			return;
+		}
+
+		case proto::WEAPON_PROFICIENCY_COMMAND_GET_ALL_PROFICIENCIES: {
+			for (const auto &[storedItemId, _] : player->weaponProficiencies) {
+				sendWeaponProficiencyInfo(storedItemId);
+			}
+			return;
+		}
+
+		case proto::WEAPON_PROFICIENCY_COMMAND_RESET_PROFICIENCY: {
+			player->resetWeaponProficiencyPerks(itemId);
+			break;
+		}
+
+		case proto::WEAPON_PROFICIENCY_COMMAND_PICK_PERK: {
+			std::vector<WeaponProficiencyPerk> requested;
+			requested.reserve(command.picks_size());
+			for (const auto &pick : command.picks()) {
+				const auto [level, position] = slotOf(pick);
+				requested.push_back({ level, position });
+			}
+
+			// setWeaponProficiencyPerks validates the whole set and applies nothing if any
+			// part of it is illegal.
+			player->setWeaponProficiencyPerks(itemId, requested);
+			break;
+		}
+
+		case proto::WEAPON_PROFICIENCY_COMMAND_SHAPE_PERK:
+		case proto::WEAPON_PROFICIENCY_COMMAND_REFINE_SHAPED_PERK:
+		case proto::WEAPON_PROFICIENCY_COMMAND_MAXIMIZE_SHAPED_PERK:
+		case proto::WEAPON_PROFICIENCY_COMMAND_RESHAPE_SHAPED_PERK:
+		case proto::WEAPON_PROFICIENCY_COMMAND_SELECT_RESHAPE_OPTION:
+		case proto::WEAPON_PROFICIENCY_COMMAND_CLEAR_SHAPED_PERK: {
+			// The shaping commands name their target slot as the first (and only) pick.
+			if (command.picks_size() != 1) {
+				g_logger().debug("[{}] {} sent a shaping command naming {} slots", __FUNCTION__, player->getName(), command.picks_size());
+				return;
+			}
+
+			const auto [level, position] = slotOf(command.picks(0));
+			switch (command.command()) {
+				case proto::WEAPON_PROFICIENCY_COMMAND_SHAPE_PERK:
+					player->shapeWeaponProficiencyPerk(itemId, level, position);
+					break;
+				case proto::WEAPON_PROFICIENCY_COMMAND_REFINE_SHAPED_PERK:
+					player->refineWeaponProficiencyPerk(itemId, level, position);
+					break;
+				case proto::WEAPON_PROFICIENCY_COMMAND_MAXIMIZE_SHAPED_PERK:
+					player->maximiseWeaponProficiencyPerk(itemId, level, position);
+					break;
+				case proto::WEAPON_PROFICIENCY_COMMAND_RESHAPE_SHAPED_PERK:
+					// The reply is the offer list, not a proficiency refresh - the client
+					// opens its Reshape dialog on 0xBB.
+					if (player->requestWeaponProficiencyReshape(itemId, level, position)) {
+						sendWeaponProficiencyReshapeOffers();
+					}
+					return;
+				case proto::WEAPON_PROFICIENCY_COMMAND_SELECT_RESHAPE_OPTION:
+					if (!command.has_argument()) {
+						return;
+					}
+					player->selectWeaponProficiencyReshapeOffer(itemId, level, position, static_cast<uint8_t>(command.argument()));
+					break;
+				case proto::WEAPON_PROFICIENCY_COMMAND_CLEAR_SHAPED_PERK:
+					player->clearWeaponProficiencyShapedPerk(itemId, level, position);
+					break;
+				default:
+					break;
+			}
+			break;
+		}
+
+		default:
+			g_logger().debug("[{}] {} sent unknown weapon proficiency command {}", __FUNCTION__, player->getName(), static_cast<int>(command.command()));
+			return;
+	}
+
+	// Echo the stored state back for every command that can change it - a rejected action
+	// still has to correct whatever the client optimistically drew.
+	sendWeaponProficiencyInfo(itemId);
+}
+
+void ProtocolGame::sendProficiencyPayload(const uint8_t opcode, const std::string &payload) {
+	if (payload.size() > std::numeric_limits<uint16_t>::max()) {
+		g_logger().error("[{}] proficiency payload of {} bytes does not fit its length prefix", __FUNCTION__, payload.size());
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(opcode);
+	msg.add<uint16_t>(static_cast<uint16_t>(payload.size()));
+	msg.addBytes(payload.data(), payload.size());
+	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t experience) {
@@ -11724,13 +11814,43 @@ void ProtocolGame::sendWeaponProficiencyExperience(const uint16_t itemId, const 
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x5C);
-	msg.add<uint16_t>(itemId);
-	msg.add<uint32_t>(experience);
-	msg.addByte(0x01);
+	tibia::protobuf::protocol::GameserverMessageWeaponProficiencyNotification message;
+	message.set_object_type_id(itemId);
+	message.set_experience(experience);
+	// This used to be a hardcoded 1, so the client's "New perks are available" highlight was
+	// always on. Report the real answer instead.
+	message.set_has_unused_perk(player->hasUnusedWeaponProficiencyPerk(itemId));
 
-	writeToOutputBuffer(msg);
+	sendProficiencyPayload(0x5C, message.SerializeAsString());
+}
+
+void ProtocolGame::sendWeaponProficiencyReshapeOffers() {
+	if (oldProtocol || !player) {
+		return;
+	}
+
+	const auto &pending = player->getPendingReshapeOffers();
+	if (pending.itemId == 0 || pending.offers.empty()) {
+		return;
+	}
+
+	tibia::protobuf::protocol::GameserverMessageShapedPerkReshapeOffers message;
+	message.set_object_type_id(pending.itemId);
+	auto* slot = message.mutable_slot();
+	slot->set_level(pending.proficiencyLevel - 1u);
+	slot->set_position(pending.perkPosition - 1u);
+
+	// Each offer carries the whole shaping tuple, so it already names the slot it would land
+	// in and the rank it keeps - the client no longer has to infer either.
+	for (const auto &[modifierEnum, refineLevel] : pending.offers) {
+		auto* offer = message.add_offers();
+		offer->set_level(pending.proficiencyLevel - 1u);
+		offer->set_position(pending.perkPosition - 1u);
+		offer->set_modifier(modifierEnum);
+		offer->set_rank(refineLevel);
+	}
+
+	sendProficiencyPayload(0xBB, message.SerializeAsString());
 }
 
 void ProtocolGame::sendWeaponProficiencyInfo(const uint16_t itemId) {
@@ -11738,20 +11858,32 @@ void ProtocolGame::sendWeaponProficiencyInfo(const uint16_t itemId) {
 		return;
 	}
 
-	auto it = player->weaponProficiencies.find(itemId);
-	if (it != player->weaponProficiencies.end()) {
-		const auto &proficiency = it->second;
-		NetworkMessage msg;
-		msg.addByte(0xC4);
-		msg.add<uint16_t>(itemId);
-		msg.add<uint32_t>(proficiency.experience);
-		msg.addByte(static_cast<uint8_t>(proficiency.activePerks.size()));
-		for (const auto &perk : proficiency.activePerks) {
-			msg.addByte(perk.proficiencyLevel - 1);
-			msg.addByte(perk.perkPosition - 1);
-		}
-		writeToOutputBuffer(msg);
+	const auto it = player->weaponProficiencies.find(itemId);
+	if (it == player->weaponProficiencies.end()) {
+		return;
 	}
+
+	const auto &proficiency = it->second;
+	tibia::protobuf::protocol::GameserverMessageWeaponProficiency message;
+	message.set_object_type_id(itemId);
+	message.set_experience(proficiency.experience);
+
+	// Levels and positions are stored 1-based and travel 0-based.
+	for (const auto &perk : proficiency.activePerks) {
+		auto* pick = message.add_picks();
+		pick->set_level(perk.proficiencyLevel - 1u);
+		pick->set_position(perk.perkPosition - 1u);
+	}
+
+	for (const auto &shaped : proficiency.shapedPerks) {
+		auto* entry = message.add_shaped();
+		entry->set_level(shaped.proficiencyLevel - 1u);
+		entry->set_position(shaped.perkPosition - 1u);
+		entry->set_modifier(shaped.modifierEnum);
+		entry->set_rank(shaped.refineLevel);
+	}
+
+	sendProficiencyPayload(0xC4, message.SerializeAsString());
 }
 
 void ProtocolGame::parseExivaRestrictions(NetworkMessage &msg) {

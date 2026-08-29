@@ -1,0 +1,83 @@
+syntax = "proto2";
+
+// Weapon Proficiency messages, transcribed from the official Tibia client (15.32).
+//
+// Field numbers, wire types and cardinality are CipSoft's own, recovered from the
+// protobuf-lite TcParseTable each generated message carries. Field *names* are not - the
+// lite runtime drops them - so the names here are ours, chosen from observed behaviour.
+// Message names, the enum, and its values are the client's verbatim, which is what makes
+// this file diffable against a future client version.
+//
+// The official client wraps every one of these in a single GameserverMessage /
+// GameclientMessage container spanning the whole protocol; we keep our own opcode framing
+// and carry one of these as a length-prefixed payload, so this buys a shared schema, not
+// interoperability with the official client.
+//
+// This file is duplicated verbatim in CrystalOTC and crystalserver. Change both.
+
+package tibia.protobuf.protocol;
+
+// The client->server command set. Values confirmed against the enum's own aux range
+// (0..9) and its EnumEntry table, not inferred from the alphabetically sorted name blob.
+enum WEAPON_PROFICIENCY_COMMAND {
+  WEAPON_PROFICIENCY_COMMAND_GET_PROFICIENCY = 0;
+  WEAPON_PROFICIENCY_COMMAND_GET_ALL_PROFICIENCIES = 1;
+  WEAPON_PROFICIENCY_COMMAND_RESET_PROFICIENCY = 2;
+  WEAPON_PROFICIENCY_COMMAND_PICK_PERK = 3;
+  WEAPON_PROFICIENCY_COMMAND_SHAPE_PERK = 4;
+  WEAPON_PROFICIENCY_COMMAND_REFINE_SHAPED_PERK = 5;
+  WEAPON_PROFICIENCY_COMMAND_MAXIMIZE_SHAPED_PERK = 6;
+  WEAPON_PROFICIENCY_COMMAND_RESHAPE_SHAPED_PERK = 7;
+  WEAPON_PROFICIENCY_COMMAND_SELECT_RESHAPE_OPTION = 8;
+  WEAPON_PROFICIENCY_COMMAND_CLEAR_SHAPED_PERK = 9;
+}
+
+// One picked perk: which proficiency level, and which slot within it. Both are 0-based,
+// matching the indices the proficiency tree is drawn from.
+message WeaponProficiencyPerkPick {
+  optional uint32 level = 1;
+  optional uint32 position = 2;
+}
+
+// A slot whose default perk has been replaced through the shaping system. `modifier` is
+// the id of the pool entry it was modified into; `rank` is its refine level, 0..10.
+message WeaponProficiencyPerkShaping {
+  optional uint32 level = 1;
+  optional uint32 position = 2;
+  optional uint32 modifier = 3;
+  optional uint32 rank = 4;
+}
+
+// Full state of one weapon's proficiency.
+message GameserverMessageWeaponProficiency {
+  optional uint32 object_type_id = 1;
+  optional uint32 experience = 2;
+  repeated WeaponProficiencyPerkPick picks = 3;
+  repeated WeaponProficiencyPerkShaping shaped = 4;
+}
+
+// Progress update after a kill. `has_unused_perk` drives the highlight on the status bar
+// button and the "New perks are available" tooltip.
+message GameserverMessageWeaponProficiencyNotification {
+  optional uint32 object_type_id = 1;
+  optional uint32 experience = 2;
+  optional bool has_unused_perk = 3;
+}
+
+// The replacement perks offered for one shaped slot. Each offer carries the whole shaping
+// tuple, so it already names the slot it would land in and the rank it would keep.
+message GameserverMessageShapedPerkReshapeOffers {
+  optional uint32 object_type_id = 1;
+  optional WeaponProficiencyPerkPick slot = 2;
+  repeated WeaponProficiencyPerkShaping offers = 3;
+}
+
+// Every client->server proficiency action. `picks` carries the full perk selection for
+// PICK_PERK, and the single target slot for the shaping commands. `argument` is only read
+// by SELECT_RESHAPE_OPTION, where it is the chosen offer's index.
+message GameclientMessageWeaponProficiencyCommand {
+  optional WEAPON_PROFICIENCY_COMMAND command = 1;
+  optional uint32 object_type_id = 2;
+  repeated WeaponProficiencyPerkPick picks = 3;
+  optional uint32 argument = 4;
+}

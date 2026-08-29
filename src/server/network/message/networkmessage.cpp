@@ -94,6 +94,21 @@ uint8_t NetworkMessage::getPreviousByte() {
 	return {};
 }
 
+std::string NetworkMessage::getBytes(uint32_t size, const std::source_location &location) {
+	if (size == 0) {
+		return {};
+	}
+
+	if (size > NETWORKMESSAGE_MAXSIZE || !canRead(static_cast<int32_t>(size))) {
+		g_logger().error("[{}] not enough data to read {} bytes. Called line {}:{} in {}", __FUNCTION__, size, location.line(), location.column(), location.function_name());
+		return {};
+	}
+
+	const auto* it = buffer.data() + info.position;
+	info.position += static_cast<MsgSize_t>(size);
+	return { reinterpret_cast<const char*>(it), size };
+}
+
 std::string NetworkMessage::getString(uint16_t stringLen /* = 0*/, const std::source_location &location) {
 	if (stringLen == 0) {
 		stringLen = get<uint16_t>();
