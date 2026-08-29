@@ -13044,6 +13044,9 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 				continue;
 			}
 
+			// COMBAT_PHYSICALDAMAGE is 0, so a resolved index of 0 is valid - test against
+			// -1, never against "> 0". Guarding with "> 0" silently dropped every perk whose
+			// element is physical (ElementId 1), which the shipped table does use.
 			int32_t damageTypeIndex = -1;
 			if (perk.damageType > 0) {
 				switch (perk.damageType) {
@@ -13140,7 +13143,7 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 					break;
 				}
 				case PROFICIENCY_PERK_SPECIAL_MAGIC_LEVEL: {
-					if (damageTypeIndex > 0) {
+					if (damageTypeIndex >= 0 && damageTypeIndex < COMBAT_COUNT) {
 						equippedWeaponProficiency.specialMagicLevel[damageTypeIndex] = std::max(0, equippedWeaponProficiency.specialMagicLevel[damageTypeIndex] + static_cast<int32_t>(perk.perkValue));
 					}
 					break;
@@ -13171,7 +13174,7 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 					break;
 				}
 				case PROFICIENCY_PERK_CRITICAL_HIT_CHANCE_FOR_ELEMENT_ID_SPELLS_AND_RUNES: {
-					if (damageTypeIndex > 0) {
+					if (damageTypeIndex >= 0 && damageTypeIndex < COMBAT_COUNT) {
 						equippedWeaponProficiency.critHitChanceForElementIdToSpellsAndRunes[damageTypeIndex] = std::max(0, equippedWeaponProficiency.critHitChanceForElementIdToSpellsAndRunes[damageTypeIndex] + static_cast<uint16_t>(perk.perkValue * 10000.0f));
 					}
 					break;
@@ -13189,7 +13192,7 @@ void Player::applyEquippedWeaponProficiency(const uint16_t itemId) {
 					break;
 				}
 				case PROFICIENCY_PERK_CRITICAL_EXTRA_DAMAGE_FOR_ELEMENT_ID_SPELLS_AND_RUNES: {
-					if (damageTypeIndex > 0) {
+					if (damageTypeIndex >= 0 && damageTypeIndex < COMBAT_COUNT) {
 						equippedWeaponProficiency.critExtraDamageForElementIdToSpellsAndRunes[damageTypeIndex] = std::max(0, equippedWeaponProficiency.critExtraDamageForElementIdToSpellsAndRunes[damageTypeIndex] + static_cast<uint16_t>(perk.perkValue * 10000.0f));
 					}
 					break;
