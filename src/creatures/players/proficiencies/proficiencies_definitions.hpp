@@ -64,21 +64,23 @@ enum WeaponProficiencyPerkSkills_t : int8_t {
 	PROFICIENCY_SKILL_FISHING = 13,
 };
 
+// Recovered from the official 15.32 client: the augment description dispatcher computes
+// `augmentType - 2`, bounds-checks against 15 and jumps through a 16-entry table. Only the
+// seven members below resolve to a description string; 1, 4 and 7-13 all fall through to
+// the client's "dummy_unknown" branch, so they play no part in weapon proficiency and are
+// left unnamed rather than guessed at.
 enum WeaponProficiencyPerkAugmentType_t : uint8_t {
 	PROFICIENCY_AUGMENTTYPE_NONE = 0,
-	PROFICIENCY_AUGMENTTYPE_MANA_COST = 1, // UNKNOWN
+	// "%1 base damage for %2" - value is a 0..1 fraction.
 	PROFICIENCY_AUGMENTTYPE_BASE_DAMAGE = 2,
-	PROFICIENCY_AUGMENTTYPE_HEALING = 3, // falta esse
-	PROFICIENCY_AUGMENTTYPE_DURATION = 4, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_ADDITIONAL_TARGETS = 5, // UNKNOWN
+	// "%1 healing for %2" - value is a 0..1 fraction.
+	PROFICIENCY_AUGMENTTYPE_HEALING = 3,
+	// "%1 chain length for %2" - value is a target count. Unused by the 15.32 data.
+	PROFICIENCY_AUGMENTTYPE_CHAIN_LENGTH = 5,
+	// "%1 cooldown for %2" - the one augment whose value is signed SECONDS rather than a
+	// fraction, and the only source of negative values anywhere in the proficiency table.
 	PROFICIENCY_AUGMENTTYPE_COOLDOWN = 6,
-	PROFICIENCY_AUGMENTTYPE_SECONDARY_GROUP_COOLDOWN = 7, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_AREA_ENLARGED = 8, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_INCREASED_DAMAGE = 9, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_ENHANCED_EFFECT = 10, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_AREA_ENLARGED_2 = 11, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_ENHANCED_EFFECT_2 = 12, // UNKNOWN
-	PROFICIENCY_AUGMENTTYPE_INCREASED_SKILL = 13, // UNKNOWN
+	// The remaining four are 0..1 fractions.
 	PROFICIENCY_AUGMENTTYPE_LIFE_LEECH = 14,
 	PROFICIENCY_AUGMENTTYPE_MANA_LEECH = 15,
 	PROFICIENCY_AUGMENTTYPE_CRITICAL_EXTRA_DAMAGE = 16,
