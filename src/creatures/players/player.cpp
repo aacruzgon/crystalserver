@@ -6688,12 +6688,12 @@ bool Player::onKilledMonster(const std::shared_ptr<Monster> &monster) {
 		addHuntingTaskKill(mType);
 		addBestiaryKill(mType);
 		addBosstiaryKill(mType);
-		addWeaponProficiencyExperience(mType, monster->getMonsterForgeClassification(), false);
+		addWeaponProficiencyExperience(mType, monster->getMonsterForgeClassification(), monster->getForgeStack(), false);
 
 		g_iobountytasks().onCreatureKill(getPlayer(), mType->info.raceid);
 		g_ioweeklytasks().onCreatureKill(getPlayer(), mType->info.raceid);
 	} else if (monster->getForgeStack() == 40) {
-		addWeaponProficiencyExperience(mType, monster->getMonsterForgeClassification(), true);
+		addWeaponProficiencyExperience(mType, monster->getMonsterForgeClassification(), monster->getForgeStack(), true);
 	}
 
 	return false;
@@ -12878,7 +12878,7 @@ EquippedWeaponProficiencyBonuses &Player::getEquippedWeaponProficiency() {
 	return equippedWeaponProficiency;
 }
 
-void Player::addWeaponProficiencyExperience(const std::shared_ptr<MonsterType> &mType, const ForgeClassifications_t classification, const bool bossSoulpit) {
+void Player::addWeaponProficiencyExperience(const std::shared_ptr<MonsterType> &mType, const ForgeClassifications_t classification, const uint16_t forgeStack, const bool bossSoulpit) {
 	uint32_t addProficiencyExperience = 0;
 	const auto weaponProficiencyRate = std::max(0.0f, g_configManager().getFloat(RATE_WEAPON_PROFICIENCY));
 	if (bossSoulpit) {
@@ -12929,7 +12929,11 @@ void Player::addWeaponProficiencyExperience(const std::shared_ptr<MonsterType> &
 			}
 
 			if (classification == ForgeClassifications_t::FORGE_INFLUENCED_MONSTER) {
-				addProficiencyExperience = static_cast<uint32_t>(addProficiencyExperience * 1.1);
+				// +10% per influence stack, not a flat +10%: a Medium creature yields
+				// 110/120/130/140/150 at stacks 1-5. Stacks are clamped to the 1-5 the
+				// influence system actually produces.
+				const uint16_t stacks = std::clamp<uint16_t>(forgeStack, 1, 5);
+				addProficiencyExperience = static_cast<uint32_t>(addProficiencyExperience * (1.0 + 0.1 * stacks));
 			} else if (classification == ForgeClassifications_t::FORGE_FIENDISH_MONSTER) {
 				addProficiencyExperience = static_cast<uint32_t>(addProficiencyExperience * 2.5);
 			}

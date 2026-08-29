@@ -2158,6 +2158,6 @@ private:
 
 	int16_t getMantraAbsorbPercent(int16_t mantraAbsorbValue) const;
 
-	void addWeaponProficiencyExperience(const std::shared_ptr<MonsterType> &mType, const ForgeClassifications_t classification, const bool bossSoulpit);
+	void addWeaponProficiencyExperience(const std::shared_ptr<MonsterType> &mType, const ForgeClassifications_t classification, uint16_t forgeStack, const bool bossSoulpit);
 	EquippedWeaponProficiencyBonuses equippedWeaponProficiency;
 };
