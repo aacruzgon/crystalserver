@@ -728,6 +728,21 @@ void Spell::getCombatDataAugment(const std::shared_ptr<Player> &player, CombatDa
 						damage.secondary.value += static_cast<int32_t>(damage.secondary.value * augmentPercent);
 						break;
 					}
+					case PROFICIENCY_AUGMENTTYPE_HEALING: {
+						// "%1 healing for %2" - a 0..1 fraction on the restored amount. Every
+						// spell the shipped table gives this augment to is a healing spell
+						// (Light/Intense/Divine Healing, Heal Friend, both Wound Cleansings),
+						// so it is gated on the healing combat type: that keeps a mis-tagged
+						// augment from quietly buffing an attack spell instead.
+						const float augmentPercent = playerProficiencyAugment.value;
+						if (damage.primary.type == COMBAT_HEALING) {
+							damage.primary.value += static_cast<int32_t>(damage.primary.value * augmentPercent);
+						}
+						if (damage.secondary.type == COMBAT_HEALING) {
+							damage.secondary.value += static_cast<int32_t>(damage.secondary.value * augmentPercent);
+						}
+						break;
+					}
 					case PROFICIENCY_AUGMENTTYPE_LIFE_LEECH: {
 						const int32_t augmentValueLifeLeech = playerProficiencyAugment.value * 1000;
 						damage.lifeLeech += augmentValueLifeLeech;
@@ -748,6 +763,10 @@ void Spell::getCombatDataAugment(const std::shared_ptr<Player> &player, CombatDa
 						damage.criticalChance += augmentValueCriticalChance;
 						break;
 					}
+					default:
+						// COOLDOWN is applied in calculateAugmentSpellCooldownReduction, not here.
+						// CHAIN_LENGTH has no perk in the 15.32 table and no mechanic to hook.
+						break;
 				}
 			}
 		}
