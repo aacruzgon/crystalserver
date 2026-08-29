@@ -153,13 +153,10 @@ const WeaponProficiencyStruct* Proficiencies::getProficiencyByItemId(uint16_t it
 }
 
 uint8_t Proficiencies::getMaxProficiencyLevelForItem(uint16_t itemId) const {
-	const ItemType &itemType = Item::items[itemId];
-	if (!itemType.proficiencyId) {
-		g_logger().error("[{}] itemId {} not found proficiencyId", __FUNCTION__, itemId);
-		return 0;
-	}
-
-	const auto* proficiency = getProficiencyByItemId(itemType.proficiencyId);
+	// getProficiencyByItemId takes an ITEM id and resolves the proficiency id itself; both
+	// helpers used to hand it itemType.proficiencyId, which looked the definition up against
+	// an unrelated item.
+	const auto* proficiency = getProficiencyByItemId(itemId);
 	if (!proficiency) {
 		return 0;
 	}
@@ -168,13 +165,7 @@ uint8_t Proficiencies::getMaxProficiencyLevelForItem(uint16_t itemId) const {
 }
 
 uint8_t Proficiencies::getMaxPerksPerProficiencyLevelForItem(uint16_t itemId, uint8_t level) const {
-	const ItemType &itemType = Item::items[itemId];
-	if (!itemType.proficiencyId) {
-		g_logger().error("[{}] itemId {} not found proficiencyId", __FUNCTION__, itemId);
-		return 0;
-	}
-
-	const auto* proficiency = getProficiencyByItemId(itemType.proficiencyId);
+	const auto* proficiency = getProficiencyByItemId(itemId);
 	if (!proficiency) {
 		return 0;
 	}
