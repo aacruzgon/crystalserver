@@ -178,6 +178,14 @@ enum StashRetrieveSource_t : uint8_t {
 	STASH_RETRIEVE_SOURCE_DEPOT_SEARCH = 1
 };
 
+// CipSoft's DEPOT_SEARCH_RETRIEVE_SOURCE, the byte that ends a depot-search retrieve
+// request. Note it starts at 1, not 0: there is no "none" arm, and a zero-based reading
+// would send every depot retrieval to the inbox.
+enum DepotSearchRetrieveSource_t : uint8_t {
+	DEPOT_SEARCH_RETRIEVE_SOURCE_DEPOT = 1,
+	DEPOT_SEARCH_RETRIEVE_SOURCE_INBOX = 2
+};
+
 // CipSoft's QUICK_LOOT_MODE - which corpses a quick-loot request covers.
 enum QuickLootMode_t : uint8_t {
 	QUICK_LOOT_MODE_SINGLE_CORPSE = 0,

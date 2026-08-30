@@ -10478,9 +10478,9 @@ void ProtocolGame::parseRetrieveDepotSearch(NetworkMessage &msg) {
 	if (Item::items[itemId].upgradeClassification > 0) {
 		itemTier = msg.getByte();
 	}
-	uint8_t type = msg.getByte();
+	const auto source = static_cast<DepotSearchRetrieveSource_t>(msg.getByte());
 
-	g_game().playerRequestDepotSearchRetrieve(player->getID(), itemId, itemTier, type);
+	g_game().playerRequestDepotSearchRetrieve(player->getID(), itemId, itemTier, source);
 }
 
 void ProtocolGame::parseOpenParentContainer(NetworkMessage &msg) {

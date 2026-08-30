@@ -451,7 +451,9 @@ public:
 	void playerRequestDepotItems(uint32_t playerId);
 	void playerRequestCloseDepotSearch(uint32_t playerId);
 	void playerRequestDepotSearchItem(uint32_t playerId, uint16_t itemId, uint8_t tier);
-	void playerRequestDepotSearchRetrieve(uint32_t playerId, uint16_t itemId, uint8_t tier, uint8_t type);
+	// source is CipSoft's DEPOT_SEARCH_RETRIEVE_SOURCE: DEPOT is 1 and INBOX is 2, with no
+	// zero arm, so a zero-based reading sends every depot retrieval to the inbox.
+	void playerRequestDepotSearchRetrieve(uint32_t playerId, uint16_t itemId, uint8_t tier, uint8_t source);
 	void playerRequestOpenContainerFromDepotSearch(uint32_t playerId, const Position &pos);
 	void playerMoveThingFromDepotSearch(const std::shared_ptr<Player> &player, uint16_t itemId, uint8_t tier, uint8_t count, const Position &fromPos, const Position &toPos, bool allItems = false);
 
