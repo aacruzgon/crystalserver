@@ -9797,7 +9797,12 @@ void ProtocolGame::openImbuementWindow(const Imbuement_Window_t type, const std:
 void ProtocolGame::sendMessageDialog(const std::string &message) {
 	NetworkMessage msg;
 	msg.addByte(0xED);
-	msg.addByte(0x14); // Unknown type
+	// CipSoft's MESSAGE has no generic arm - every value names a specific subsystem's
+	// dialog. This overload carries free-form text from 47 callers across prey, weekly
+	// tasks, bounty tasks and the player, so no value is right for all of them; PREY_MESSAGE
+	// is what has always been sent and is kept rather than guessed at. Callers that know
+	// their subsystem should pass its own kind instead.
+	msg.addByte(MESSAGEDIALOG_PREY_MESSAGE);
 	msg.addString(message);
 	writeToOutputBuffer(msg);
 }
@@ -9805,7 +9810,7 @@ void ProtocolGame::sendMessageDialog(const std::string &message) {
 void ProtocolGame::sendImbuementResult(const std::string &message) {
 	NetworkMessage msg;
 	msg.addByte(0xED);
-	msg.addByte(0x01);
+	msg.addByte(MESSAGEDIALOG_IMBUEMENT_ERROR);
 	msg.addString(message);
 	writeToOutputBuffer(msg);
 }

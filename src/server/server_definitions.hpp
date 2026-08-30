@@ -178,6 +178,28 @@ enum StashRetrieveSource_t : uint8_t {
 	STASH_RETRIEVE_SOURCE_DEPOT_SEARCH = 1
 };
 
+// CipSoft's MESSAGE: the kind field of GameserverMessageShowMessageDialog, which says which
+// canned dialog the text belongs to. The numbering is by decade, one decade per subsystem,
+// and the gaps between them are real. There is deliberately no generic arm - see the note on
+// sendMessageDialog, which has 47 callers and no value that fits them.
+enum MessageDialog_t : uint8_t {
+	MESSAGEDIALOG_IMBUEMENT_SUCCESS = 0,
+	MESSAGEDIALOG_IMBUEMENT_ERROR = 1,
+	MESSAGEDIALOG_IMBUEMENT_CHANCE_FAILED = 2,
+	MESSAGEDIALOG_IMBUEMENT_STATION_GONE = 3,
+	MESSAGEDIALOG_CLEARING_SUCCESS = 10,
+	MESSAGEDIALOG_CLEARING_ERROR = 11,
+	MESSAGEDIALOG_PREY_MESSAGE = 20,
+	MESSAGEDIALOG_PREY_ERROR = 21,
+	MESSAGEDIALOG_RETRIEVE_ERROR = 30,
+	MESSAGEDIALOG_DAILY_REWARDS_DISABLED = 40,
+	MESSAGEDIALOG_EXALTATION_ERROR = 50,
+	MESSAGEDIALOG_BOSSTIARY_PODIUMRECEIVED = 60,
+	MESSAGEDIALOG_CAPACITY_WARNING = 70,
+	MESSAGEDIALOG_SHOW_SPELLBOOK = 80,
+	MESSAGEDIALOG_NAGGING_MESSAGE = 90
+};
+
 // CipSoft's DEPOT_SEARCH_RETRIEVE_SOURCE, the byte that ends a depot-search retrieve
 // request. Note it starts at 1, not 0: there is no "none" arm, and a zero-based reading
 // would send every depot retrieval to the inbox.
