@@ -740,11 +740,14 @@ enum SpellGroup_t : uint8_t {
 	SPELLGROUP_STANCE = 11,
 };
 
+// CipSoft's CHANNEL_EVENT. PENDING is theirs and was missing here; the client answered it
+// with "Unknown channel event type (4)" and rendered nothing.
 enum ChannelEvent_t : uint8_t {
 	CHANNELEVENT_JOIN = 0,
 	CHANNELEVENT_LEAVE = 1,
 	CHANNELEVENT_INVITE = 2,
 	CHANNELEVENT_EXCLUDE = 3,
+	CHANNELEVENT_PENDING = 4,
 };
 
 enum class VipStatus_t : uint8_t {
