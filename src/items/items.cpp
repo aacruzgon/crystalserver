@@ -192,11 +192,9 @@ void Items::loadFromProtobuf() {
 					continue;
 				}
 
-				if (objectFrame.sprite_info().animation().random_start_phase()) {
-					iType.animationType = ANIMATION_RANDOM;
-				} else {
-					iType.animationType = ANIMATION_DESYNC;
-				}
+				// 15.32 has no random-start-phase flag - it was never set on any object,
+				// so this branch always resolved to ANIMATION_DESYNC.
+				iType.animationType = ANIMATION_DESYNC;
 			}
 		}
 
@@ -254,7 +252,7 @@ void Items::loadFromProtobuf() {
 		iType.clockExpire = object.flags().clockexpire();
 		iType.expire = object.flags().expire();
 		iType.expireStop = object.flags().expirestop();
-		iType.isWrapKit = object.flags().wrapkit();
+		iType.isWrapKit = object.flags().deco_item_kit();
 		iType.isDualWielding = object.flags().dual_wielding();
 
 		if (object.flags().proficiency().has_proficiency_id()) {
@@ -265,11 +263,9 @@ void Items::loadFromProtobuf() {
 		}
 
 		iType.marketRestrictVocation = 0;
-		if (object.flags().has_market()) {
-			for (const auto profession : object.flags().market().restrict_to_profession()) {
-				if (profession > 0 && profession <= 16) {
-					iType.marketRestrictVocation |= static_cast<uint16_t>(1u << (profession - 1));
-				}
+		for (const auto vocation : object.flags().restrict_to_vocation()) {
+			if (vocation > 0 && vocation <= 16) {
+				iType.marketRestrictVocation |= static_cast<uint16_t>(1u << (vocation - 1));
 			}
 		}
 

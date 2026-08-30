@@ -169,23 +169,27 @@ constexpr uint32_t kProficiencyExperience[PROFICIENCY_MAX_LEVEL][3] = {
 	{ 90000000, 60000000, 30000000 },
 };
 
-// PLAYER_PROFESSION_KNIGHT is 1, and the market bitmask is the OR of 2^(profession - 1),
-// so a knight-only weapon is exactly the value 1.
+// VOCATION_KNIGHT is 1, and the vocation bitmask is the OR of 2^(vocation - 1), so a
+// knight-only weapon is exactly the value 1.
 constexpr uint16_t kMarketVocationKnightOnly = 1;
 // appearances.proto WEAPON_TYPE_CROSSBOW.
 constexpr uint8_t kAppearanceWeaponTypeCrossbow = 6;
 
 } // namespace
 
-ProficiencyLane_t Proficiencies::getLaneForItem(uint16_t itemId) {
-	const ItemType &itemType = Item::items[itemId];
-	if (itemType.marketRestrictVocation == kMarketVocationKnightOnly) {
+ProficiencyLane_t Proficiencies::getLane(uint16_t marketRestrictVocation, uint8_t appearanceWeaponType) {
+	if (marketRestrictVocation == kMarketVocationKnightOnly) {
 		return ProficiencyLane_t::Knight;
 	}
-	if (itemType.appearanceWeaponType == kAppearanceWeaponTypeCrossbow) {
+	if (appearanceWeaponType == kAppearanceWeaponTypeCrossbow) {
 		return ProficiencyLane_t::Crossbow;
 	}
 	return ProficiencyLane_t::Standard;
+}
+
+ProficiencyLane_t Proficiencies::getLaneForItem(uint16_t itemId) {
+	const ItemType &itemType = Item::items[itemId];
+	return getLane(itemType.marketRestrictVocation, itemType.appearanceWeaponType);
 }
 
 uint32_t Proficiencies::getExperienceForLevel(uint8_t level, ProficiencyLane_t lane) {

@@ -391,7 +391,7 @@ public:
 	uint32_t proficiencyId = 0;
 	// Mirrors of two appearance flags the weapon-proficiency lane classification needs.
 	// marketRestrictVocation is built the same way the client builds it - the OR of
-	// 2^(profession-1) over market().restrict_to_profession() - so "knight only" is
+	// 2^(vocation-1) over AppearanceFlags.restrict_to_vocation - so "knight only" is
 	// exactly the value 1. appearanceWeaponType is the protobuf WEAPON_TYPE, which
 	// separates crossbows from bows in a way our own WEAPON_DISTANCE cannot.
 	uint16_t marketRestrictVocation = 0;

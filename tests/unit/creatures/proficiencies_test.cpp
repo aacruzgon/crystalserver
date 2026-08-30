@@ -177,4 +177,34 @@ suite<"creatures"> proficiencyModifierTest = [] {
 		expect(eq(uint16_t { 0 }, ProficiencyModifiers::vocationBlockStart(0)));
 		expect(eq(size_t { 21 + 13 }, ProficiencyModifiers::rollablePool(0).size()));
 	};
+
+	// The lane decides what a level costs, and it is read off two appearance flags. This
+	// regressed silently once: the bitmask was built from AppearanceFlagMarket's
+	// restrict_to_profession, a field 15.32 sets on no item at all, so every knight weapon
+	// was scored on the Standard lane. It is now built from AppearanceFlags's
+	// restrict_to_vocation, which 15.32 sets on 323 of the 666 proficiency items.
+	test("lane classification reads the vocation bitmask and the weapon type") = [] {
+		constexpr uint16_t unrestricted = 0;
+		constexpr uint16_t knightOnly = 1; // 2^(VOCATION_KNIGHT - 1)
+		constexpr uint16_t paladinOnly = 2; // 2^(VOCATION_PALADIN - 1)
+		constexpr uint8_t sword = 1; // WEAPON_TYPE_SWORD
+		constexpr uint8_t bow = 5; // WEAPON_TYPE_BOW
+		constexpr uint8_t crossbow = 6; // WEAPON_TYPE_CROSSBOW
+
+		const auto lane = [](uint16_t vocationBitmask, uint8_t weaponType) {
+			return static_cast<uint8_t>(Proficiencies::getLane(vocationBitmask, weaponType));
+		};
+		constexpr auto standard = static_cast<uint8_t>(ProficiencyLane_t::Standard);
+		constexpr auto knight = static_cast<uint8_t>(ProficiencyLane_t::Knight);
+		constexpr auto crossbowLane = static_cast<uint8_t>(ProficiencyLane_t::Crossbow);
+
+		expect(eq(knight, lane(knightOnly, sword)));
+		expect(eq(crossbowLane, lane(paladinOnly, crossbow)));
+		// A paladin bow is not the crossbow lane.
+		expect(eq(standard, lane(paladinOnly, bow)));
+		// Most proficiency weapons carry no vocation restriction at all.
+		expect(eq(standard, lane(unrestricted, sword)));
+		// Knight-only outranks the weapon type.
+		expect(eq(knight, lane(knightOnly, crossbow)));
+	};
 };

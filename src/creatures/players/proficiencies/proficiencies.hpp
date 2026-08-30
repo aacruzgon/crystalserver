@@ -83,6 +83,10 @@ public:
 
 	// Progression. The client owns a copy of this table for display; the server needs its
 	// own because it is what decides whether a perk pick is legal.
+	//
+	// getLane is the classification itself, split out so it is testable without the item
+	// registry. marketRestrictVocation is ItemType's bitmask over restrict_to_vocation.
+	static ProficiencyLane_t getLane(uint16_t marketRestrictVocation, uint8_t appearanceWeaponType);
 	static ProficiencyLane_t getLaneForItem(uint16_t itemId);
 	static uint32_t getExperienceForLevel(uint8_t level, ProficiencyLane_t lane);
 	// Highest perk-bearing level unlocked by `experience`, capped at the weapon's own level

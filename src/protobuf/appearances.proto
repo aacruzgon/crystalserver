@@ -2,12 +2,6 @@ syntax = "proto2";
 
 package Crystal.protobuf.appearances;
 
-message Coordinate {
-	optional uint32 x = 1;
-	optional uint32 y = 2;
-	optional uint32 z = 3;
-}
-
 enum PLAYER_ACTION {
 	PLAYER_ACTION_NONE = 0;
 	PLAYER_ACTION_LOOK = 1;
@@ -42,17 +36,8 @@ enum ITEM_CATEGORY {
 	ITEM_CATEGORY_TIBIA_COINS = 23;
 	ITEM_CATEGORY_CREATURE_PRODUCTS = 24;
 	ITEM_CATEGORY_QUIVER = 25;
-	ITEM_CATEGORY_SOULCORES = 26;
-}
-
-enum PLAYER_PROFESSION {
-	PLAYER_PROFESSION_ANY = -1;
-	PLAYER_PROFESSION_NONE = 0;
-	PLAYER_PROFESSION_KNIGHT = 1;
-	PLAYER_PROFESSION_PALADIN = 2;
-	PLAYER_PROFESSION_SORCERER = 3;
-	PLAYER_PROFESSION_DRUID = 4;
-	PLAYER_PROFESSION_PROMOTED = 10;
+	ITEM_CATEGORY_SOUL_CORES = 26;
+	ITEM_CATEGORY_FIST_WEAPONS = 27;
 }
 
 enum ANIMATION_LOOP_TYPE {
@@ -80,9 +65,7 @@ message SpritePhase {
 }
 
 message SpriteAnimation {
-	optional uint32 default_start_phase = 1;
 	optional bool synchronized = 2;
-	optional bool random_start_phase = 3;
 	optional ANIMATION_LOOP_TYPE loop_type = 4;
 	optional uint32 loop_count = 5;
 	repeated SpritePhase sprite_phase = 6;
@@ -117,8 +100,8 @@ message Appearance {
 	optional uint32 id = 1;
 	repeated FrameGroup frame_group = 2;
 	optional AppearanceFlags flags = 3;
-	optional bytes name = 4;
-	optional bytes description = 5;
+	optional string name = 4;
+	optional string description = 5;
 }
 
 enum WEAPON_TYPE {
@@ -201,7 +184,7 @@ message AppearanceFlags {
 	optional bool clockexpire = 54;
 	optional bool expire = 55;
 	optional bool expirestop = 56;
-	optional bool wrapkit = 57;
+	optional bool deco_item_kit = 57;
 	optional AppearanceFlagSkillWheelGem skillwheel_gem = 58;
 	optional bool dual_wielding = 59;
 	optional AppearanceFlagImbueable imbueable = 60;
@@ -253,17 +236,15 @@ message AppearanceFlagMarket {
 	optional ITEM_CATEGORY category = 1;
 	optional uint32 trade_as_object_id = 2;
 	optional uint32 show_as_object_id = 3;
-	repeated PLAYER_PROFESSION restrict_to_profession = 5;
-	optional uint32 minimum_level = 6;
 }
 
 message AppearanceFlagNPC {
-	optional bytes name = 1;
-	optional bytes location = 2;
+	optional string name = 1;
+	optional string location = 2;
 	optional uint32 sale_price = 3;
 	optional uint32 buy_price = 4;
 	optional uint32 currency_object_type_id = 5;
-	optional bytes currency_quest_flag_display_name = 6;
+	optional string currency_quest_flag_display_name = 6;
 }
 
 message AppearanceFlagAutomap {
@@ -293,7 +274,8 @@ message SpecialMeaningAppearanceIds {
 	optional uint32 tibia_coin_id = 4;
 	optional uint32 stamped_letter_id = 5;
 	optional uint32 supply_stash_id = 6;
-	optional uint32 reward_chest_id = 7;
+	optional uint32 standard_reward_chest_id = 7;
+	optional uint32 blank_imbuement_scroll_id = 8;
 }
 
 enum FIXED_FRAME_GROUP {
