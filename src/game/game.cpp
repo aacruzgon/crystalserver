@@ -16,6 +16,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "game/game.hpp"
+#include "game/object_position.hpp"
 
 #include "config/configmanager.hpp"
 #include "creatures/appearance/mounts/mounts.hpp"
@@ -944,7 +945,12 @@ std::shared_ptr<Cylinder> Game::internalGetCylinder(const std::shared_ptr<Player
 }
 
 std::shared_ptr<Thing> Game::internalGetThing(const std::shared_ptr<Player> &player, const Position &pos, int32_t index, uint32_t itemId, StackPosType_t type) {
-	if (pos.x != 0xFFFF) {
+	// CipSoft's ObjectPosition is a six-arm choice; the legacy triple packs all six into
+	// three numbers. Naming the arm up front is what turns the bit tests below into a
+	// decision the reader can follow.
+	const auto objectPosition = ObjectPosition::fromLegacy(pos);
+
+	if (objectPosition.kind == ObjectPositionKind::Worldmap) {
 		std::shared_ptr<Tile> tile = map.getTile(pos);
 		if (!tile) {
 			return nullptr;
@@ -1020,66 +1026,70 @@ std::shared_ptr<Thing> Game::internalGetThing(const std::shared_ptr<Player> &pla
 		return thing;
 	}
 
-	// container
-	if (pos.y & 0x40) {
-		uint8_t fromCid = pos.y & 0x0F;
+	switch (objectPosition.kind) {
+		case ObjectPositionKind::Container: {
+			const uint8_t fromCid = objectPosition.slot;
 
-		const std::shared_ptr<Container> &parentContainer = player->getContainerByID(fromCid);
-		if (!parentContainer) {
-			return nullptr;
-		}
+			const std::shared_ptr<Container> &parentContainer = player->getContainerByID(fromCid);
+			if (!parentContainer) {
+				return nullptr;
+			}
 
-		if (parentContainer->getID() == ITEM_BROWSEFIELD) {
-			const std::shared_ptr<Tile> &tile = parentContainer->getTile();
-			if (tile && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
-				if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
-					if (player->getPosition().x + 1 == tile->getPosition().x) {
-						return nullptr;
-					}
-				} else { // horizontal
-					if (player->getPosition().y + 1 == tile->getPosition().y) {
-						return nullptr;
+			if (parentContainer->getID() == ITEM_BROWSEFIELD) {
+				const std::shared_ptr<Tile> &tile = parentContainer->getTile();
+				if (tile && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
+					if (tile->hasProperty(CONST_PROP_ISVERTICAL)) {
+						if (player->getPosition().x + 1 == tile->getPosition().x) {
+							return nullptr;
+						}
+					} else { // horizontal
+						if (player->getPosition().y + 1 == tile->getPosition().y) {
+							return nullptr;
+						}
 					}
 				}
 			}
+
+			const auto containerIndex = player->getContainerIndex(fromCid) + objectPosition.row;
+			if (parentContainer->isStoreInboxFiltered()) {
+				return parentContainer->getFilteredItemByIndex(containerIndex);
+			}
+
+			return parentContainer->getItemByIndex(containerIndex);
 		}
 
-		uint8_t slot = pos.z;
-		auto containerIndex = player->getContainerIndex(fromCid) + slot;
-		if (parentContainer->isStoreInboxFiltered()) {
-			return parentContainer->getFilteredItemByIndex(containerIndex);
+		case ObjectPositionKind::DepotSearchDepot:
+		case ObjectPositionKind::DepotSearchInbox: {
+			// Both views only resolve while the depot search window is open on this object.
+			if (!player->isDepotSearchOpenOnItem(static_cast<uint16_t>(itemId))) {
+				player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+				return nullptr;
+			}
+
+			return player->getItemFromDepotSearch(static_cast<uint16_t>(itemId), pos);
 		}
 
-		return parentContainer->getItemByIndex(containerIndex);
-	} else if (pos.y == 0x20 || pos.y == 0x21) {
-		// '0x20' -> From depot.
-		// '0x21' -> From inbox.
-		// Both only when the item is from depot search window.
-		if (!player->isDepotSearchOpenOnItem(static_cast<uint16_t>(itemId))) {
-			player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
-			return nullptr;
+		case ObjectPositionKind::Any: {
+			// No position at all: find any object of this type the player holds. This is what
+			// a hotkey sends, and `index` is the fluid subtype to match when it applies.
+			const ItemType &it = Item::items[itemId];
+			if (it.id == 0) {
+				return nullptr;
+			}
+
+			const int32_t subType = it.isFluidContainer() ? index : -1;
+			return findItemOfType(player, it.id, true, subType);
 		}
 
-		return player->getItemFromDepotSearch(static_cast<uint16_t>(itemId), pos);
-	} else if (pos.y == 0 && pos.z == 0) {
-		const ItemType &it = Item::items[itemId];
-		if (it.id == 0) {
-			return nullptr;
-		}
+		case ObjectPositionKind::Inventory:
+			return player->getInventoryItem(static_cast<Slots_t>(objectPosition.slot));
 
-		int32_t subType;
-		if (it.isFluidContainer()) {
-			subType = index;
-		} else {
-			subType = -1;
-		}
-
-		return findItemOfType(player, it.id, true, subType);
+		case ObjectPositionKind::Worldmap:
+			// Handled above; the map arm returns before reaching here.
+			break;
 	}
 
-	// inventory
-	auto slot = static_cast<Slots_t>(pos.y);
-	return player->getInventoryItem(slot);
+	return nullptr;
 }
 
 void Game::internalGetPosition(const std::shared_ptr<Item> &item, Position &pos, uint8_t &stackpos) {
