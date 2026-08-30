@@ -161,11 +161,41 @@ enum ImpactAnalyzerAndTracker_t : uint8_t {
 	ANALYZER_DAMAGE_RECEIVED = 2
 };
 
+// CipSoft's STASH_ACTION. Values are theirs; the names are ours - STOW,
+// STOWCONTAINERCONTENT, STOWALLOFTYPE, RETRIEVE in their spelling.
 enum Stash_Actions_t : uint8_t {
 	STASH_ACTION_STOW_ITEM = 0,
 	STASH_ACTION_STOW_CONTAINER = 1,
 	STASH_ACTION_STOW_STACK = 2,
 	STASH_ACTION_WITHDRAW = 3
+};
+
+// CipSoft's STASH_RETRIEVE_SOURCE, the byte that follows STASH_ACTION_WITHDRAW. The client
+// sends it; playerStashWithdraw currently discards it and always retrieves from the stash.
+// Named here so the field is not mistaken for a stack position, which is what it was called.
+enum StashRetrieveSource_t : uint8_t {
+	STASH_RETRIEVE_SOURCE_STASH = 0,
+	STASH_RETRIEVE_SOURCE_DEPOT_SEARCH = 1
+};
+
+// CipSoft's QUICK_LOOT_MODE - which corpses a quick-loot request covers.
+enum QuickLootMode_t : uint8_t {
+	QUICK_LOOT_MODE_SINGLE_CORPSE = 0,
+	QUICK_LOOT_MODE_AREA_AT_CORPSE = 1,
+	QUICK_LOOT_MODE_AREA_AT_PLAYER = 2
+};
+
+// CipSoft's MANAGED_CONTAINER_ACTION. One enum covers both halves of the system: the loot
+// containers at 0..3 and the obtain containers at 4..7.
+enum ManagedContainerAction_t : uint8_t {
+	LOOT_CONTAINER_SELECT = 0,
+	LOOT_CONTAINER_CLEAR = 1,
+	LOOT_CONTAINER_OPEN = 2,
+	LOOT_CONTAINER_FALLBACK = 3,
+	OBTAIN_CONTAINER_SELECT = 4,
+	OBTAIN_CONTAINER_CLEAR = 5,
+	OBTAIN_CONTAINER_OPEN = 6,
+	OBTAIN_CONTAINER_FALLBACK = 7
 };
 
 struct HighscoreCharacter {

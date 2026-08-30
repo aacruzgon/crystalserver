@@ -3665,6 +3665,8 @@ ObjectCategory_t Game::getObjectCategory(const ItemType &it) {
 		}
 	} else if (it.type == ITEM_TYPE_RUNE) {
 		category = OBJECTCATEGORY_RUNES;
+	} else if (it.type == ITEM_TYPE_SOULCORES) {
+		category = OBJECTCATEGORY_SOULCORES;
 	} else if (it.type == ITEM_TYPE_CREATUREPRODUCT) {
 		category = OBJECTCATEGORY_CREATUREPRODUCTS;
 	} else if (it.type == ITEM_TYPE_FOOD) {

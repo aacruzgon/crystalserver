@@ -44,7 +44,13 @@ enum ObjectCategory_t : uint8_t {
 	OBJECTCATEGORY_TIBIACOINS = 23, // not used in quickloot
 	OBJECTCATEGORY_CREATUREPRODUCTS = 24,
 	OBJECTCATEGORY_QUIVERS = 25,
+	OBJECTCATEGORY_SOULCORES = 26,
 	OBJECTCATEGORY_FISTS = 27,
+	// 28 and 29 are CipSoft's CATEGORY_UNSORTED and CATEGORY_ALL_WEAPONS. Declared so the
+	// value space matches the official enum; we assign no meaning to them yet, so they are
+	// deliberately absent from isValidObjectCategory.
+	OBJECTCATEGORY_UNSORTED = 28,
+	OBJECTCATEGORY_ALLWEAPONS = 29,
 	OBJECTCATEGORY_GOLD = 30,
 	OBJECTCATEGORY_DEFAULT = 31, // unassigned loot
 

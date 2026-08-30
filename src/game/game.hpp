@@ -390,7 +390,9 @@ public:
 	void playerCloseChannel(uint32_t playerId, uint16_t channelId);
 	void playerOpenPrivateChannel(uint32_t playerId, std::string &receiver);
 	void playerStowItem(uint32_t playerId, const Position &pos, uint16_t itemId, uint8_t stackpos, uint8_t count, bool allItems);
-	void playerStashWithdraw(uint32_t playerId, uint16_t itemId, uint32_t count, uint8_t stackpos);
+	// The last parameter is CipSoft's STASH_RETRIEVE_SOURCE, not a stack position. It is
+	// currently ignored: retrieval always comes from the stash.
+	void playerStashWithdraw(uint32_t playerId, uint16_t itemId, uint32_t count, uint8_t retrieveSource);
 	void playerCloseNpcChannel(uint32_t playerId);
 	void playerReceivePing(uint32_t playerId);
 	void playerReceivePingBack(uint32_t playerId);

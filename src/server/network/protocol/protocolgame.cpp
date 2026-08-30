@@ -2092,23 +2092,23 @@ void ProtocolGame::parseQuickLoot(NetworkMessage &msg) {
 		return;
 	}
 
-	uint8_t lootType = msg.getByte();
-	if (lootType == 2) {
+	const auto lootMode = static_cast<QuickLootMode_t>(msg.getByte());
+	if (lootMode == QUICK_LOOT_MODE_AREA_AT_PLAYER) {
 		const Position clickedPos = msg.getPosition();
 		auto itemId = 0;
 		uint8_t stackpos = 0;
 		bool lootAllCorpses = true;
 		bool autoLoot = false;
-		g_logger().debug("[{}] lootType {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, lootType, clickedPos.toString(), itemId, stackpos);
+		g_logger().debug("[{}] lootMode {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(lootMode), clickedPos.toString(), itemId, stackpos);
 		const auto playerPos = player->getPosition();
 		g_game().playerQuickLoot(player->getID(), playerPos, itemId, stackpos, nullptr, lootAllCorpses, autoLoot);
 	} else {
 		const Position clickedPos = msg.getPosition();
 		auto itemId = msg.get<uint16_t>();
 		uint8_t stackpos = msg.getByte();
-		bool lootAllCorpses = lootType == 1;
+		bool lootAllCorpses = lootMode == QUICK_LOOT_MODE_AREA_AT_CORPSE;
 		bool autoLoot = false;
-		g_logger().debug("[{}] lootType {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, lootType, clickedPos.toString(), itemId, stackpos);
+		g_logger().debug("[{}] lootMode {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(lootMode), clickedPos.toString(), itemId, stackpos);
 		g_game().playerQuickLoot(player->getID(), clickedPos, itemId, stackpos, nullptr, lootAllCorpses, autoLoot);
 	}
 }
@@ -2118,38 +2118,47 @@ void ProtocolGame::parseLootContainer(NetworkMessage &msg) {
 		return;
 	}
 
-	uint8_t action = msg.getByte();
-	if (action == 0) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		Position pos = msg.getPosition();
-		auto itemId = msg.get<uint16_t>();
-		uint8_t stackpos = msg.getByte();
-		g_game().playerSetManagedContainer(player->getID(), category, pos, itemId, stackpos, true);
-	} else if (action == 1) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		g_game().playerClearManagedContainer(player->getID(), category, true);
-	} else if (action == 2) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		g_game().playerOpenManagedContainer(player->getID(), category, true);
-	} else if (action == 3) {
-		bool useMainAsFallback = msg.getByte() == 1;
-		g_game().playerSetQuickLootFallback(player->getID(), useMainAsFallback);
-	} else if (action == 4) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		Position pos = msg.getPosition();
-		auto itemId = msg.get<uint16_t>();
-		uint8_t stackpos = msg.getByte();
-		g_logger().debug("[{}] action {}, category {}, pos {}, itemId {}, stackPos {}", __FUNCTION__, action, static_cast<uint8_t>(category), pos.toString(), itemId, stackpos);
-		g_game().playerSetManagedContainer(player->getID(), category, pos, itemId, stackpos, false);
-	} else if (action == 5) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		g_game().playerClearManagedContainer(player->getID(), category, false);
-	} else if (action == 6) {
-		auto category = static_cast<ObjectCategory_t>(msg.getByte());
-		g_game().playerOpenManagedContainer(player->getID(), category, false);
+	// The loot half is 0..3 and the obtain half 4..7, so each pair differs only in which
+	// set of containers it addresses.
+	const auto action = static_cast<ManagedContainerAction_t>(msg.getByte());
+	switch (action) {
+		case LOOT_CONTAINER_SELECT:
+		case OBTAIN_CONTAINER_SELECT: {
+			const bool isLootContainer = action == LOOT_CONTAINER_SELECT;
+			auto category = static_cast<ObjectCategory_t>(msg.getByte());
+			Position pos = msg.getPosition();
+			auto itemId = msg.get<uint16_t>();
+			uint8_t stackpos = msg.getByte();
+			g_logger().debug("[{}] action {}, category {}, pos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(action), fmt::underlying(category), pos.toString(), itemId, stackpos);
+			g_game().playerSetManagedContainer(player->getID(), category, pos, itemId, stackpos, isLootContainer);
+			break;
+		}
+		case LOOT_CONTAINER_CLEAR:
+		case OBTAIN_CONTAINER_CLEAR: {
+			auto category = static_cast<ObjectCategory_t>(msg.getByte());
+			g_game().playerClearManagedContainer(player->getID(), category, action == LOOT_CONTAINER_CLEAR);
+			break;
+		}
+		case LOOT_CONTAINER_OPEN:
+		case OBTAIN_CONTAINER_OPEN: {
+			auto category = static_cast<ObjectCategory_t>(msg.getByte());
+			g_game().playerOpenManagedContainer(player->getID(), category, action == LOOT_CONTAINER_OPEN);
+			break;
+		}
+		case LOOT_CONTAINER_FALLBACK: {
+			// This arm carries a bool, not a category: "use the main backpack as fallback".
+			bool useMainAsFallback = msg.getByte() == 1;
+			g_game().playerSetQuickLootFallback(player->getID(), useMainAsFallback);
+			break;
+		}
+		case OBTAIN_CONTAINER_FALLBACK:
+		default:
+			// OBTAIN_CONTAINER_FALLBACK has never had a handler here; naming it does not
+			// add one, because that would change the wire contract.
+			break;
 	}
 
-	g_logger().debug("[{}] action type {}", __FUNCTION__, action);
+	g_logger().debug("[{}] action type {}", __FUNCTION__, fmt::underlying(action));
 }
 
 void ProtocolGame::parseQuickLootBlackWhitelist(NetworkMessage &msg) {
@@ -10330,8 +10339,10 @@ void ProtocolGame::parseStashWithdraw(NetworkMessage &msg) {
 		case STASH_ACTION_WITHDRAW: {
 			auto itemId = msg.get<uint16_t>();
 			auto count = msg.get<uint32_t>();
-			uint8_t stackpos = msg.getByte();
-			g_game().playerStashWithdraw(player->getID(), itemId, count, stackpos);
+			// CipSoft calls this byte STASH_RETRIEVE_SOURCE, not a stack position.
+			// playerStashWithdraw discards it and always retrieves from the stash.
+			const auto source = static_cast<StashRetrieveSource_t>(msg.getByte());
+			g_game().playerStashWithdraw(player->getID(), itemId, count, source);
 			break;
 		}
 		default:
