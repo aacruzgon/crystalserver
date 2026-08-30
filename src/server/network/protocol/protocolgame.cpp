@@ -312,15 +312,23 @@ namespace {
 	 * @param msg The network message to send the category to.
 	 */
 	template <typename T>
+	// CipSoft's GameserverMessageContainer.filter_options: the dropdown offered for this
+	// container, as {id, name} pairs. The count has to be the number actually written - it
+	// used to be categories.size() while the loop skipped All, so a list containing All
+	// declared one entry more than it sent and the client read past the end of the message.
 	void sendContainerCategory(NetworkMessage &msg, const std::vector<T> &categories = {}, uint8_t categoryType = 0) {
-		msg.addByte(categoryType);
-		g_logger().debug("Sendding category type '{}', categories total size '{}'", categoryType, categories.size());
-		msg.addByte(categories.size());
+		std::vector<T> sendable;
+		sendable.reserve(categories.size());
 		for (auto value : categories) {
-			if (value == T::All) {
-				continue;
+			if (value != T::All) {
+				sendable.push_back(value);
 			}
+		}
 
+		msg.addByte(categoryType);
+		g_logger().debug("Sendding category type '{}', categories total size '{}'", categoryType, sendable.size());
+		msg.addByte(static_cast<uint8_t>(sendable.size()));
+		for (auto value : sendable) {
 			g_logger().debug("Sendding category number '{}', category name '{}'", static_cast<uint8_t>(value), magic_enum::enum_name(value).data());
 			msg.addByte(static_cast<uint8_t>(value));
 			msg.addString(toStartCaseWithSpace(magic_enum::enum_name(value).data()));
