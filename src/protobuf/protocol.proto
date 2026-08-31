@@ -2650,12 +2650,12 @@ message CreatureData {
   optional PARTY_FLAG party_flag = 15;                    // inferred/high; GameserverMessageCreatureParty updates it
   optional GUILD_FLAG guild_flag = 16;                    // inferred/med; same range as field 5; placed here because it follows the party flag, as in the legacy order
   optional NPC_SPEECH_FLAG npc_speech_flag = 17;          // inferred/med
-  optional uint32 field18 = 18;                           // UNRESOLVED
+  optional uint32 mark = 18;                              // inferred/med; tutorial session dump: 255 on all 21 full descriptions - verbatim the legacy static-square mark byte, whose 0xFF means unmarked, sitting in the legacy attribute order between the speech-flag byte (field 17) and the walkthrough byte (field 19). The dump never marks a creature, so the colored-square values are unobserved and the reading stays positional.
   optional bool unpassable = 19;                          // inferred/high; GameserverMessageCreatureUnpass updates it
-  optional uint32 field20 = 20;                           // UNRESOLVED
+  optional uint32 field20 = 20;                           // UNRESOLVED; tutorial session dump: present on all 21 full descriptions, 0 everywhere except 5 on the local player's two - a player-only attribute. The legacy wire's inspection-state byte is the shape candidate, but nothing corroborates it.
   optional uint32 field21 = 21;                           // UNRESOLVED
   optional bool field22 = 22;                             // UNRESOLVED
-  optional bool field23 = 23;                             // UNRESOLVED
+  optional bool field23 = 23;                             // UNRESOLVED; tutorial session dump: bool, present and true on all 21 full descriptions, absent from known-creature references and partial updates.
   repeated CreatureOtherIcons icons = 24;                 // inferred/high
   optional bool field25 = 25;                             // UNRESOLVED
   repeated uint32 field26 = 26;                           // UNRESOLVED; repeated uint32

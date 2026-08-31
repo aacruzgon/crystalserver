@@ -28,7 +28,12 @@
 
 namespace tibia::protobuf::protocol {
 	class AppearanceInstance;
+	class CreatureData;
 	class GameclientMessageWeaponProficiencyCommand;
+	class MapArea;
+	class MapField;
+	class MapFields;
+	class Outfit;
 }
 
 enum class PlayerIcon : uint8_t;
@@ -604,6 +609,36 @@ private:
 	// with the extension set naming what variant data the item carries.
 	void addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, const std::shared_ptr<Item> &item);
 	void addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, uint16_t id, uint8_t count, uint8_t tier) const;
+	// Phase 2 slice 7 (map): the bridge mirrors of the legacy map description writers.
+	// A run of consecutive empty fields in flight while a description is being built: how
+	// many, and the first empty field's position. Runs hang on the previous MapField's
+	// empty_fields_following - or open the area as a standalone objectless entry - and
+	// carry across floor boundaries exactly as the legacy skip count does.
+	struct MapSkipRun {
+		uint32_t pending = 0;
+		Position first;
+	};
+	std::vector<CreatureIcon> getCreatureIconsToSend(const std::shared_ptr<Creature> &creature);
+	void addOutfit(tibia::protobuf::protocol::Outfit* outfit, tibia::protobuf::protocol::Outfit* mount, const Outfit_t &legacyOutfit) const;
+	void addCreatureData(tibia::protobuf::protocol::CreatureData* data, const std::shared_ptr<Creature> &creature, bool known, uint32_t remove);
+	void addCreatureInstance(tibia::protobuf::protocol::AppearanceInstance* out, const std::shared_ptr<Creature> &creature, bool known, uint32_t remove);
+	void addTileDescription(tibia::protobuf::protocol::MapField* field, const std::shared_ptr<Tile> &tile, std::vector<std::shared_ptr<Creature>> &described);
+	void flushMapSkipRun(tibia::protobuf::protocol::MapFields* fields, MapSkipRun &run);
+	void addFloorDescription(tibia::protobuf::protocol::MapFields* fields, int32_t x, int32_t y, int32_t z, int32_t width, int32_t height, int32_t offset, MapSkipRun &run, std::vector<std::shared_ptr<Creature>> &described);
+	void addMapDescription(tibia::protobuf::protocol::MapArea* area, int32_t x, int32_t y, int32_t z, int32_t width, int32_t height, std::vector<std::shared_ptr<Creature>> &described);
+	// The official CreatureData has no home for this stack's private creature data - the
+	// OTCR shader, attached-effect list and outfit wings/auras/effects, and crystalserver's
+	// own hidden creature type (5, outside CipSoft's CREATURE_TYPE) - so a creature
+	// described over the bridge is followed by the dedicated legacy opcodes that already
+	// exist to update exactly those.
+	void sendCreatureDescriptionExtras(const std::shared_ptr<Creature> &creature);
+	void sendDescribedExtras(const std::vector<std::shared_ptr<Creature>> &described);
+	// DeleteOnMap without the canSee guard, for the teleport path that mirrors the raw
+	// legacy RemoveTileThing write.
+	void sendDeleteOnMap(const Position &pos, uint32_t stackpos);
+	void sendTopFloorBridge(const Position &newPos, const Position &oldPos);
+	void sendBottomFloorBridge(const Position &newPos, const Position &oldPos);
+
 	// Shared by the legacy parsers and the bridge dispatch - both framings feed these.
 	void handleQuickLoot(uint8_t mode, const Position &pos, uint16_t itemId, uint8_t stackpos);
 	void handleManagedContainerAction(uint8_t rawAction, uint8_t rawCategory, const Position &pos, uint16_t itemId, uint8_t stackpos, bool useMainAsFallback);

@@ -840,6 +840,336 @@ void ProtocolGame::addAppearanceInstance(tibia::protobuf::protocol::AppearanceIn
 	}
 }
 
+void ProtocolGame::addOutfit(tibia::protobuf::protocol::Outfit* outfit, tibia::protobuf::protocol::Outfit* mount, const Outfit_t &legacyOutfit) const {
+	// Bridge mirror of AddOutfit. look_type carries a creature outfit; an item outfit
+	// travels in look_item (the legacy lookTypeEx slot); both zero - the legacy invisible
+	// encoding - leaves the message empty. The caller passes the mount submessage already
+	// created, empty when there is no mount: that is the shape the tutorial dump shows.
+	// The OTCR wings/auras/effects/shader trailer has no home here; a creature with any of
+	// those is followed by a legacy outfit refresh (sendCreatureDescriptionExtras).
+	if (legacyOutfit.lookType != 0) {
+		outfit->set_look_type(legacyOutfit.lookType);
+		auto* colors = outfit->mutable_colors();
+		colors->set_head(legacyOutfit.lookHead);
+		colors->set_body(legacyOutfit.lookBody);
+		colors->set_legs(legacyOutfit.lookLegs);
+		colors->set_feet(legacyOutfit.lookFeet);
+		if (legacyOutfit.lookAddons != 0) {
+			outfit->set_addons(legacyOutfit.lookAddons);
+		}
+	} else if (legacyOutfit.lookTypeEx != 0) {
+		outfit->set_look_item(legacyOutfit.lookTypeEx);
+	}
+
+	if (mount && legacyOutfit.lookMount != 0) {
+		mount->set_look_type(legacyOutfit.lookMount);
+		auto* colors = mount->mutable_colors();
+		colors->set_head(legacyOutfit.lookMountHead);
+		colors->set_body(legacyOutfit.lookMountBody);
+		colors->set_legs(legacyOutfit.lookMountLegs);
+		colors->set_feet(legacyOutfit.lookMountFeet);
+	}
+}
+
+void ProtocolGame::addCreatureData(tibia::protobuf::protocol::CreatureData* data, const std::shared_ptr<Creature> &creature, bool known, uint32_t remove) {
+	// Bridge mirror of AddCreature, field for field. The legacy known/unknown split is the
+	// appearance id on the enclosing instance (98/97); here it decides which identity
+	// fields ride along, exactly as the tutorial dump shows: a known reference carries
+	// field 1 equal to its own id, a full description carries the evicted cache id there
+	// (only when there is one). The legacy double write of the creature type - once in the
+	// unknown header, once in the marks block - collapses into the single field 3, with the
+	// marks-block value (after the summon reclassification) winning, as it does on the
+	// legacy client.
+	namespace proto = tibia::protobuf::protocol;
+
+	CreatureType_t creatureType = creature->getType();
+	const auto &otherPlayer = creature->getPlayer();
+	const bool healthHidden = creature->isHealthHidden();
+
+	if (known) {
+		data->set_field1(creature->getID());
+		data->set_creature_id(creature->getID());
+	} else {
+		if (remove != 0) {
+			data->set_field1(remove);
+		}
+		data->set_creature_id(creature->getID());
+		data->set_name(healthHidden ? std::string() : creature->getName());
+	}
+
+	if (healthHidden) {
+		data->set_health_percent(0);
+	} else {
+		data->set_health_percent(static_cast<uint32_t>(std::ceil((static_cast<double>(creature->getHealth()) / std::max<int32_t>(creature->getMaxHealth(), 1)) * 100)));
+	}
+
+	data->set_direction(static_cast<proto::CREATURE_DIRECTION>(creature->getDirection()));
+
+	if (!creature->isInGhostMode() && !creature->isInvisible()) {
+		addOutfit(data->mutable_outfit(), data->mutable_mount(), creature->getCurrentOutfit());
+	} else {
+		static const Outfit_t invisibleOutfit;
+		addOutfit(data->mutable_outfit(), data->mutable_mount(), invisibleOutfit);
+	}
+
+	LightInfo lightInfo = creature->getCreatureLight();
+	data->set_light_intensity(player->hasFlag(PlayerFlags_t::HasFullLight) ? 0xFF : lightInfo.level);
+	data->set_light_color(player->hasFlag(PlayerFlags_t::HasFullLight) ? 215 : lightInfo.color);
+
+	data->set_speed(creature->getStepSpeed());
+
+	for (const auto &icon : getCreatureIconsToSend(creature)) {
+		auto* entry = data->add_icons();
+		if (icon.category == CreatureIconCategory_t::Modifications) {
+			entry->set_creature_icon(static_cast<proto::CREATUREICON>(icon.modification));
+		} else {
+			entry->set_player_icon(static_cast<proto::PLAYERICON>(icon.quest));
+		}
+		entry->set_count(icon.count);
+	}
+
+	data->set_skull(static_cast<proto::PLAYER_KILLER_FLAG>(player->getSkullClient(creature)));
+	data->set_party_flag(static_cast<proto::PARTY_FLAG>(player->getPartyShield(otherPlayer)));
+
+	if (!known) {
+		data->set_guild_flag(static_cast<proto::GUILD_FLAG>(player->getGuildEmblem(otherPlayer)));
+	}
+
+	if (creatureType == CREATURETYPE_MONSTER) {
+		if (const auto &master = creature->getMaster()) {
+			if (master->getPlayer()) {
+				creatureType = CREATURETYPE_SUMMON_PLAYER;
+			}
+		}
+	}
+
+	// CREATURE_TYPE has no hidden arm - 5 is this stack's private value - so a hidden
+	// creature travels as the monster it is, still anonymized (empty name, health 0), and
+	// sendCreatureDescriptionExtras restores the hidden type over the dedicated legacy
+	// opcode right behind the envelope.
+	data->set_creature_type(static_cast<proto::CREATURE_TYPE>(healthHidden ? CREATURETYPE_MONSTER : creatureType));
+
+	if (creatureType == CREATURETYPE_SUMMON_PLAYER) {
+		const auto &master = creature->getMaster();
+		data->set_master_id(master ? master->getID() : 0);
+	}
+
+	if (creatureType == CREATURETYPE_PLAYER) {
+		data->set_vocation(static_cast<proto::VOCATION>(otherPlayer ? otherPlayer->getVocation()->getClientId() : 0));
+	}
+
+	data->set_npc_speech_flag(static_cast<proto::NPC_SPEECH_FLAG>(creature->getSpeechBubble()));
+	// The legacy mark byte: this stack never marks a creature, so the constant unmarked
+	// value rides, matching every full description in the tutorial dump. The legacy
+	// inspection-type byte (a constant 0) has no home and rides nowhere.
+	data->set_mark(0xFF);
+	data->set_unpassable(!player->canWalkthroughEx(creature));
+}
+
+void ProtocolGame::addCreatureInstance(tibia::protobuf::protocol::AppearanceInstance* out, const std::shared_ptr<Creature> &creature, bool known, uint32_t remove) {
+	namespace proto = tibia::protobuf::protocol;
+	// 97 (unknown, full description with identity) and 98 (known, attribute refresh) are
+	// the official appearance ids for the legacy 0x61/0x62 arms; 99, the turn update, is
+	// written where the legacy 0x63 triple was written (sendCreatureTurn).
+	out->set_appearance_id(known ? 98 : 97);
+	addCreatureData(out->MutableExtension(proto::AppearanceInstanceExtensions::creature), creature, known, remove);
+}
+
+void ProtocolGame::addTileDescription(tibia::protobuf::protocol::MapField* field, const std::shared_ptr<Tile> &tile, std::vector<std::shared_ptr<Creature>> &described) {
+	// Bridge mirror of GetTileDescription: same traversal, same 10-object cap, same
+	// slot-9 player guarantee. The legacy env-effect word is oldProtocol-only and the
+	// bridge never is.
+	int32_t count;
+	std::shared_ptr<Item> ground = tile->getGround();
+	if (ground) {
+		addAppearanceInstance(field->add_objects(), ground);
+		count = 1;
+	} else {
+		count = 0;
+	}
+
+	const TileItemVector* items = tile->getItemList();
+	if (items) {
+		for (auto it = items->getBeginTopItem(), end = items->getEndTopItem(); it != end; ++it) {
+			addAppearanceInstance(field->add_objects(), *it);
+
+			count++;
+			if (count == 9 && tile->getPosition() == player->getPosition()) {
+				break;
+			} else if (count == 10) {
+				return;
+			}
+		}
+	}
+
+	const CreatureVector* creatures = tile->getCreatures();
+	if (creatures) {
+		bool playerAdded = false;
+		for (auto creature : std::ranges::reverse_view(*creatures)) {
+			if (!creature || creature->isRemoved() || !creature->isAlive()) {
+				continue;
+			}
+
+			if (!player->canSeeCreature(creature)) {
+				continue;
+			}
+
+			if (tile->getPosition() == player->getPosition() && count == 9 && !playerAdded) {
+				creature = player;
+			}
+
+			if (creature->getID() == player->getID()) {
+				playerAdded = true;
+			}
+
+			bool known;
+			uint32_t removedKnown;
+			checkCreatureAsKnown(creature->getID(), known, removedKnown);
+			addCreatureInstance(field->add_objects(), creature, known, removedKnown);
+			described.push_back(creature);
+
+			if (++count == 10) {
+				return;
+			}
+		}
+	}
+
+	if (items) {
+		for (auto it = items->getBeginDownItem(), end = items->getEndDownItem(); it != end; ++it) {
+			addAppearanceInstance(field->add_objects(), *it);
+
+			if (++count == 10) {
+				return;
+			}
+		}
+	}
+}
+
+void ProtocolGame::flushMapSkipRun(tibia::protobuf::protocol::MapFields* fields, MapSkipRun &run) {
+	// The pending empty run, written the way the tutorial dump writes it: hung on the
+	// previous field's empty_fields_following, or - when the area opens empty - as a
+	// standalone objectless entry carrying the run's first position, the entry itself
+	// accounting for one empty field. A zero count is omitted, as the dump omits it.
+	namespace proto = tibia::protobuf::protocol;
+	if (run.pending == 0) {
+		return;
+	}
+
+	if (fields->fields_size() == 0) {
+		auto* field = fields->add_fields();
+		setCoordinate(field->MutableExtension(proto::MapFieldExtensions::extra_data)->mutable_position(), run.first);
+		if (run.pending > 1) {
+			field->set_empty_fields_following(run.pending - 1);
+		}
+	} else {
+		fields->mutable_fields(fields->fields_size() - 1)->set_empty_fields_following(run.pending);
+	}
+	run.pending = 0;
+}
+
+void ProtocolGame::addFloorDescription(tibia::protobuf::protocol::MapFields* fields, int32_t x, int32_t y, int32_t z, int32_t width, int32_t height, int32_t offset, MapSkipRun &run, std::vector<std::shared_ptr<Creature>> &described) {
+	// Bridge mirror of GetFloorDescription: same iteration order (x outer, y inner, the
+	// per-floor offset applied to both), with the legacy skip count carried in `run`
+	// across floor boundaries. Every populated field carries its own absolute coordinate
+	// in the MapFieldExtraData extension, as every field in the tutorial dump does.
+	namespace proto = tibia::protobuf::protocol;
+	for (int32_t nx = 0; nx < width; nx++) {
+		for (int32_t ny = 0; ny < height; ny++) {
+			const auto tilePos = Position(static_cast<uint16_t>(x + nx + offset), static_cast<uint16_t>(y + ny + offset), static_cast<uint8_t>(z));
+			std::shared_ptr<Tile> tile = g_game().map.getTile(tilePos);
+			if (tile) {
+				flushMapSkipRun(fields, run);
+				auto* field = fields->add_fields();
+				setCoordinate(field->MutableExtension(proto::MapFieldExtensions::extra_data)->mutable_position(), tilePos);
+				addTileDescription(field, tile, described);
+			} else {
+				if (run.pending == 0) {
+					run.first = tilePos;
+				}
+				++run.pending;
+			}
+		}
+	}
+}
+
+void ProtocolGame::addMapDescription(tibia::protobuf::protocol::MapArea* area, int32_t x, int32_t y, int32_t z, int32_t width, int32_t height, std::vector<std::shared_ptr<Creature>> &described) {
+	// Bridge mirror of GetMapDescription: the same floor order (7..0 on the surface,
+	// z-2..z+2 underground). MapArea's origin and extent stay off the wire - the dump never
+	// carries them, the client derives the geometry - and the fields chain is always
+	// written, empty for a fully empty area (the dump's empty BottomFloor). A trailing run
+	// hangs on the last entry; a fully empty area keeps no entries at all.
+	auto* fields = area->mutable_fields()->mutable_fields();
+	MapSkipRun run;
+
+	int32_t startz, endz, zstep;
+	if (z > MAP_INIT_SURFACE_LAYER) {
+		startz = z - MAP_LAYER_VIEW_LIMIT;
+		endz = std::min<int32_t>(MAP_MAX_LAYERS - 1, z + MAP_LAYER_VIEW_LIMIT);
+		zstep = 1;
+	} else {
+		startz = MAP_INIT_SURFACE_LAYER;
+		endz = 0;
+		zstep = -1;
+	}
+
+	for (int32_t nz = startz; nz != endz + zstep; nz += zstep) {
+		addFloorDescription(fields, x, y, nz, width, height, z - nz, run, described);
+	}
+
+	if (run.pending > 0 && fields->fields_size() > 0) {
+		fields->mutable_fields(fields->fields_size() - 1)->set_empty_fields_following(run.pending);
+	}
+}
+
+void ProtocolGame::sendCreatureDescriptionExtras(const std::shared_ptr<Creature> &creature) {
+	// The private per-creature data the official CreatureData cannot carry, restored over
+	// the dedicated legacy opcodes right behind the envelope that described the creature:
+	// the hidden creature type (5, outside CipSoft's CREATURE_TYPE), and the OTCR shader,
+	// attached-effect list and outfit wings/auras/effects/shader.
+	if (!creature) {
+		return;
+	}
+
+	if (creature->isHealthHidden()) {
+		sendCreatureType(creature, CREATURETYPE_HIDDEN);
+	}
+
+	if (!isOTCR) {
+		return;
+	}
+
+	const auto &shader = creature->getShader();
+	if (!shader.empty()) {
+		sendShader(creature, shader);
+	}
+
+	for (const uint16_t effectId : creature->getAttachedEffectList()) {
+		sendAttachedEffect(creature, effectId);
+	}
+
+	if (!creature->isInGhostMode() && !creature->isInvisible()) {
+		const Outfit_t &outfit = creature->getCurrentOutfit();
+		if (outfit.lookWing != 0 || outfit.lookAura != 0 || outfit.lookEffect != 0 || outfit.lookShader != 0) {
+			sendCreatureOutfit(creature, outfit);
+		}
+	}
+}
+
+void ProtocolGame::sendDescribedExtras(const std::vector<std::shared_ptr<Creature>> &described) {
+	for (const auto &creature : described) {
+		sendCreatureDescriptionExtras(creature);
+	}
+}
+
+void ProtocolGame::sendDeleteOnMap(const Position &pos, uint32_t stackpos) {
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageDeleteOnMap message;
+	auto* target = message.mutable_object_position();
+	setCoordinate(target->mutable_position(), pos);
+	target->set_stack_position(stackpos);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_DELETEONMAP, proto::GameserverMessageExtensions::delete_on_map, message));
+}
+
 void ProtocolGame::release() {
 	// dispatcher thread
 	if (player && player->client == shared_from_this()) {
@@ -4248,11 +4578,10 @@ void ProtocolGame::sendCreatureLight(const std::shared_ptr<Creature> &creature) 
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::addCreatureIcon(NetworkMessage &msg, const std::shared_ptr<Creature> &creature) {
-	if (!creature || !player || oldProtocol) {
-		return;
-	}
-
+std::vector<CreatureIcon> ProtocolGame::getCreatureIconsToSend(const std::shared_ptr<Creature> &creature) {
+	// The icon list a creature description carries for this player: the creature's own
+	// icons plus the per-player task icons, capped at the 3 the client supports. Shared by
+	// the legacy addCreatureIcon bytes and the bridge CreatureData icons field.
 	auto icons = creature->getIcons();
 
 	// Add per-player task icons for monsters
@@ -4277,10 +4606,20 @@ void ProtocolGame::addCreatureIcon(NetworkMessage &msg, const std::shared_ptr<Cr
 	}
 
 	// client only supports 3 icons, otherwise it will crash
-	const size_t count = std::min<size_t>(icons.size(), 3);
-	msg.addByte(static_cast<uint8_t>(count));
-	for (size_t i = 0; i < count; ++i) {
-		const auto icon = icons[i];
+	if (icons.size() > 3) {
+		icons.resize(3);
+	}
+	return icons;
+}
+
+void ProtocolGame::addCreatureIcon(NetworkMessage &msg, const std::shared_ptr<Creature> &creature) {
+	if (!creature || !player || oldProtocol) {
+		return;
+	}
+
+	const auto icons = getCreatureIconsToSend(creature);
+	msg.addByte(static_cast<uint8_t>(icons.size()));
+	for (const auto &icon : icons) {
 		msg.addByte(icon.serialize());
 		msg.addByte(static_cast<uint8_t>(icon.category));
 		msg.add<uint16_t>(icon.count);
@@ -4366,12 +4705,17 @@ void ProtocolGame::sendCreatureEmblem(const std::shared_ptr<Creature> &creature)
 	Position pos = creature->getPosition();
 	int32_t stackpos = tile->getClientIndexOfCreature(player, creature);
 	sendRemoveTileThing(pos, stackpos);
-	NetworkMessage msg;
-	msg.addByte(0x6A);
-	msg.addPosition(pos);
-	msg.addByte(static_cast<uint8_t>(stackpos));
-	AddCreature(msg, creature, false, creature->getID());
-	writeToOutputBuffer(msg);
+
+	// The re-add is a full description whose remove id is the creature's own id - the
+	// legacy "same id" signal that makes the client refresh in place. sendCreatureEmblem
+	// is never sent to oldProtocol clients (guarded above).
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageCreateOnMap message;
+	setCoordinate(message.mutable_position(), pos);
+	message.set_stack_position(static_cast<uint32_t>(stackpos));
+	addCreatureInstance(message.mutable_object(), creature, false, creature->getID());
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CREATEONMAP, proto::GameserverMessageExtensions::create_on_map, message));
+	sendCreatureDescriptionExtras(creature);
 }
 
 void ProtocolGame::sendCreatureSkull(const std::shared_ptr<Creature> &creature) {
@@ -8116,15 +8460,34 @@ void ProtocolGame::sendCreatureTurn(const std::shared_ptr<Creature> &creature, u
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6B);
-	msg.addPosition(creature->getPosition());
-	msg.addByte(static_cast<uint8_t>(stackPos));
-	msg.add<uint16_t>(0x63);
-	msg.add<uint32_t>(creature->getID());
-	msg.addByte(creature->getDirection());
-	msg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6B);
+		msg.addPosition(creature->getPosition());
+		msg.addByte(static_cast<uint8_t>(stackPos));
+		msg.add<uint16_t>(0x63);
+		msg.add<uint32_t>(creature->getID());
+		msg.addByte(creature->getDirection());
+		msg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	// ChangeOnMap with appearance 99: the legacy 0x63 turn triple - id, direction and the
+	// walkthrough flag, nothing else - with the id doubled into field 1 the way the
+	// tutorial dump's known-creature references carry it.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeOnMap message;
+	setCoordinate(message.mutable_position(), creature->getPosition());
+	message.set_stack_position(stackPos);
+	auto* instance = message.mutable_object();
+	instance->set_appearance_id(99);
+	auto* data = instance->MutableExtension(proto::AppearanceInstanceExtensions::creature);
+	data->set_field1(creature->getID());
+	data->set_creature_id(creature->getID());
+	data->set_direction(static_cast<proto::CREATURE_DIRECTION>(creature->getDirection()));
+	data->set_unpassable(!player->canWalkthroughEx(creature));
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEONMAP, proto::GameserverMessageExtensions::change_on_map, message));
 }
 
 void ProtocolGame::sendCreatureSay(const std::shared_ptr<Creature> &creature, SpeakClasses type, const std::string &text, const Position* pos /* = nullptr*/) {
@@ -8660,11 +9023,22 @@ void ProtocolGame::sendFYIBox(const std::string &message) {
 
 // tile
 void ProtocolGame::sendMapDescription(const Position &pos) {
-	NetworkMessage msg;
-	msg.addByte(0x64);
-	msg.addPosition(player->getPosition());
-	GetMapDescription(pos.x - MAP_MAX_CLIENT_VIEW_PORT_X, pos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, pos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, msg);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x64);
+		msg.addPosition(player->getPosition());
+		GetMapDescription(pos.x - MAP_MAX_CLIENT_VIEW_PORT_X, pos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, pos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, msg);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageFullMap message;
+	setCoordinate(message.mutable_player_position(), player->getPosition());
+	std::vector<std::shared_ptr<Creature>> described;
+	addMapDescription(message.mutable_area(), pos.x - MAP_MAX_CLIENT_VIEW_PORT_X, pos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, pos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, described);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_FULLMAP, proto::GameserverMessageExtensions::full_map, message));
+	sendDescribedExtras(described);
 }
 
 void ProtocolGame::sendAddTileItem(const Position &pos, uint32_t stackpos, const std::shared_ptr<Item> &item) {
@@ -8672,12 +9046,22 @@ void ProtocolGame::sendAddTileItem(const Position &pos, uint32_t stackpos, const
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6A);
-	msg.addPosition(pos);
-	msg.addByte(static_cast<uint8_t>(stackpos));
-	AddItem(msg, item);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6A);
+		msg.addPosition(pos);
+		msg.addByte(static_cast<uint8_t>(stackpos));
+		AddItem(msg, item);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageCreateOnMap message;
+	setCoordinate(message.mutable_position(), pos);
+	message.set_stack_position(stackpos);
+	addAppearanceInstance(message.mutable_object(), item);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CREATEONMAP, proto::GameserverMessageExtensions::create_on_map, message));
 }
 
 void ProtocolGame::sendUpdateTileItem(const Position &pos, uint32_t stackpos, const std::shared_ptr<Item> &item) {
@@ -8685,12 +9069,22 @@ void ProtocolGame::sendUpdateTileItem(const Position &pos, uint32_t stackpos, co
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6B);
-	msg.addPosition(pos);
-	msg.addByte(static_cast<uint8_t>(stackpos));
-	AddItem(msg, item);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6B);
+		msg.addPosition(pos);
+		msg.addByte(static_cast<uint8_t>(stackpos));
+		AddItem(msg, item);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeOnMap message;
+	setCoordinate(message.mutable_position(), pos);
+	message.set_stack_position(stackpos);
+	addAppearanceInstance(message.mutable_object(), item);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEONMAP, proto::GameserverMessageExtensions::change_on_map, message));
 }
 
 void ProtocolGame::sendRemoveTileThing(const Position &pos, uint32_t stackpos) {
@@ -8698,9 +9092,14 @@ void ProtocolGame::sendRemoveTileThing(const Position &pos, uint32_t stackpos) {
 		return;
 	}
 
-	NetworkMessage msg;
-	RemoveTileThing(msg, pos, stackpos);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		RemoveTileThing(msg, pos, stackpos);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	sendDeleteOnMap(pos, stackpos);
 }
 
 void ProtocolGame::sendUpdateTileCreature(const Position &pos, uint32_t stackpos, const std::shared_ptr<Creature> &creature) {
@@ -8708,16 +9107,27 @@ void ProtocolGame::sendUpdateTileCreature(const Position &pos, uint32_t stackpos
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6B);
-	msg.addPosition(pos);
-	msg.addByte(static_cast<uint8_t>(stackpos));
-
 	bool known;
 	uint32_t removedKnown = 0;
 	checkCreatureAsKnown(creature->getID(), known, removedKnown);
-	AddCreature(msg, creature, known, removedKnown);
-	writeToOutputBuffer(msg);
+
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6B);
+		msg.addPosition(pos);
+		msg.addByte(static_cast<uint8_t>(stackpos));
+		AddCreature(msg, creature, known, removedKnown);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeOnMap message;
+	setCoordinate(message.mutable_position(), pos);
+	message.set_stack_position(stackpos);
+	addCreatureInstance(message.mutable_object(), creature, known, removedKnown);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEONMAP, proto::GameserverMessageExtensions::change_on_map, message));
+	sendCreatureDescriptionExtras(creature);
 }
 
 void ProtocolGame::sendUpdateTile(const std::shared_ptr<Tile> &tile, const Position &pos) {
@@ -8725,20 +9135,38 @@ void ProtocolGame::sendUpdateTile(const std::shared_ptr<Tile> &tile, const Posit
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x69);
-	msg.addPosition(pos);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x69);
+		msg.addPosition(pos);
 
-	if (tile) {
-		GetTileDescription(tile, msg);
-		msg.addByte(0x00);
-		msg.addByte(0xFF);
-	} else {
-		msg.addByte(0x01);
-		msg.addByte(0xFF);
+		if (tile) {
+			GetTileDescription(tile, msg);
+			msg.addByte(0x00);
+			msg.addByte(0xFF);
+		} else {
+			msg.addByte(0x01);
+			msg.addByte(0xFF);
+		}
+
+		writeToOutputBuffer(msg);
+		return;
 	}
 
-	writeToOutputBuffer(msg);
+	// FieldData: the refreshed field's position, and an area holding that one field - or
+	// no field at all when the tile is gone, the legacy skip-1 encoding's counterpart.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageFieldData message;
+	setCoordinate(message.mutable_position(), pos);
+	auto* fields = message.mutable_area()->mutable_fields()->mutable_fields();
+	std::vector<std::shared_ptr<Creature>> described;
+	if (tile) {
+		auto* field = fields->add_fields();
+		setCoordinate(field->MutableExtension(proto::MapFieldExtensions::extra_data)->mutable_position(), pos);
+		addTileDescription(field, tile, described);
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_FIELDDATA, proto::GameserverMessageExtensions::field_data, message));
+	sendDescribedExtras(described);
 }
 
 void ProtocolGame::sendPendingStateEntered() {
@@ -8788,16 +9216,26 @@ void ProtocolGame::sendAddCreature(const std::shared_ptr<Creature> &creature, co
 			return;
 		}
 
-		NetworkMessage msg;
-		msg.addByte(0x6A);
-		msg.addPosition(pos);
-		msg.addByte(static_cast<uint8_t>(stackpos));
-
 		bool known;
 		uint32_t removedKnown;
 		checkCreatureAsKnown(creature->getID(), known, removedKnown);
-		AddCreature(msg, creature, known, removedKnown);
-		writeToOutputBuffer(msg);
+
+		if (oldProtocol) {
+			NetworkMessage msg;
+			msg.addByte(0x6A);
+			msg.addPosition(pos);
+			msg.addByte(static_cast<uint8_t>(stackpos));
+			AddCreature(msg, creature, known, removedKnown);
+			writeToOutputBuffer(msg);
+		} else {
+			namespace proto = tibia::protobuf::protocol;
+			proto::GameserverMessageCreateOnMap message;
+			setCoordinate(message.mutable_position(), pos);
+			message.set_stack_position(static_cast<uint32_t>(stackpos));
+			addCreatureInstance(message.mutable_object(), creature, known, removedKnown);
+			sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CREATEONMAP, proto::GameserverMessageExtensions::create_on_map, message));
+			sendCreatureDescriptionExtras(creature);
+		}
 
 		// A player walking into view has to arrive with their inspection state, or our menu
 		// would offer "Ask to inspect" for someone who already allows everyone.
@@ -8956,11 +9394,17 @@ void ProtocolGame::sendMoveCreature(const std::shared_ptr<Creature> &creature, c
 		if (oldStackPos >= 10) {
 			sendMapDescription(newPos);
 		} else if (teleport) {
-			NetworkMessage msg;
-			RemoveTileThing(msg, oldPos, oldStackPos);
-			writeToOutputBuffer(msg);
+			if (oldProtocol) {
+				NetworkMessage msg;
+				RemoveTileThing(msg, oldPos, oldStackPos);
+				writeToOutputBuffer(msg);
+			} else {
+				// The legacy write skipped sendRemoveTileThing's canSee guard - the player
+				// has already moved - so the bridge path does too.
+				sendDeleteOnMap(oldPos, oldStackPos);
+			}
 			sendMapDescription(newPos);
-		} else {
+		} else if (oldProtocol) {
 			NetworkMessage msg;
 			if (oldPos.z == MAP_INIT_SURFACE_LAYER && newPos.z >= MAP_INIT_SURFACE_LAYER + 1) {
 				RemoveTileThing(msg, oldPos, oldStackPos);
@@ -8993,6 +9437,51 @@ void ProtocolGame::sendMoveCreature(const std::shared_ptr<Creature> &creature, c
 				GetMapDescription(newPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, newPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, 1, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, msg);
 			}
 			writeToOutputBuffer(msg);
+		} else {
+			// Bridge shape of the legacy single packet: the creature move itself still
+			// rides the legacy 0x6D (MoveCreature, 109, is the movement area, not this
+			// slice), and each map slice that legacy appended to the same packet becomes
+			// its own envelope. The output buffer preserves the order.
+			namespace proto = tibia::protobuf::protocol;
+
+			if (oldPos.z == MAP_INIT_SURFACE_LAYER && newPos.z >= MAP_INIT_SURFACE_LAYER + 1) {
+				sendDeleteOnMap(oldPos, oldStackPos);
+			} else {
+				NetworkMessage msg;
+				msg.addByte(0x6D);
+				msg.addPosition(oldPos);
+				msg.addByte(static_cast<uint8_t>(oldStackPos));
+				msg.addPosition(newPos);
+				writeToOutputBuffer(msg);
+			}
+
+			if (newPos.z > oldPos.z) {
+				sendBottomFloorBridge(newPos, oldPos);
+			} else if (newPos.z < oldPos.z) {
+				sendTopFloorBridge(newPos, oldPos);
+			}
+
+			std::vector<std::shared_ptr<Creature>> described;
+			if (oldPos.y > newPos.y) { // north, for old x
+				proto::GameserverMessageTopRow message;
+				addMapDescription(message.mutable_area(), oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, newPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, 1, described);
+				sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TOPROW, proto::GameserverMessageExtensions::top_row, message));
+			} else if (oldPos.y < newPos.y) { // south, for old x
+				proto::GameserverMessageBottomRow message;
+				addMapDescription(message.mutable_area(), oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, newPos.y + (MAP_MAX_CLIENT_VIEW_PORT_Y + 1), newPos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, 1, described);
+				sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_BOTTOMROW, proto::GameserverMessageExtensions::bottom_row, message));
+			}
+
+			if (oldPos.x < newPos.x) { // east, [with new y]
+				proto::GameserverMessageRightColumn message;
+				addMapDescription(message.mutable_area(), newPos.x + (MAP_MAX_CLIENT_VIEW_PORT_X + 1), newPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, 1, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, described);
+				sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_RIGHTROW, proto::GameserverMessageExtensions::right_column, message));
+			} else if (oldPos.x > newPos.x) { // west, [with new y]
+				proto::GameserverMessageLeftColumn message;
+				addMapDescription(message.mutable_area(), newPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, newPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, 1, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, described);
+				sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_LEFTROW, proto::GameserverMessageExtensions::left_column, message));
+			}
+			sendDescribedExtras(described);
 		}
 	} else if (canSee(oldPos) && canSee(newPos)) {
 		if (teleport || (oldPos.z == MAP_INIT_SURFACE_LAYER && newPos.z >= MAP_INIT_SURFACE_LAYER + 1) || oldStackPos >= 10) {
@@ -10724,6 +11213,91 @@ void ProtocolGame::MoveUpCreature(NetworkMessage &msg, const std::shared_ptr<Cre
 	GetMapDescription(oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, 1, msg);
 }
 
+void ProtocolGame::sendTopFloorBridge(const Position &newPos, const Position &oldPos) {
+	// Bridge shape of MoveUpCreature: the TopFloor envelope carries the newly revealed
+	// floors (empty when moving within the already-known surface range, as the dump's
+	// empty floor-change messages do), then the two out-of-sync slices - west, then
+	// north - each as its own envelope, in the legacy order.
+	namespace proto = tibia::protobuf::protocol;
+	std::vector<std::shared_ptr<Creature>> described;
+
+	proto::GameserverMessageTopFloor floorMessage;
+	auto* fields = floorMessage.mutable_area()->mutable_fields()->mutable_fields();
+	MapSkipRun run;
+
+	// going to surface
+	if (newPos.z == MAP_INIT_SURFACE_LAYER) {
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 5, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 3, run, described); //(floor 7 and 6 already set)
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 4, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 4, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 3, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 5, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 2, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 6, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 1, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 7, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, 0, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 8, run, described);
+	}
+	// underground, going one floor up (still underground)
+	else if (newPos.z > MAP_INIT_SURFACE_LAYER) {
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, oldPos.getZ() - 3, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, 3, run, described);
+	}
+
+	if (run.pending > 0 && fields->fields_size() > 0) {
+		fields->mutable_fields(fields->fields_size() - 1)->set_empty_fields_following(run.pending);
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TOPFLOOR, proto::GameserverMessageExtensions::top_floor, floorMessage));
+
+	// moving up a floor up makes us out of sync
+	// west
+	proto::GameserverMessageLeftColumn westMessage;
+	addMapDescription(westMessage.mutable_area(), oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - (MAP_MAX_CLIENT_VIEW_PORT_Y - 1), newPos.z, 1, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, described);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_LEFTROW, proto::GameserverMessageExtensions::left_column, westMessage));
+
+	// north
+	proto::GameserverMessageTopRow northMessage;
+	addMapDescription(northMessage.mutable_area(), oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, 1, described);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TOPROW, proto::GameserverMessageExtensions::top_row, northMessage));
+
+	sendDescribedExtras(described);
+}
+
+void ProtocolGame::sendBottomFloorBridge(const Position &newPos, const Position &oldPos) {
+	// Bridge shape of MoveDownCreature: the BottomFloor envelope with the newly revealed
+	// floors, then the east and south slices, in the legacy order.
+	namespace proto = tibia::protobuf::protocol;
+	std::vector<std::shared_ptr<Creature>> described;
+
+	proto::GameserverMessageBottomFloor floorMessage;
+	auto* fields = floorMessage.mutable_area()->mutable_fields()->mutable_fields();
+	MapSkipRun run;
+
+	// going from surface to underground
+	if (newPos.z == MAP_INIT_SURFACE_LAYER + 1) {
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, -1, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z + 1, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, -2, run, described);
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z + 2, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, -3, run, described);
+	}
+	// going further down
+	else if (newPos.z > oldPos.z && newPos.z > MAP_INIT_SURFACE_LAYER + 1 && newPos.z < MAP_MAX_LAYERS - MAP_LAYER_VIEW_LIMIT) {
+		addFloorDescription(fields, oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y - MAP_MAX_CLIENT_VIEW_PORT_Y, newPos.z + MAP_LAYER_VIEW_LIMIT, (MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2, (MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2, -3, run, described);
+	}
+
+	if (run.pending > 0 && fields->fields_size() > 0) {
+		fields->mutable_fields(fields->fields_size() - 1)->set_empty_fields_following(run.pending);
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_BOTTOMFLOOR, proto::GameserverMessageExtensions::bottom_floor, floorMessage));
+
+	// moving down a floor makes us out of sync
+	// east
+	proto::GameserverMessageRightColumn eastMessage;
+	addMapDescription(eastMessage.mutable_area(), oldPos.x + MAP_MAX_CLIENT_VIEW_PORT_X + 1, oldPos.y - (MAP_MAX_CLIENT_VIEW_PORT_Y + 1), newPos.z, 1, ((MAP_MAX_CLIENT_VIEW_PORT_Y + 1) * 2), described);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_RIGHTROW, proto::GameserverMessageExtensions::right_column, eastMessage));
+
+	// south
+	proto::GameserverMessageBottomRow southMessage;
+	addMapDescription(southMessage.mutable_area(), oldPos.x - MAP_MAX_CLIENT_VIEW_PORT_X, oldPos.y + (MAP_MAX_CLIENT_VIEW_PORT_Y + 1), newPos.z, ((MAP_MAX_CLIENT_VIEW_PORT_X + 1) * 2), 1, described);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_BOTTOMROW, proto::GameserverMessageExtensions::bottom_row, southMessage));
+
+	sendDescribedExtras(described);
+}
+
 void ProtocolGame::MoveDownCreature(NetworkMessage &msg, const std::shared_ptr<Creature> &creature, const Position &newPos, const Position &oldPos) {
 	if (creature != player) {
 		return;
@@ -10971,18 +11545,28 @@ void ProtocolGame::reloadCreature(const std::shared_ptr<Creature> &creature) {
 		return;
 	}
 
-	NetworkMessage msg;
+	if (!knownCreatureSet.contains(creature->getID())) {
+		sendAddCreature(creature, creature->getPosition(), stackpos, false);
+		return;
+	}
 
-	if (knownCreatureSet.contains(creature->getID())) {
+	if (oldProtocol) {
+		NetworkMessage msg;
 		msg.addByte(0x6B);
 		msg.addPosition(creature->getPosition());
 		msg.addByte(static_cast<uint8_t>(stackpos));
 		AddCreature(msg, creature, false, 0);
-	} else {
-		sendAddCreature(creature, creature->getPosition(), stackpos, false);
+		writeToOutputBuffer(msg);
+		return;
 	}
 
-	writeToOutputBuffer(msg);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeOnMap message;
+	setCoordinate(message.mutable_position(), creature->getPosition());
+	message.set_stack_position(stackpos);
+	addCreatureInstance(message.mutable_object(), creature, false, 0);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEONMAP, proto::GameserverMessageExtensions::change_on_map, message));
+	sendCreatureDescriptionExtras(creature);
 }
 
 void ProtocolGame::sendOpenStash() {
@@ -11225,12 +11809,14 @@ void ProtocolGame::sendUpdateCreature(const std::shared_ptr<Creature> &creature)
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6B);
-	msg.addPosition(creature->getPosition());
-	msg.addByte(static_cast<uint8_t>(stackPos));
-	AddCreature(msg, creature, false, 0);
-	writeToOutputBuffer(msg);
+	// Already refused oldProtocol above, so the legacy framing was replaced outright.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeOnMap message;
+	setCoordinate(message.mutable_position(), creature->getPosition());
+	message.set_stack_position(static_cast<uint32_t>(stackPos));
+	addCreatureInstance(message.mutable_object(), creature, false, 0);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEONMAP, proto::GameserverMessageExtensions::change_on_map, message));
+	sendCreatureDescriptionExtras(creature);
 }
 
 void ProtocolGame::getForgeInfoMap(const std::shared_ptr<Item> &item, std::map<uint16_t, std::map<uint8_t, uint16_t>> &itemsMap) const {
