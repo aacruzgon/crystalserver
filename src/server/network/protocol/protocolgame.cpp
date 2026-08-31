@@ -426,6 +426,12 @@ namespace {
 				return { Position(ObjectPosition::LEGACY_NON_MAP_X, 0, 0), static_cast<uint8_t>(identifier.tier_or_subtype()) };
 		}
 	}
+
+	void setCoordinate(tibia::protobuf::protocol::Coordinate* coordinate, const Position &position) {
+		coordinate->set_x(position.x);
+		coordinate->set_y(position.y);
+		coordinate->set_z(position.z);
+	}
 } // namespace
 
 ProtocolGame::ProtocolGame(const Connection_ptr &initConnection) :
@@ -4146,6 +4152,14 @@ void ProtocolGame::parseSeekInContainer(NetworkMessage &msg) {
 
 // Send methods
 void ProtocolGame::sendOpenPrivateChannel(const std::string &receiver) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessagePrivateChannel message;
+		message.set_player_name(receiver);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_PRIVATECHANNEL, proto::GameserverMessageExtensions::private_channel, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAD);
 	msg.addString(receiver);
@@ -4165,6 +4179,16 @@ void ProtocolGame::sendExperienceTracker(int64_t rawExp, int64_t finalExp) {
 }
 
 void ProtocolGame::sendChannelEvent(uint16_t channelId, const std::string &playerName, ChannelEvent_t channelEvent) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageChannelEvent message;
+		message.set_channel_id(channelId);
+		message.set_player_name(playerName);
+		message.set_event(static_cast<proto::CHANNEL_EVENT>(channelEvent));
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANNELEVENT, proto::GameserverMessageExtensions::channel_event, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xF3);
 	msg.add<uint16_t>(channelId);
@@ -5789,6 +5813,52 @@ void ProtocolGame::sendTextMessage(const TextMessage &message) {
 		return;
 	}
 
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageMessage protobufMessage;
+		// MESSAGE_THANK_YOU=41 is a private legacy extension in this stack; 41 is a
+		// deliberate gap in CipSoft's enum and proto2 would parse it as an unknown field.
+		// Preserve the old-client fallback rather than emitting an invalid enum value.
+		const MessageClasses protobufType = message.type == MESSAGE_THANK_YOU ? MESSAGE_LOGIN : message.type;
+		protobufMessage.set_mode(static_cast<proto::CHATMESSAGE_MODE>(protobufType));
+		switch (message.type) {
+			case MESSAGE_DAMAGE_DEALT:
+			case MESSAGE_DAMAGE_RECEIVED:
+			case MESSAGE_DAMAGE_OTHERS:
+				setCoordinate(protobufMessage.mutable_position(), message.position);
+				protobufMessage.set_primary_value(message.primary.value);
+				protobufMessage.set_primary_color(message.primary.color);
+				protobufMessage.set_secondary_value(message.secondary.value);
+				protobufMessage.set_secondary_color(message.secondary.color);
+				break;
+			case MESSAGE_HEALED:
+			case MESSAGE_HEALED_OTHERS:
+			case MESSAGE_MANA:
+				setCoordinate(protobufMessage.mutable_position(), message.position);
+				protobufMessage.set_primary_value(message.primary.value);
+				protobufMessage.set_primary_color(message.primary.color);
+				break;
+			case MESSAGE_EXPERIENCE:
+			case MESSAGE_EXPERIENCE_OTHERS:
+				setCoordinate(protobufMessage.mutable_position(), message.position);
+				protobufMessage.set_primary_value(message.primary.value);
+				protobufMessage.set_primary_color(message.primary.color);
+				break;
+			case MESSAGE_GUILD:
+			case MESSAGE_PARTY_MANAGEMENT:
+			case MESSAGE_PARTY:
+				// The official field is still unnamed; this is the position occupied by
+				// the legacy channel id and preserves that value across the bridge.
+				protobufMessage.set_field7(message.channelId);
+				break;
+			default:
+				break;
+		}
+		protobufMessage.set_text(message.text);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_MESSAGE, proto::GameserverMessageExtensions::message, protobufMessage));
+		return;
+	}
+
 	MessageClasses internalType = message.type;
 	if (oldProtocol && message.type > MESSAGE_LAST_OLDPROTOCOL) {
 		switch (internalType) {
@@ -5895,6 +5965,14 @@ void ProtocolGame::sendTextMessage(const TextMessage &message) {
 }
 
 void ProtocolGame::sendClosePrivate(uint16_t channelId) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageCloseChannel message;
+		message.set_channel_id(channelId);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CLOSECHANNEL, proto::GameserverMessageExtensions::close_channel, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xB3);
 	msg.add<uint16_t>(channelId);
@@ -5902,6 +5980,16 @@ void ProtocolGame::sendClosePrivate(uint16_t channelId) {
 }
 
 void ProtocolGame::sendCreatePrivateChannel(uint16_t channelId, const std::string &channelName) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageOpenOwnChannel message;
+		message.set_channel_id(channelId);
+		message.set_name(channelName);
+		message.mutable_participants()->add_participants(player->getName());
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_OPENOWNCHANNEL, proto::GameserverMessageExtensions::open_own_channel, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xB2);
 	msg.add<uint16_t>(channelId);
@@ -5913,10 +6001,22 @@ void ProtocolGame::sendCreatePrivateChannel(uint16_t channelId, const std::strin
 }
 
 void ProtocolGame::sendChannelsDialog() {
+	const ChannelList &list = g_chat().getChannelList(player);
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageChannels message;
+		for (const auto &channel : list) {
+			auto* protobufChannel = message.add_channels();
+			protobufChannel->set_channel_id(channel->getId());
+			protobufChannel->set_name(channel->getName());
+		}
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANNELS, proto::GameserverMessageExtensions::channels, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAB);
 
-	const ChannelList &list = g_chat().getChannelList(player);
 	msg.addByte(list.size());
 	for (const auto &channel : list) {
 		msg.add<uint16_t>(channel->getId());
@@ -5927,6 +6027,28 @@ void ProtocolGame::sendChannelsDialog() {
 }
 
 void ProtocolGame::sendChannel(uint16_t channelId, const std::string &channelName, const UsersMap* channelUsers, const InvitedMap* invitedUsers) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageOpenChannel message;
+		message.set_channel_id(channelId);
+		message.set_name(channelName);
+		if (channelUsers || invitedUsers) {
+			auto* participants = message.mutable_participants();
+			if (channelUsers) {
+				for (const auto &entry : *channelUsers) {
+					participants->add_participants(entry.second->getName());
+				}
+			}
+			if (invitedUsers) {
+				for (const auto &entry : *invitedUsers) {
+					participants->add_invitees(entry.second->getName());
+				}
+			}
+		}
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_OPENCHANNEL, proto::GameserverMessageExtensions::open_channel, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAC);
 
@@ -5954,6 +6076,23 @@ void ProtocolGame::sendChannel(uint16_t channelId, const std::string &channelNam
 }
 
 void ProtocolGame::sendChannelMessage(const std::string &author, const std::string &text, SpeakClasses type, uint16_t channel) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageTalk message;
+		message.set_statement_id(0);
+		const bool hideAuthor = type == TALKTYPE_CHANNEL_R2;
+		if (hideAuthor) {
+			type = TALKTYPE_CHANNEL_R1;
+		}
+		message.set_speaker_name(hideAuthor ? "" : author);
+		message.set_speaker_level(0);
+		message.set_mode(static_cast<proto::CHATMESSAGE_MODE>(type));
+		message.set_channel_id(channel);
+		message.set_text(text);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TALK, proto::GameserverMessageExtensions::talk, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAA);
 	msg.add<uint32_t>(0x00);
@@ -6290,6 +6429,24 @@ void ProtocolGame::sendCloseShop() {
 
 void ProtocolGame::sendNpcDialogOptions(const NpcDialogOptions &dialogOptions) {
 	if (!player) {
+		return;
+	}
+
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageNpcTalkParters message;
+		// Recorded official traffic is explicit on both transitions: 0 opens and 1
+		// closes. This is the inverse of the earlier prose guess in the schema comment.
+		message.set_field1(dialogOptions.conversationId == 0);
+		if (dialogOptions.conversationId != 0) {
+			message.add_creature_ids(dialogOptions.npcId);
+			for (const auto &option : dialogOptions.options) {
+				auto* button = message.add_keyword_buttons();
+				button->set_icon(static_cast<proto::KEYWORDBUTTONICON>(option.optionId));
+				button->set_text(option.optionText);
+			}
+		}
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_NPCTALKPARTERS, proto::GameserverMessageExtensions::npc_talk_partners, message));
 		return;
 	}
 
@@ -7939,11 +8096,29 @@ void ProtocolGame::sendCreatureTurn(const std::shared_ptr<Creature> &creature, u
 }
 
 void ProtocolGame::sendCreatureSay(const std::shared_ptr<Creature> &creature, SpeakClasses type, const std::string &text, const Position* pos /* = nullptr*/) {
+	static uint32_t statementId = 0;
+	const uint32_t currentStatementId = ++statementId;
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageTalk message;
+		message.set_statement_id(currentStatementId);
+		message.set_speaker_name(creature->getName());
+		if (const std::shared_ptr<Player> speaker = creature->getPlayer()) {
+			message.set_speaker_level(speaker->getLevel());
+		} else {
+			message.set_speaker_level(0);
+		}
+		message.set_mode(static_cast<proto::CHATMESSAGE_MODE>(type));
+		setCoordinate(message.mutable_position(), pos ? *pos : creature->getPosition());
+		message.set_text(text);
+		message.set_field8(false);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TALK, proto::GameserverMessageExtensions::talk, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAA);
-
-	static uint32_t statementId = 0;
-	msg.add<uint32_t>(++statementId);
+	msg.add<uint32_t>(currentStatementId);
 
 	msg.addString(creature->getName());
 
@@ -7975,27 +8150,45 @@ void ProtocolGame::sendCreatureSay(const std::shared_ptr<Creature> &creature, Sp
 }
 
 void ProtocolGame::sendToChannel(const std::shared_ptr<Creature> &creature, SpeakClasses type, const std::string &text, uint16_t channelId) {
+	static uint32_t statementId = 0;
+	const uint32_t currentStatementId = ++statementId;
+	const bool hideAuthor = type == TALKTYPE_CHANNEL_R2;
+	if (hideAuthor) {
+		type = TALKTYPE_CHANNEL_R1;
+	}
+
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageTalk message;
+		message.set_statement_id(currentStatementId);
+		if (creature && !hideAuthor) {
+			message.set_speaker_name(creature->getName());
+			if (const std::shared_ptr<Player> speaker = creature->getPlayer()) {
+				message.set_speaker_level(speaker->getLevel());
+			} else {
+				message.set_speaker_level(0);
+			}
+		} else {
+			message.set_speaker_name("");
+			message.set_speaker_level(0);
+		}
+		message.set_mode(static_cast<proto::CHATMESSAGE_MODE>(type));
+		message.set_channel_id(channelId);
+		message.set_text(text);
+		message.set_field8(false);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TALK, proto::GameserverMessageExtensions::talk, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAA);
-
-	static uint32_t statementId = 0;
-	msg.add<uint32_t>(++statementId);
+	msg.add<uint32_t>(currentStatementId);
 	if (!creature) {
 		msg.add<uint32_t>(0x00);
-		if (!oldProtocol && statementId != 0) {
-			msg.addByte(0x00); // Show (Traded)
-		}
-	} else if (type == TALKTYPE_CHANNEL_R2) {
+	} else if (hideAuthor) {
 		msg.add<uint32_t>(0x00);
-		if (!oldProtocol && statementId != 0) {
-			msg.addByte(0x00); // Show (Traded)
-		}
-		type = TALKTYPE_CHANNEL_R1;
 	} else {
 		msg.addString(creature->getName());
-		if (!oldProtocol && statementId != 0) {
-			msg.addByte(0x00); // Show (Traded)
-		}
 
 		// Add level only for players
 		if (std::shared_ptr<Player> speaker = creature->getPlayer()) {
@@ -8017,21 +8210,34 @@ void ProtocolGame::sendToChannel(const std::shared_ptr<Creature> &creature, Spea
 }
 
 void ProtocolGame::sendPrivateMessage(const std::shared_ptr<Player> &speaker, SpeakClasses type, const std::string &text) {
+	static uint32_t statementId = 0;
+	const uint32_t currentStatementId = ++statementId;
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageTalk message;
+		message.set_statement_id(currentStatementId);
+		if (speaker) {
+			message.set_speaker_name(speaker->getName());
+			message.set_speaker_level(speaker->getLevel());
+		} else {
+			message.set_speaker_name("");
+			message.set_speaker_level(0);
+		}
+		message.set_mode(static_cast<proto::CHATMESSAGE_MODE>(type));
+		message.set_text(text);
+		message.set_field8(false);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_TALK, proto::GameserverMessageExtensions::talk, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xAA);
-	static uint32_t statementId = 0;
-	msg.add<uint32_t>(++statementId);
+	msg.add<uint32_t>(currentStatementId);
 	if (speaker) {
 		msg.addString(speaker->getName());
-		if (!oldProtocol && statementId != 0) {
-			msg.addByte(0x00); // Show (Traded)
-		}
 		msg.add<uint16_t>(speaker->getLevel());
 	} else {
 		msg.add<uint32_t>(0x00);
-		if (!oldProtocol && statementId != 0) {
-			msg.addByte(0x00); // Show (Traded)
-		}
 	}
 
 	if (oldProtocol && type >= TALKTYPE_MONSTER_LAST_OLDPROTOCOL && type != TALKTYPE_CHANNEL_R2) {
@@ -12133,6 +12339,90 @@ void ProtocolGame::parseProtobufBridge(NetworkMessage &msg) {
 		case proto::GAMECLIENT_MESSAGE_TYPE_WEAPONPROFICIENCYCOMMAND:
 			if (envelope.HasExtension(proto::GameclientMessageExtensions::weapon_proficiency_command)) {
 				handleWeaponProficiencyCommand(envelope.GetExtension(proto::GameclientMessageExtensions::weapon_proficiency_command));
+			}
+			break;
+
+		// Chat (phase 2 slice 3). Rebuild the arguments used by the legacy parsers and
+		// feed the same game entry points, keeping validation in one place.
+		case proto::GAMECLIENT_MESSAGE_TYPE_TALK:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::talk)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::talk);
+				const auto type = static_cast<SpeakClasses>(message.mode());
+				std::string receiver;
+				uint16_t channelId = 0;
+				switch (type) {
+					case TALKTYPE_PRIVATE_TO:
+					case TALKTYPE_PRIVATE_RED_TO:
+						receiver = message.receiver();
+						break;
+					case TALKTYPE_CHANNEL_Y:
+					case TALKTYPE_CHANNEL_R1:
+						channelId = static_cast<uint16_t>(message.channel_id());
+						break;
+					default:
+						break;
+				}
+
+				std::string text = message.text();
+				trimString(text);
+				if (text.empty() || text.length() > 255) {
+					break;
+				}
+
+				if (message.field5() != 0 && message.has_position() && message.position().location_case() == proto::ObjectPosition::kWorldmap) {
+					const auto &coordinate = message.position().worldmap().position();
+					player->setSpellAimPosition(Position(static_cast<uint16_t>(coordinate.x()), static_cast<uint16_t>(coordinate.y()), static_cast<uint8_t>(coordinate.z())));
+				} else {
+					player->clearSpellAimPosition();
+				}
+
+				g_game().playerSay(player->getID(), channelId, type, receiver, text);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_GETCHANNELS:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::get_channels)) {
+				g_game().playerRequestChannels(player->getID());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_JOINCHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::join_channel)) {
+				g_game().playerOpenChannel(player->getID(), static_cast<uint16_t>(envelope.GetExtension(proto::GameclientMessageExtensions::join_channel).channel_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_LEAVECHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::leave_channel)) {
+				g_game().playerCloseChannel(player->getID(), static_cast<uint16_t>(envelope.GetExtension(proto::GameclientMessageExtensions::leave_channel).channel_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_PRIVATECHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::private_channel)) {
+				std::string receiver = envelope.GetExtension(proto::GameclientMessageExtensions::private_channel).player_name();
+				g_game().playerOpenPrivateChannel(player->getID(), receiver);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_CLOSENPCCHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::close_npc_channel)) {
+				g_game().playerCloseNpcChannel(player->getID());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_OPENCHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::open_own_channel)) {
+				g_game().playerCreatePrivateChannel(player->getID());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_INVITETOCHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::invite_to_channel)) {
+				g_game().playerChannelInvite(player->getID(), envelope.GetExtension(proto::GameclientMessageExtensions::invite_to_channel).player_name());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_EXCLUDEFROMCHANNEL:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::exclude_from_channel)) {
+				g_game().playerChannelExclude(player->getID(), envelope.GetExtension(proto::GameclientMessageExtensions::exclude_from_channel).player_name());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_GREET:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::greet)) {
+				g_game().playerNpcGreet(player->getID(), envelope.GetExtension(proto::GameclientMessageExtensions::greet).creature_id());
 			}
 			break;
 

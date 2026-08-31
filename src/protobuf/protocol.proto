@@ -5466,11 +5466,11 @@ message GameserverMessageNPCOffer {
   optional bytes field4 = 4;                              // UNRESOLVED; text; read as the currency's name. parseOpenNpcTrade takes a u16 currency id then a string at client version 1281 and later, which lands on fields 3 and 4 in that order - a text field directly after a currency object type id. Positional correspondence with the legacy wire rather than evidence from CipSoft, so it stays UNRESOLVED.
 }
 
-// NPC conversation state: whether a trade partner is active, the creature ids involved, and the keyword shortcut buttons. The message name's spelling is CipSoft's.
+// NPC conversation state: whether the dialogue closes, the creature ids involved, and the keyword shortcut buttons. The message name's spelling is CipSoft's.
 // area: chat
 // extension 28 of GameserverMessage
 message GameserverMessageNpcTalkParters {
-  optional bool field1 = 1;                               // UNRESOLVED; tutorial session dump: two instances - true alongside a partner creature id when the NPC dialogue opens, false with no ids when it closes. Reads like a dialogue-open flag; not named from CipSoft evidence.
+  optional bool field1 = 1;                               // UNRESOLVED; tutorial session dump: two instances - false alongside a partner creature id when the NPC dialogue opens, true with no ids when it closes. Reads like a dialogue-close flag; not named from CipSoft evidence.
   repeated uint32 creature_ids = 2;                       // inferred/med
   repeated KeywordButton keyword_buttons = 3;             // inferred/high
 }
@@ -7870,4 +7870,3 @@ message AppearanceInstanceExtensions {
     optional DecoItemKitObject deco_item_kit = 112;                       // inferred/high
   }
 }
-
