@@ -297,6 +297,7 @@ enum CallBackParam_t {
 	CALLBACK_PARAM_CHAINPICKER,
 };
 
+// official NPC_SPEECH_FLAG
 enum SpeechBubble_t {
 	SPEECHBUBBLE_NONE = 0,
 	SPEECHBUBBLE_NORMAL = 1,
@@ -304,6 +305,7 @@ enum SpeechBubble_t {
 	SPEECHBUBBLE_QUEST = 3,
 	SPEECHBUBBLE_QUESTTRADER = 4,
 	SPEECHBUBBLE_TRAVELER = 5,
+	SPEECHBUBBLE_SPELL = 6,
 	SPEECHBUBBLE_HIRELING = 7,
 };
 
@@ -1492,6 +1494,8 @@ enum class CreatureIconCategory_t {
 	Modifications,
 };
 
+// official CREATUREICON. 6 and 7 are STRENGTHENED and STRENGTHENED_MAX there; this
+// codebase used to call them ReducedHealth(Exclamation), which claimed the wrong picture.
 enum class CreatureIconModifications_t {
 	None,
 	HigherDamageReceived,
@@ -1499,8 +1503,8 @@ enum class CreatureIconModifications_t {
 	TurnedMelee,
 	Influenced,
 	Fiendish,
-	ReducedHealth,
-	ReducedHealthExclamation,
+	Strengthened,
+	StrengthenedMax,
 	WeeklyTask,
 	BountyTask,
 };
@@ -1527,10 +1531,10 @@ enum class CreatureIconQuests_t {
 	ArrowDown,
 	ExclamationMark,
 	QuestionMark,
-	CancelMark,
-	Hazard,
-	BrownSkull,
-	BloodDrop,
+	Percentage, // official PLAYERICON_PERCENTAGE; used to be named CancelMark, which is not the picture
+	Hazard, // official calls the picture BLOODSTAIN; Hazard is what this codebase uses it for
+	RottenBloodMushroom, // was BrownSkull
+	RottenBloodCrystal, // was BloodDrop
 };
 
 enum VirtueMonk_t : uint8_t {

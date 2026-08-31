@@ -2335,7 +2335,7 @@ void Monster::setSoulPit(bool value) {
 
 void Monster::setSoulPitStack(uint8_t stack, bool isSummon /* = false */) {
 	const bool isBoss = stack == 40;
-	const CreatureIconModifications_t icon = isBoss ? CreatureIconModifications_t::ReducedHealthExclamation : CreatureIconModifications_t::ReducedHealth;
+	const CreatureIconModifications_t icon = isBoss ? CreatureIconModifications_t::StrengthenedMax : CreatureIconModifications_t::Strengthened;
 	setForgeStack(stack);
 	setIcon("soulpit", CreatureIcon(icon, isBoss ? 0 : stack));
 	setSoulPit(true);
