@@ -178,10 +178,14 @@ enum MapMark_t {
 	MAPMARK_GREENSOUTH = 19,
 };
 
+// CipSoft's RULEVIOLATION. The last two arms are official values with no transport on
+// this stack yet; declared for parity.
 enum RuleViolationType_t : uint8_t {
 	REPORT_TYPE_NAME = 0,
 	REPORT_TYPE_STATEMENT = 1,
-	REPORT_TYPE_BOT = 2
+	REPORT_TYPE_BOT = 2,
+	REPORT_TYPE_HIRELING_NAME = 3,
+	REPORT_TYPE_TEXT = 4
 };
 
 enum RuleViolationReasons_t : uint8_t {

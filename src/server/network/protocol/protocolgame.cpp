@@ -160,12 +160,14 @@ namespace {
 	}
 
 	// Send bytes function for avoid repetitions
-	void sendBosstiarySlotsBytes(NetworkMessage &msg, uint8_t bossRace, uint32_t bossKillCount, uint16_t bonusBossSlotOne, uint8_t killBonus, uint8_t isSlotOneInactive, uint32_t removePrice) {
+	void sendBosstiarySlotsBytes(NetworkMessage &msg, uint8_t bossRace, uint32_t bossKillCount, uint16_t bonusBossSlotOne, uint8_t killBonus, uint8_t unlockGrade, uint8_t isSlotOneInactive, uint32_t removePrice) {
 		msg.addByte(bossRace); // Boss Race
 		msg.add<uint32_t>(bossKillCount); // Kill Count
 		msg.add<uint16_t>(bonusBossSlotOne); // Loot Bonus
 		msg.addByte(killBonus); // Kill Bonus
-		msg.addByte(bossRace); // Boss Race
+		// BOSS_UNLOCK_GRADE (0-3). This byte used to duplicate the boss race, which is a
+		// different enum with a smaller range.
+		msg.addByte(unlockGrade);
 		msg.add<uint32_t>(isSlotOneInactive == 1 ? 0 : removePrice); // Remove Price
 		msg.addByte(isSlotOneInactive); // Inactive? (Only true if equal to Boosted Boss)
 	}
@@ -883,7 +885,9 @@ void ProtocolGame::logout(bool displayEffect, bool forced) {
 		g_game().addMagicEffect(player->getPosition(), CONST_ME_POFF);
 	}
 
-	sendSessionEndInformation(forced ? SESSION_END_FORCECLOSE : SESSION_END_LOGOUT);
+	// A forced logout is OTHER, not TAKEOVER - 2 would make the official client report
+	// that another client took over the character.
+	sendSessionEndInformation(forced ? SESSION_END_OTHER : SESSION_END_CONFIRM_QUIT_GAME);
 
 	g_game().removeCreature(player, true);
 }
@@ -963,7 +967,9 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage &msg) {
 	}
 
 	if (!oldProtocol && operatingSystem == CLIENTOS_NEW_LINUX) {
-		// TODO: check what new info for linux is send
+		// The Qt Linux client (official CLIENT_TYPE 7) sends two extra strings here.
+		// This branch used to key on 4, which is officially CIPWATCH - desyncing a
+		// CipWatch login and under-reading a genuine Qt Linux one.
 		msg.getString();
 		msg.getString();
 	}
@@ -1943,7 +1949,8 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 	}
 
 	if (msg.getBufferPosition() == startBufferPosition) {
-		uint8_t outfitType = !oldProtocol ? msg.getByte() : 0;
+		// CipSoft's SETOUTFIT: whose outfit this confirm applies to.
+		uint8_t outfitType = !oldProtocol ? msg.getByte() : SETOUTFIT_PLAYER;
 		Outfit_t newOutfit;
 		newOutfit.lookType = msg.get<uint16_t>();
 		newOutfit.lookHead = std::min<uint8_t>(132, msg.getByte());
@@ -1951,7 +1958,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 		newOutfit.lookLegs = std::min<uint8_t>(132, msg.getByte());
 		newOutfit.lookFeet = std::min<uint8_t>(132, msg.getByte());
 		newOutfit.lookAddons = msg.getByte();
-		if (outfitType == 0) {
+		if (outfitType == SETOUTFIT_PLAYER) {
 			newOutfit.lookMount = msg.get<uint16_t>();
 			if (!oldProtocol) {
 				newOutfit.lookMountHead = std::min<uint8_t>(132, msg.getByte());
@@ -1981,12 +1988,12 @@ void ProtocolGame::parseSetOutfit(NetworkMessage &msg) {
 			} else {
 				g_game().playerChangeOutfit(player->getID(), newOutfit, false, 0);
 			}
-		} else if (outfitType == 1) {
-			// This value probably has something to do with try outfit variable inside outfit window dialog
-			// if try outfit is set to 2 it expects uint32_t value after mounted and disable mounts from outfit window dialog
+		} else if (outfitType == SETOUTFIT_HIRELING) {
+			// The uint32 is the hireling id; the hireling Lua module normally consumes this
+			// message before it reaches here.
 			newOutfit.lookMount = 0;
 			msg.get<uint32_t>();
-		} else if (outfitType == 2) {
+		} else if (outfitType == SETOUTFIT_SHOW_OFF_SOCKET) {
 			Position pos = msg.getPosition();
 			auto itemId = msg.get<uint16_t>();
 			uint8_t stackpos = msg.getByte();
@@ -2244,6 +2251,8 @@ void ProtocolGame::parseFightModes(NetworkMessage &msg) {
 	// uint8_t rawFightMode = msg.getByte(); // 1 - offensive, 2 - balanced, 3 - defensive -- FIGHT MODE DEPRECATED FROM 15.25
 	uint8_t rawChaseMode = msg.getByte(); // 0 - stand while fightning, 1 - chase opponent
 	uint8_t rawSecureMode = msg.getByte(); // 0 - can't attack unmarked, 1 - can attack unmarked
+	msg.getByte(); // TACTICS_PVP_MODE (0-3); sent by the client, no server semantics yet
+	msg.getByte(); // trailing byte the official client sends; nothing interprets it
 
 	g_game().playerSetFightModes(player->getID(), FIGHTMODE_ATTACK, rawChaseMode != 0, rawSecureMode != 0);
 }
@@ -2545,8 +2554,11 @@ void ProtocolGame::parseHighscores(NetworkMessage &msg) {
 	auto worldName = msg.getString();
 	msg.getByte(); // Game World Category
 	msg.getByte(); // BattlEye World Type
+	// The client writes the page word on every request kind; an own-rank request that
+	// skipped it here would read the page's low byte as entriesPerPage.
+	const uint16_t requestedPage = msg.get<uint16_t>();
 	if (type == HIGHSCORE_GETENTRIES) {
-		page = std::max<uint16_t>(1, msg.get<uint16_t>());
+		page = std::max<uint16_t>(1, requestedPage);
 	}
 	uint8_t entriesPerPage = std::min<uint8_t>(30, std::max<uint8_t>(5, msg.getByte()));
 	g_game().playerHighscores(player, type, category, vocation, worldName == "OWN" || type == HIGHSCORE_OURRANK ? g_game().worlds().getCurrentWorld()->name : worldName, page, entriesPerPage);
@@ -2600,15 +2612,19 @@ void ProtocolGame::sendHighscores(const std::string &selectedWorld, const std::v
 	msg.add<uint32_t>(0xFFFFFFFF); // All Vocations - hardcoded
 	msg.addString("(all)"); // All Vocations - hardcoded
 
+	// The filter ids on the wire are CipSoft's VOCATION_FILTER, which is the client-id
+	// numbering (Knight=1, Paladin=2, Sorcerer=3, Druid=4, Monk=5) - not the internal
+	// base ids, whose 1-4 are a different permutation. The entry rows already use
+	// getClientId(); the filter list must speak the same id space.
 	uint32_t selectedVocation = 0xFFFFFFFF;
 	const auto vocationsMap = g_vocations().getVocations();
 	for (const auto &[currentVocationId, vocationPtr] : vocationsMap) {
-		const uint32_t currentVocationBaseId = vocationPtr->getBaseId();
+		const uint32_t currentVocationClientId = vocationPtr->getClientId();
 		if (vocationPtr->getFromVocation() == static_cast<uint32_t>(currentVocationId)) {
-			msg.add<uint32_t>(currentVocationBaseId); // Vocation Id
+			msg.add<uint32_t>(currentVocationClientId); // Vocation Id
 			msg.addString(vocationPtr->getVocName()); // Vocation Name
 			++vocations;
-			if (currentVocationBaseId == vocationBaseId) {
+			if (currentVocationClientId == vocationBaseId) {
 				selectedVocation = vocationBaseId;
 			}
 		}
@@ -2890,7 +2906,7 @@ void ProtocolGame::sendTeamFinderList() {
 
 	NetworkMessage msg;
 	msg.addByte(0x2D);
-	msg.addByte(0x00); // Bool value, with 'true' the player exceed packets for second.
+	msg.addByte(0x00); // TEAM_FINDER_SEVER_INFO (CipSoft's spelling): 0 = DATA, 1 = UPDATE.
 	const auto &teamFinder = g_game().getTeamFinderList();
 	msg.add<uint16_t>(teamFinder.size());
 	for (const auto &it : teamFinder) {
@@ -2965,9 +2981,13 @@ void ProtocolGame::sendLeaderTeamFinder(bool reset) {
 
 	NetworkMessage msg;
 	msg.addByte(0x2C);
+	// TEAM_FINDER_SEVER_INFO (CipSoft's spelling): 0 = DATA, 1 = UPDATE.
 	msg.addByte(reset ? 1 : 0);
 	if (reset) {
 		g_game().removeTeamFinderListed(player->getGUID());
+		// The UPDATE arm used to return before writeToOutputBuffer, so the client was
+		// never told its listing was removed.
+		writeToOutputBuffer(msg);
 		return;
 	}
 
@@ -4188,8 +4208,10 @@ void ProtocolGame::sendCyclopediaMapDiscoveryData() {
 	msg.add<uint16_t>(static_cast<uint16_t>(areas.size()));
 	for (const auto &area : areas) {
 		const auto progress = player->cyclopedia()->getAreaProgress(area.id);
-		// 0 = untouched, 1 = partially discovered, 2 = fully discovered.
-		const uint8_t status = progress == 0 ? 0 : (progress >= 100 ? 2 : 1);
+		// CipSoft's EXPLORE_GRADE: 0 = NEWBIE, 1/2 = partial grades, 3 = FULLY_EXPLORED.
+		// The partial split between grades 1 and 2 has no known threshold, so everything
+		// partial reports grade 1; fully explored is 3, not 2.
+		const uint8_t status = progress == 0 ? 0 : (progress >= 100 ? 3 : 1);
 		msg.add<uint16_t>(area.id);
 		msg.addByte(status);
 		msg.addByte(progress);
@@ -5046,7 +5068,9 @@ void ProtocolGame::sendCyclopediaCharacterOffenceStats() {
 			msg.add<uint16_t>(it.maxHitChance);
 			msg.add<uint16_t>(0);
 			msg.add<uint16_t>(0);
-			msg.addByte(0x00);
+			// CHARACTERINFO_SKILLTYPE: wands scale on magic level (MAGIC = 1); 0 is
+			// not a value of that enum.
+			msg.addByte(0x01);
 			msg.add<uint16_t>(0);
 			msg.add<uint16_t>(0);
 			msg.addByte(getCipbiaElement(it.combatType));
@@ -10649,7 +10673,7 @@ void ProtocolGame::parseSendBosstiary() {
 		msg.add<uint32_t>(bossid);
 		msg.addByte(static_cast<uint8_t>(bossRace));
 		msg.add<uint32_t>(killCount);
-		msg.addByte(0);
+		msg.addByte(g_ioBosstiary().getBossCurrentLevel(player, bossid)); // BOSS_UNLOCK_GRADE (0-3); was hardcoded 0
 		msg.addByte(player->isBossOnBosstiaryTracker(mType) ? 0x01 : 0x00);
 		++bossesCount;
 	}
@@ -10731,7 +10755,7 @@ void ProtocolGame::parseSendBosstiarySlots() {
 		uint16_t bonusBossSlotOne = currentBonus + (slotOneBossLevel == 3 ? 25 : 0);
 		uint8_t isSlotOneInactive = bossIdSlotOne == boostedBossId ? 1 : 0;
 		// Bytes Slot One
-		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(bossRaceSlotOne), bossKillCount, bonusBossSlotOne, 0, isSlotOneInactive, removePrice);
+		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(bossRaceSlotOne), bossKillCount, bonusBossSlotOne, 0, slotOneBossLevel, isSlotOneInactive, removePrice);
 		bossesUnlockedSize--;
 	}
 
@@ -10746,7 +10770,7 @@ void ProtocolGame::parseSendBosstiarySlots() {
 		uint16_t bonusBossSlotTwo = currentBonus + (slotTwoBossLevel == 3 ? 25 : 0);
 		uint8_t isSlotTwoInactive = bossIdSlotTwo == boostedBossId ? 1 : 0;
 		// Bytes Slot Two
-		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(bossRaceSlotTwo), bossKillCount, bonusBossSlotTwo, 0, isSlotTwoInactive, removePrice);
+		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(bossRaceSlotTwo), bossKillCount, bonusBossSlotTwo, 0, slotTwoBossLevel, isSlotTwoInactive, removePrice);
 		bossesUnlockedSize--;
 	}
 
@@ -10758,7 +10782,8 @@ void ProtocolGame::parseSendBosstiarySlots() {
 		auto boostedLootBonus = static_cast<uint16_t>(g_configManager().getNumber(BOOSTED_BOSS_LOOT_BONUS));
 		auto bosstiaryMultiplier = static_cast<uint8_t>(g_configManager().getNumber(BOSSTIARY_KILL_MULTIPLIER));
 		auto boostedKillBonus = static_cast<uint8_t>(g_configManager().getNumber(BOOSTED_BOSS_KILL_BONUS));
-		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(boostedBossRace), boostedBossKillCount, boostedLootBonus, bosstiaryMultiplier + boostedKillBonus, 0, 0);
+		auto boostedBossLevel = g_ioBosstiary().getBossCurrentLevel(player, static_cast<uint16_t>(boostedBossId));
+		sendBosstiarySlotsBytes(msg, static_cast<uint8_t>(boostedBossRace), boostedBossKillCount, boostedLootBonus, bosstiaryMultiplier + boostedKillBonus, boostedBossLevel, 0, 0);
 	}
 
 	msg.addByte(bossesUnlockedSize != 0 ? 1 : 0);
@@ -11245,7 +11270,9 @@ void ProtocolGame::sendScreenshotAndBannerProgressQuest(const std::string &quest
 	msg.addByte(0x75);
 	msg.addByte(SCREENSHOT_AND_BANNER_TYPE_QUEST);
 	msg.addString(questName);
-	msg.addByte(isCompleted ? 1 : 0);
+	// CipSoft's GAME_EVENT_QUEST_PROGRESS values: STARTED = 1, COMPLETED = 2. There is
+	// no zero arm, and 1 does not mean completed.
+	msg.addByte(isCompleted ? 2 : 1);
 	writeToOutputBuffer(msg);
 }
 

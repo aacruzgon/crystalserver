@@ -277,6 +277,11 @@ std::map<uint16_t, std::string> IOBestiary::findRaceByName(const std::string &ra
 }
 
 uint8_t IOBestiary::getKillStatus(const std::shared_ptr<MonsterType> &mtype, uint32_t killAmount) const {
+	// CipSoft's MONSTER_UNLOCK: 0 is UNKOWN (their spelling) - a monster with no kills
+	// is not at progress 1.
+	if (killAmount == 0) {
+		return 0;
+	}
 	if (killAmount < mtype->info.bestiaryFirstUnlock) {
 		return 1;
 	} else if (killAmount < mtype->info.bestiarySecondUnlock) {
@@ -668,7 +673,9 @@ std::vector<uint16_t> IOBestiary::getBestiaryStageTwo(const std::shared_ptr<Play
 }
 
 int8_t IOBestiary::calculateDifficult(uint32_t chance) const {
-	float chanceInPercent = chance / 1000;
+	// Integer division truncated the per-mille chance to whole percent before the
+	// fractional band checks, collapsing everything under 1% into VERY_RARE.
+	float chanceInPercent = chance / 1000.0f;
 
 	if (chanceInPercent < 0.2) {
 		return 4;

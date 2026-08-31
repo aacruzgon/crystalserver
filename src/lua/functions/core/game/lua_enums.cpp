@@ -883,9 +883,12 @@ void LuaEnums::initClientOsEnums(lua_State* L) {
 	registerEnum(L, CLIENTOS_LINUX);
 	registerEnum(L, CLIENTOS_WINDOWS);
 	registerEnum(L, CLIENTOS_FLASH);
+	registerEnum(L, CLIENTOS_CIPWATCH);
 	registerEnum(L, CLIENTOS_NEW_LINUX);
 	registerEnum(L, CLIENTOS_NEW_WINDOWS);
 	registerEnum(L, CLIENTOS_NEW_MAC);
+	registerEnum(L, CLIENTOS_EPIC_WINDOWS);
+	registerEnum(L, CLIENTOS_EPIC_MACOS);
 	registerEnum(L, CLIENTOS_OTCLIENT_LINUX);
 	registerEnum(L, CLIENTOS_OTCLIENT_WINDOWS);
 	registerEnum(L, CLIENTOS_OTCLIENT_MAC);

@@ -54,13 +54,18 @@ enum ChecksumMethods_t : uint8_t {
 	CHECKSUM_METHOD_SEQUENCE
 };
 
+// CipSoft's SESSION_END_INFORMATION. 2 specifically means another client took over the
+// character - it is not a generic force-close; a forced logout is OTHER (99). 100 is
+// the official refuse-a-quit-request arm, which this server expresses as a cancel
+// message instead.
 enum SessionEndInformations : uint8_t {
-	// Guessing unknown types are ban/protocol error or something.
-	// But since there aren't any difference from logout should we care?
-	SESSION_END_LOGOUT,
-	SESSION_END_UNK2,
-	SESSION_END_FORCECLOSE,
-	SESSION_END_UNK3,
+	SESSION_END_CONFIRM_QUIT_GAME = 0,
+	SESSION_END_OFFLINE_TRAINING = 1,
+	SESSION_END_TAKEOVER = 2,
+	SESSION_END_CHARACTER_DEAD_TIMEOUT = 3,
+	SESSION_END_CHARACTER_TRADE = 4,
+	SESSION_END_OTHER = 99,
+	SESSION_END_REJECT_QUIT_GAME = 100,
 };
 
 enum Resource_t : uint8_t {
@@ -206,6 +211,23 @@ enum MessageDialog_t : uint8_t {
 enum DepotSearchRetrieveSource_t : uint8_t {
 	DEPOT_SEARCH_RETRIEVE_SOURCE_DEPOT = 1,
 	DEPOT_SEARCH_RETRIEVE_SOURCE_INBOX = 2
+};
+
+// CipSoft's GETOUTFIT - who the outfit dialog is requested for. Note the asymmetry with
+// SetOutfitType_t: value 1 means try-on here and hireling there.
+enum GetOutfitType_t : uint8_t {
+	GETOUTFIT_SELECT_FOR_PLAYER = 0,
+	GETOUTFIT_TRY_PLAYER_OUTFIT_MOUNT = 1,
+	GETOUTFIT_SELECT_FOR_HIRELING = 2,
+	GETOUTFIT_TRY_HIRELING_OUTFIT = 3
+};
+
+// CipSoft's SETOUTFIT - whose outfit an outfit-window confirm applies to. The hireling
+// arm carries a uint32 hireling id after the outfit.
+enum SetOutfitType_t : uint8_t {
+	SETOUTFIT_PLAYER = 0,
+	SETOUTFIT_HIRELING = 1,
+	SETOUTFIT_SHOW_OFF_SOCKET = 2
 };
 
 // CipSoft's STEP_DIRECTION, the wire encoding of one auto-walk step in

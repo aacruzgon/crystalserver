@@ -22,8 +22,10 @@
 class Player;
 class NetworkMessage;
 
-// Task Board packet option (second byte of 0x5B packet)
-enum TaskBoardOption_t : uint8_t {
+// CipSoft's TASKBOARD - which board a 0x5B payload describes. Renamed from
+// TaskBoardOption_t: the client uses that name for a different enum (the action byte
+// of the task-board request), and the collision invited crossed wires.
+enum TaskBoardType_t : uint8_t {
 	TASK_BOARD_BOUNTY = 0, // Bounty task
 	TASK_BOARD_WEEKLY = 1, // Weekly task
 	TASK_BOARD_HUNT_SHOP = 2 // Hunt task shop

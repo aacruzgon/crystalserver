@@ -709,9 +709,15 @@ enum OperatingSystem_t : uint8_t {
 	CLIENTOS_LINUX = 1,
 	CLIENTOS_WINDOWS = 2,
 	CLIENTOS_FLASH = 3,
-	CLIENTOS_NEW_LINUX = 4,
+	// CipSoft's CLIENT_TYPE. 4 is CIPWATCH, not a Linux client - the Qt Linux client
+	// is 7, after the Qt Windows/Mac pair. The old CLIENTOS_NEW_LINUX = 4 name claimed
+	// the wrong meaning and routed the Qt-Linux login extras to a CipWatch login.
+	CLIENTOS_CIPWATCH = 4,
 	CLIENTOS_NEW_WINDOWS = 5,
 	CLIENTOS_NEW_MAC = 6,
+	CLIENTOS_NEW_LINUX = 7,
+	CLIENTOS_EPIC_WINDOWS = 8,
+	CLIENTOS_EPIC_MACOS = 9,
 
 	CLIENTOS_OTCLIENT_LINUX = 10,
 	CLIENTOS_OTCLIENT_WINDOWS = 11,
@@ -752,11 +758,15 @@ enum ChannelEvent_t : uint8_t {
 	CHANNELEVENT_PENDING = 4,
 };
 
+// CipSoft's BUDDY_STATUS. INITIAL_LOGIN and LOGOUT are the official transient arms;
+// declared for parity, nothing produces them yet.
 enum class VipStatus_t : uint8_t {
 	OFFLINE = 0,
 	ONLINE = 1,
 	PENDING = 2,
-	TRAINING = 3
+	TRAINING = 3,
+	INITIAL_LOGIN = 4,
+	LOGOUT = 5
 };
 
 enum Vocation_t : uint16_t {

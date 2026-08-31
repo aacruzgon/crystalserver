@@ -82,14 +82,18 @@ enum class CyclopediaMapAction_t : uint8_t {
 	Select = 2,
 };
 
+// CipSoft's HOUSE_STATE. Unoccupied is official value 1; nothing produces it yet.
 enum class CyclopediaHouseState : uint8_t {
 	Available = 0,
+	Unoccupied = 1,
 	Rented = 2,
 	Transfer = 3,
 	MoveOut = 4,
 };
 
 enum class HouseAuctionType : uint8_t {
+	// official HOUSE_ACTION_REQUESTHOUSEDATA; the parser's raw case 0 implements it
+	RequestHouseData = 0,
 	Bid = 1,
 	MoveOut = 2,
 	Transfer = 3,

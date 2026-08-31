@@ -10,6 +10,12 @@ HirelingModule.S_Packets = { SendOutfitWindow = 0xC8 }
 
 HirelingModule.C_Packets = { RequestChangeOutfit = 0xD2, ConfirmOutfitChange = 0xD3 }
 
+-- CipSoft's GETOUTFIT, the first byte of RequestChangeOutfit.
+local GETOUTFIT_SELECT_FOR_PLAYER = 0
+local GETOUTFIT_TRY_PLAYER_OUTFIT_MOUNT = 1
+local GETOUTFIT_SELECT_FOR_HIRELING = 2
+local GETOUTFIT_TRY_HIRELING_OUTFIT = 3
+
 local function getOutfit(msg)
 	local outfitType = 0
 	outfitType = msg:getByte()
@@ -48,8 +54,12 @@ end
 
 function onRecvbyte(player, msg, byte)
 	if byte == HirelingModule.C_Packets.RequestChangeOutfit then
+		-- CipSoft's GETOUTFIT: 0 = player window, 1 = try player outfit/mount,
+		-- 2 = select for hireling, 3 = try hireling outfit. Only the hireling arms
+		-- carry the uint32 hireling cid; routing every non-zero value here used to
+		-- misread a try-on request as a hireling id.
 		local targetType = msg:getByte()
-		if targetType == 0 then
+		if targetType == GETOUTFIT_SELECT_FOR_PLAYER or targetType == GETOUTFIT_TRY_PLAYER_OUTFIT_MOUNT then
 			player:sendOutfitWindow()
 			return
 		end

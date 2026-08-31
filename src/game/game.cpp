@@ -9874,11 +9874,16 @@ std::string Game::generateHighscoreQueryForOurRank(const std::string &categoryNa
 }
 
 std::string Game::generateVocationConditionHighscore(uint32_t searchVocationBaseId) {
-	// Build a safe AND(...) clause containing all matching vocation ids.
+	// Build a safe AND(...) clause containing all matching vocation ids. The incoming
+	// value is the wire filter id, which is the official client-id numbering - the same
+	// id space sendHighscores now writes into the filter list. Promoted vocations carry
+	// client ids 11-15, so the match goes through each vocation's BASE vocation's client
+	// id, keeping promoted characters inside their base vocation's filter.
 	std::vector<uint32_t> ids;
 	const auto vocationsMap = g_vocations().getVocations();
 	for (const auto &[currentVocationId, vocationPtr] : vocationsMap) {
-		if (vocationPtr->getBaseId() == searchVocationBaseId) {
+		const auto &baseVocation = g_vocations().getVocation(vocationPtr->getBaseId());
+		if (baseVocation && baseVocation->getClientId() == searchVocationBaseId) {
 			ids.push_back(currentVocationId);
 		}
 	}
