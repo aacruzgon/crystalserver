@@ -189,8 +189,9 @@ private:
 	void sendSessionEndInformation(SessionEndInformations information);
 
 	void sendItemInspection(uint16_t itemId, uint8_t itemCount, const std::shared_ptr<Item> &item, uint8_t inspectionType);
-	void parseInspectionObject(NetworkMessage &msg);
-	void parseInspectionCharacter(NetworkMessage &msg);
+	void parseInspectionObject(NetworkMessage &msg); // PHASE2-LEGACY(dialogs): delete with its function
+	void parseInspectionCharacter(NetworkMessage &msg); // PHASE2-LEGACY(dialogs): delete with its wrapper; handleInspectCharacterAction stays
+	void handleInspectCharacterAction(uint8_t action, uint32_t creatureId);
 
 	void parseFriendSystemAction(NetworkMessage &msg);
 

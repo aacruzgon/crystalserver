@@ -1734,10 +1734,10 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 		case 0xCC:
 			parseSeekInContainer(msg);
 			break;
-		case 0xCD:
+		case 0xCD: // PHASE2-LEGACY(dialogs): delete this whole case in the end-of-phase sweep
 			parseInspectionObject(msg);
 			break;
-		case 0xCE:
+		case 0xCE: // PHASE2-LEGACY(dialogs): delete this whole case in the end-of-phase sweep
 			parseInspectionCharacter(msg);
 			break;
 		case 0xCF:
@@ -2642,6 +2642,10 @@ void ProtocolGame::parseWrapableItem(NetworkMessage &msg) {
 	g_game().playerWrapableItem(player->getID(), pos, stackpos, itemId);
 }
 
+// PHASE2-LEGACY(dialogs): delete this whole function and its declaration in the
+// end-of-phase sweep. It refuses oldProtocol and the only non-old client this server
+// accepts is bridge-capable, so once InspectObject rides the envelope nothing consumes
+// this framing. The bridge case feeds the same g_game() entry points.
 void ProtocolGame::parseInspectionObject(NetworkMessage &msg) {
 	if (oldProtocol) {
 		return;
@@ -2658,13 +2662,9 @@ void ProtocolGame::parseInspectionObject(NetworkMessage &msg) {
 	}
 }
 
-// Client -> server inspect-character actions. The client's InspectionParseFlags numbering:
-// 1 invite, 2 ask, 3 allow, 4 inspect, 5 revoke, 6 allow all, 7 dismiss all.
-//
-// Only the two account-wide actions and the inspect request are acted on here. The per-pair
-// invite/ask/allow/revoke negotiation would also need the server to broadcast inspection
-// state (0x77), which nothing here sends yet, so those arrive and are logged rather than
-// being silently dropped into the unknown-packet path.
+// PHASE2-LEGACY(dialogs): delete this wrapper and its declaration in the end-of-phase
+// sweep - same reasoning as parseInspectionObject above. handleInspectCharacterAction
+// stays; the bridge dispatches into it.
 void ProtocolGame::parseInspectionCharacter(NetworkMessage &msg) {
 	if (oldProtocol || !player) {
 		return;
@@ -2672,7 +2672,18 @@ void ProtocolGame::parseInspectionCharacter(NetworkMessage &msg) {
 
 	uint8_t action = msg.getByte();
 	uint32_t creatureId = msg.get<uint32_t>();
+	handleInspectCharacterAction(action, creatureId);
+}
 
+// Client -> server inspect-character actions. The client's InspectionParseFlags numbering:
+// 1 invite, 2 ask, 3 allow, 4 inspect, 5 revoke, 6 allow all, 7 dismiss all - the same
+// values as the official INSPECT_PLAYER_COMMAND.
+//
+// Only the two account-wide actions and the inspect request are acted on here. The per-pair
+// invite/ask/allow/revoke negotiation would also need the server to broadcast inspection
+// state (0x77), which nothing here sends yet, so those arrive and are logged rather than
+// being silently dropped into the unknown-packet path.
+void ProtocolGame::handleInspectCharacterAction(uint8_t action, uint32_t creatureId) {
 	switch (action) {
 		case INSPECT_CHARACTER_ALLOW_ALL:
 			player->setInspectAllowedByAll(true);
@@ -2730,41 +2741,44 @@ void ProtocolGame::sendSessionEndInformation(SessionEndInformations information)
 }
 
 void ProtocolGame::sendItemInspection(uint16_t itemId, uint8_t itemCount, const std::shared_ptr<Item> &item, uint8_t inspectionType) {
+	// The legacy send already refused oldProtocol, so there is no old-version branch to
+	// keep - the envelope replaces the legacy framing outright, the slice 4 shape.
+	// Character inspection does not travel here: it goes out as CharacterInfo (0xDA).
 	if (oldProtocol) {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x76);
-	msg.addByte(0x00);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageInspectionList message;
+	message.set_subject(proto::INSPECT_OBJECT);
 	if (inspectionType == INSPECT_CYCLOPEDIA) {
-		msg.addByte(0x01);
+		message.set_window(proto::INSPECT_WINDOW_CYCLOPEDIA_ITEMINFO);
 	} else if (inspectionType == INSPECT_PROFICIENCY) {
-		msg.addByte(0x02);
+		message.set_window(proto::INSPECT_WINDOW_WEAPON_PROFICIENCY_ITEMINFO);
 	} else {
-		msg.addByte(0x00);
+		message.set_window(proto::INSPECT_WINDOW_INSPECT);
 	}
-	msg.add<uint32_t>(player->getID()); // 13.00 Creature ID
-	msg.addByte(0x01);
+	// Field 3 is UNRESOLVED in the recovered schema; both repos read it as the creature id
+	// and the legacy wire carried player->getID() here.
+	message.set_field3(player->getID());
 
 	const ItemType &it = Item::items[itemId];
-
+	auto* entry = message.add_entries();
 	if (item) {
-		msg.addString(item->getName());
-		AddItem(msg, item);
+		entry->set_name(item->getName());
+		addAppearanceInstance(entry->mutable_object(), item);
 	} else {
-		msg.addString(it.name);
-		AddItem(msg, it.id, itemCount, 0);
+		entry->set_name(it.name);
+		addAppearanceInstance(entry->mutable_object(), it.id, itemCount, 0);
 	}
-	msg.addByte(0);
+	// The legacy zero imbuement-count byte becomes an empty repeated field 3.
 
-	auto descriptions = Item::getDescriptions(it, item);
-	msg.addByte(descriptions.size());
-	for (const auto &description : descriptions) {
-		msg.addString(description.first);
-		msg.addString(description.second);
+	for (const auto &description : Item::getDescriptions(it, item)) {
+		auto* detail = entry->add_details();
+		detail->set_field1(description.first);
+		detail->set_field2(description.second);
 	}
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_INSPECTIONLIST, proto::GameserverMessageExtensions::inspection_list, message));
 }
 
 void ProtocolGame::parseFriendSystemAction(NetworkMessage &msg) {
@@ -9175,6 +9189,29 @@ void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint16_t slot, const std
 }
 
 void ProtocolGame::sendTextWindow(uint32_t windowTextId, const std::shared_ptr<Item> &item, uint16_t maxlen, bool canWrite) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageEditText message;
+		message.set_window_id(windowTextId);
+		addAppearanceInstance(message.mutable_object(), item);
+		const auto text = item->getAttribute<std::string>(ItemAttribute_t::TEXT);
+		// The legacy read-only encoding survives unchanged: a max length equal to the text
+		// length leaves the client nothing to add. read_only (field 7, inferred/low) stays
+		// unset rather than encoding a guessed polarity. The legacy 1281+ "traded" suffix
+		// byte was a constant 0 with no home in the official message.
+		message.set_max_length(canWrite ? maxlen : static_cast<uint32_t>(text.size()));
+		message.set_text(text);
+		const auto writer = item->getAttribute<std::string>(ItemAttribute_t::WRITER);
+		if (!writer.empty()) {
+			message.set_writer(writer);
+		}
+		if (const auto writtenDate = item->getAttribute<time_t>(ItemAttribute_t::DATE); writtenDate != 0) {
+			message.set_date(formatDateShort(writtenDate));
+		}
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_EDITTEXT, proto::GameserverMessageExtensions::edit_text, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0x96);
 	msg.add<uint32_t>(windowTextId);
@@ -9211,6 +9248,18 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, const std::shared_ptr<I
 }
 
 void ProtocolGame::sendTextWindow(uint32_t windowTextId, uint32_t itemId, const std::string &text) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageEditText message;
+		message.set_window_id(windowTextId);
+		addAppearanceInstance(message.mutable_object(), static_cast<uint16_t>(itemId), 1, 0);
+		// This overload has always been read-only on the wire: max length equals the text.
+		message.set_max_length(static_cast<uint32_t>(text.size()));
+		message.set_text(text);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_EDITTEXT, proto::GameserverMessageExtensions::edit_text, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0x96);
 	msg.add<uint32_t>(windowTextId);
@@ -9228,6 +9277,19 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, uint32_t itemId, const 
 }
 
 void ProtocolGame::sendHouseWindow(uint32_t windowTextId, const std::string &text) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageEditList message;
+		// This stack keeps the list kind server-side (the phase 1 slice 5 documented
+		// divergence): LIST_TYPE_UNKNOWN goes out explicitly, the client echoes it back,
+		// and playerUpdateHouseWindow requires exactly that value.
+		message.set_list_type(proto::LIST_TYPE_UNKNOWN);
+		message.set_window_id(windowTextId);
+		message.set_text(text);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_EDITLIST, proto::GameserverMessageExtensions::edit_list, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0x97);
 	msg.addByte(0x00);
@@ -9818,6 +9880,30 @@ void ProtocolGame::sendModalWindow(const ModalWindow &modalWindow) {
 		return;
 	}
 
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageShowModalDialog message;
+		message.set_dialog_id(modalWindow.id);
+		message.set_title(modalWindow.title);
+		message.set_message(modalWindow.message);
+		for (const auto &it : modalWindow.buttons) {
+			auto* button = message.add_buttons();
+			button->set_label(it.first);
+			button->set_value(it.second);
+		}
+		for (const auto &it : modalWindow.choices) {
+			auto* choice = message.add_choices();
+			choice->set_label(it.first);
+			choice->set_value(it.second);
+		}
+		// Named fields end the legacy escape-then-enter byte-order trap.
+		message.set_default_enter_button(modalWindow.defaultEnterButton);
+		message.set_default_escape_button(modalWindow.defaultEscapeButton);
+		message.set_priority(modalWindow.priority);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SHOWMODALDIALOG, proto::GameserverMessageExtensions::show_modal_dialog, message));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xFA);
 
@@ -10397,19 +10483,37 @@ void ProtocolGame::openImbuementWindow(const Imbuement_Window_t type, const std:
 }
 
 void ProtocolGame::sendMessageDialog(const std::string &message) {
-	NetworkMessage msg;
-	msg.addByte(0xED);
 	// CipSoft's MESSAGE has no generic arm - every value names a specific subsystem's
 	// dialog. This overload carries free-form text from 47 callers across prey, weekly
 	// tasks, bounty tasks and the player, so no value is right for all of them; PREY_MESSAGE
 	// is what has always been sent and is kept rather than guessed at. Callers that know
 	// their subsystem should pass its own kind instead.
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageShowMessageDialog protobufMessage;
+		protobufMessage.set_kind(proto::MESSAGE_PREY_MESSAGE);
+		protobufMessage.set_text(message);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SHOWRESULTDIALOG, proto::GameserverMessageExtensions::show_message_dialog, protobufMessage));
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0xED);
 	msg.addByte(MESSAGEDIALOG_PREY_MESSAGE);
 	msg.addString(message);
 	writeToOutputBuffer(msg);
 }
 
 void ProtocolGame::sendImbuementResult(const std::string &message) {
+	if (!oldProtocol) {
+		namespace proto = tibia::protobuf::protocol;
+		proto::GameserverMessageShowMessageDialog protobufMessage;
+		protobufMessage.set_kind(proto::MESSAGE_IMBUEMENT_ERROR);
+		protobufMessage.set_text(message);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SHOWRESULTDIALOG, proto::GameserverMessageExtensions::show_message_dialog, protobufMessage));
+		return;
+	}
+
 	NetworkMessage msg;
 	msg.addByte(0xED);
 	msg.addByte(MESSAGEDIALOG_IMBUEMENT_ERROR);
@@ -12594,6 +12698,51 @@ void ProtocolGame::parseProtobufBridge(NetworkMessage &msg) {
 				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::open_parent_container);
 				g_game().playerRequestOpenContainerFromDepotSearch(player->getID(), legacyObjectPositionOf(message.position(), proto::ObjectIdentifier()).first);
 			}
+			break;
+
+		// Dialogs (phase 2 slice 5). Each case rebuilds the legacy arguments and feeds the
+		// same g_game() entry point its legacy parser does.
+		case proto::GAMECLIENT_MESSAGE_TYPE_EDITTEXT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::edit_text)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::edit_text);
+				g_game().playerWriteItem(player->getID(), message.window_id(), message.text());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_EDITLIST:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::edit_list)) {
+				// list_type echoes the LIST_TYPE_UNKNOWN this stack always sends;
+				// playerUpdateHouseWindow validates exactly that (the phase 1 slice 5
+				// documented divergence - the real list kind lives server-side).
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::edit_list);
+				g_game().playerUpdateHouseWindow(player->getID(), static_cast<uint8_t>(message.list_type()), message.window_id(), message.text());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_ANSWERMODALDIALOG:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::answer_modal_dialog)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::answer_modal_dialog);
+				g_game().playerAnswerModalWindow(player->getID(), message.dialog_id(), static_cast<uint8_t>(message.button()), static_cast<uint8_t>(message.choice()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_INSPECTOBJECT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::inspect_object)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::inspect_object);
+				const auto location = static_cast<uint8_t>(message.location());
+				if (location == INSPECT_NORMALOBJECT) {
+					g_game().playerInspectItem(player, legacyObjectPositionOf(message.position(), message.identifier()).first);
+				} else if (location == INSPECT_NPCTRADE || location == INSPECT_CYCLOPEDIA || location == INSPECT_PROFICIENCY) {
+					g_game().playerInspectItem(player, static_cast<uint16_t>(message.identifier().object_type_id()), static_cast<int8_t>(message.identifier().tier_or_subtype()), location);
+				}
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_INSPECTPLAYER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::inspect_player)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::inspect_player);
+				handleInspectCharacterAction(static_cast<uint8_t>(message.command()), message.creature_id());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_GETOBJECTINFO:
+			// Accepted and dropped, exactly like the empty legacy 0xF3 case: this server
+			// implements no object-info reply.
 			break;
 
 		default:
