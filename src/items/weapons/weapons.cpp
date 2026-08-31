@@ -35,25 +35,26 @@ Weapons &Weapons::getInstance() {
 }
 
 namespace {
-	// Map the weapon attack effect (CONST_ME_*_ATTACK 304-309) to the client's CreatureMark
-	// weaponType (1-6). The client jump-table is NOT contiguous: sword 304->1, club 305->2,
-	// axe 306->3, fist 309->4, monk staff 307->5, monk daggers 308->6.
-	uint8_t markWeaponType(uint16_t attackEffect) {
+	// Map the weapon attack effect (CONST_ME_*_ATTACK 304-309) to the official
+	// CREATUREMARKWEAPONTYPE the is-attacked mark carries. The client picks the swing
+	// effect back out of the weapon type; its jump-table is NOT contiguous - bare fist
+	// is 309, after the two monk swings - which is why this is a switch, not arithmetic.
+	CreatureMarkWeaponType_t markWeaponType(uint16_t attackEffect) {
 		switch (attackEffect) {
 			case CONST_ME_SWORD_ATTACK:
-				return 1;
+				return CREATUREMARK_WEAPON_SWORD;
 			case CONST_ME_CLUB_ATTACK:
-				return 2;
+				return CREATUREMARK_WEAPON_CLUB;
 			case CONST_ME_AXE_ATTACK:
-				return 3;
+				return CREATUREMARK_WEAPON_AXE;
 			case CONST_ME_FIST_ATTACK:
-				return 4;
+				return CREATUREMARK_WEAPON_BARE_FIST;
 			case CONST_ME_MONK_STAFF_ATTACK:
-				return 5;
+				return CREATUREMARK_WEAPON_TWO_HANDED_FIST;
 			case CONST_ME_MONK_DAGGERS_ATTACK:
-				return 6;
+				return CREATUREMARK_WEAPON_DUAL_WIELDING_FIST;
 			default:
-				return 0;
+				return CREATUREMARK_WEAPON_UNKNOWN;
 		}
 	}
 } // namespace
@@ -260,7 +261,7 @@ bool Weapon::useFist(const std::shared_ptr<Player> &player, const std::shared_pt
 	damage.primary.type = params.combatType;
 	damage.primary.value = -normal_random(0, maxDamage);
 
-	player->sendCreatureSquare(target, SQ_PLAYER_ATTACK, SQ_FIST);
+	player->sendCreatureMarkIsAttacked(target, CREATUREMARK_WEAPON_BARE_FIST);
 	Combat::doCombatHealth(player, target, damage, params);
 	if (!player->hasFlag(PlayerFlags_t::NotGainSkill) && player->getAddAttackSkill()) {
 		player->addSkillAdvance(SKILL_FIST, 1);
@@ -311,7 +312,7 @@ void Weapon::internalUseWeapon(const std::shared_ptr<Player> &player, const std:
 	if (cleavePercent == 0) {
 		const uint16_t attackEffect = getWeaponAttackEffect(item, player);
 		if (attackEffect != CONST_ME_NONE) {
-			player->sendCreatureSquare(target, SQ_PLAYER_ATTACK, static_cast<SquareColor_t>(markWeaponType(attackEffect)));
+			player->sendCreatureMarkIsAttacked(target, markWeaponType(attackEffect));
 		}
 	}
 

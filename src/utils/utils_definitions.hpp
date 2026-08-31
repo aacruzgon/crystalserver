@@ -446,9 +446,28 @@ enum Fluids_t : uint8_t {
 
 enum SquareColor_t : uint8_t {
 	SQ_COLOR_BLACK = 0,
-	SQ_PLAYER_ATTACK = 3, // CreatureMark markType = IsAttacked (the swing)
-	SQ_FIST = 4, // weaponType = fist (client jump-table: wt4 -> effect 309)
-	SQ_CREATURE_SQUARE_LEGACY = 255, // omit weaponType to send legacy border mark (opcode 0x93 + 0x01 + color)
+};
+
+// Discriminator byte of the CreatureMarks message (0x93): 1 and 2 are the coloured
+// border arm (official CREATUREMARKBORDERTYPE), 3 selects the is-attacked arm, which
+// carries a CreatureMarkWeaponType_t instead of a color.
+enum CreatureMarkType_t : uint8_t {
+	CREATUREMARK_BORDER_TEMPORARY = 1,
+	CREATUREMARK_BORDER_PERMANENT = 2,
+	CREATUREMARK_IS_ATTACKED = 3,
+};
+
+// official CREATUREMARKWEAPONTYPE. The client picks the melee swing effect from this;
+// its jump-table is not contiguous: sword->304, club->305, axe->306, two-handed fist
+// (monk staff)->307, dual-wielding fist (monk daggers)->308, bare fist->309.
+enum CreatureMarkWeaponType_t : uint8_t {
+	CREATUREMARK_WEAPON_UNKNOWN = 0,
+	CREATUREMARK_WEAPON_SWORD = 1,
+	CREATUREMARK_WEAPON_CLUB = 2,
+	CREATUREMARK_WEAPON_AXE = 3,
+	CREATUREMARK_WEAPON_BARE_FIST = 4,
+	CREATUREMARK_WEAPON_TWO_HANDED_FIST = 5,
+	CREATUREMARK_WEAPON_DUAL_WIELDING_FIST = 6,
 };
 
 enum TextColor_t : uint8_t {

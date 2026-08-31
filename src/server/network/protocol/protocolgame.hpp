@@ -452,7 +452,8 @@ private:
 	void sendWorldLight(const LightInfo &lightInfo);
 	void sendTibiaTime(int32_t time);
 
-	void sendCreatureSquare(const std::shared_ptr<Creature> &creature, SquareColor_t markType, SquareColor_t weaponType = SQ_CREATURE_SQUARE_LEGACY);
+	void sendCreatureSquare(const std::shared_ptr<Creature> &creature, SquareColor_t color);
+	void sendCreatureMarkIsAttacked(const std::shared_ptr<Creature> &creature, CreatureMarkWeaponType_t weaponType);
 
 	void sendSpellCooldown(uint16_t spellId, uint32_t time);
 	void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time);

@@ -4094,24 +4094,32 @@ void ProtocolGame::sendCreatureType(const std::shared_ptr<Creature> &creature, u
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendCreatureSquare(const std::shared_ptr<Creature> &creature, SquareColor_t markType, SquareColor_t weaponType) {
+void ProtocolGame::sendCreatureSquare(const std::shared_ptr<Creature> &creature, SquareColor_t color) {
 	if (!canSee(creature)) {
 		return;
 	}
 
+	// the border arm of CreatureMarks: temporary coloured border (e.g. black on an attacker)
 	NetworkMessage msg;
 	msg.addByte(0x93);
 	msg.add<uint32_t>(creature->getID());
-	if (weaponType == SQ_CREATURE_SQUARE_LEGACY) {
-		// Legacy border mark (e.g. SQ_COLOR_BLACK on attacker).
-		msg.addByte(0x01);
-		msg.addByte(markType);
-	} else {
-		// 15.x CreatureMark "IsAttacked" (markType 3) = directional melee swing.
-		// [u32 creatureId][u8 markType][u8 weaponType] — weaponType maps to effect 304-309.
-		msg.addByte(markType);
-		msg.addByte(weaponType);
+	msg.addByte(CREATUREMARK_BORDER_TEMPORARY);
+	msg.addByte(color);
+	writeToOutputBuffer(msg);
+}
+
+void ProtocolGame::sendCreatureMarkIsAttacked(const std::shared_ptr<Creature> &creature, CreatureMarkWeaponType_t weaponType) {
+	if (!canSee(creature)) {
+		return;
 	}
+
+	// the is-attacked arm of CreatureMarks: the client derives the melee swing effect
+	// from the weapon type, so this message carries no effect id of its own
+	NetworkMessage msg;
+	msg.addByte(0x93);
+	msg.add<uint32_t>(creature->getID());
+	msg.addByte(CREATUREMARK_IS_ATTACKED);
+	msg.addByte(weaponType);
 	writeToOutputBuffer(msg);
 }
 
