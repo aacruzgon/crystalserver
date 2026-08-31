@@ -1891,30 +1891,32 @@ void ProtocolGame::parseAutoWalk(NetworkMessage &msg) {
 
 	std::vector<Direction> path(numdirs, DIRECTION_NORTH);
 	for (size_t i = numdirs; --i < numdirs;) {
+		// The byte is CipSoft's STEP_DIRECTION, whose numbering matches neither Direction
+		// nor the facing byte - east is 1 and there is no zero arm.
 		const uint8_t rawdir = msg.getByte();
 		switch (rawdir) {
-			case 1:
+			case STEP_DIRECTION_EAST:
 				path[i] = DIRECTION_EAST;
 				break;
-			case 2:
+			case STEP_DIRECTION_NORTHEAST:
 				path[i] = DIRECTION_NORTHEAST;
 				break;
-			case 3:
+			case STEP_DIRECTION_NORTH:
 				path[i] = DIRECTION_NORTH;
 				break;
-			case 4:
+			case STEP_DIRECTION_NORTHWEST:
 				path[i] = DIRECTION_NORTHWEST;
 				break;
-			case 5:
+			case STEP_DIRECTION_WEST:
 				path[i] = DIRECTION_WEST;
 				break;
-			case 6:
+			case STEP_DIRECTION_SOUTHWEST:
 				path[i] = DIRECTION_SOUTHWEST;
 				break;
-			case 7:
+			case STEP_DIRECTION_SOUTH:
 				path[i] = DIRECTION_SOUTH;
 				break;
-			case 8:
+			case STEP_DIRECTION_SOUTHEAST:
 				path[i] = DIRECTION_SOUTHEAST;
 				break;
 			default:

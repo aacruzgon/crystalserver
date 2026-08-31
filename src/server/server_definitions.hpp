@@ -208,6 +208,22 @@ enum DepotSearchRetrieveSource_t : uint8_t {
 	DEPOT_SEARCH_RETRIEVE_SOURCE_INBOX = 2
 };
 
+// CipSoft's STEP_DIRECTION, the wire encoding of one auto-walk step in
+// GameclientMessageGoPath. A different enum from Direction, which is the four-value
+// facing: here east is 1, the values run counter-clockwise, and there is no zero arm.
+// It also disagrees with Direction's own diagonal numbering (SOUTHWEST is 4 there and
+// 6 here), so neither enum can stand in for the other.
+enum StepDirection_t : uint8_t {
+	STEP_DIRECTION_EAST = 1,
+	STEP_DIRECTION_NORTHEAST = 2,
+	STEP_DIRECTION_NORTH = 3,
+	STEP_DIRECTION_NORTHWEST = 4,
+	STEP_DIRECTION_WEST = 5,
+	STEP_DIRECTION_SOUTHWEST = 6,
+	STEP_DIRECTION_SOUTH = 7,
+	STEP_DIRECTION_SOUTHEAST = 8
+};
+
 // CipSoft's QUICK_LOOT_MODE - which corpses a quick-loot request covers.
 enum QuickLootMode_t : uint8_t {
 	QUICK_LOOT_MODE_SINGLE_CORPSE = 0,

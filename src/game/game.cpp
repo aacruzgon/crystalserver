@@ -6999,6 +6999,14 @@ bool Game::isSightClear(const Position &fromPos, const Position &toPos, bool flo
 }
 
 bool Game::internalCreatureTurn(const std::shared_ptr<Creature> &creature, Direction dir) {
+	// The stored direction goes on the wire as CipSoft's CREATURE_DIRECTION, which only
+	// has the four cardinal values. Every C++ caller passes one, but Lua's
+	// creature:setDirection() forwards any number here, and a stored diagonal would be
+	// misread by the client - its diagonal numbering differs from this enum's.
+	if (dir > DIRECTION_WEST) {
+		return false;
+	}
+
 	if (creature->getDirection() == dir) {
 		return false;
 	}
