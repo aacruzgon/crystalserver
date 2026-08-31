@@ -6286,12 +6286,12 @@ message Gem {
   optional uint32 field7 = 7;                             // UNRESOLVED
 }
 
-// A one-shot effect played on a field.
+// A one-shot effect played on a field. The effect id rides in the enclosing AppearanceInstance's appearance_id - every graphical entry in the tutorial dump carries it there (ids 1, 11, 13, 44, 173).
 // area: effects
 // extension 104 of AppearanceInstance
 message GraphicalEffectAppearanceInstance {
   optional Coordinate position = 1;                       // inferred/high
-  optional uint32 effect_id = 2;                          // inferred/med
+  optional uint32 delay_ms = 2;                           // inferred/low; tutorial session dump falsified the old effect_id reading: all 25 instances carry a valid effect id in the enclosing AppearanceInstance.appearance_id while this field, though always written, is always 0. The legacy effects batch's only per-effect datum with no other protobuf home is the MAGIC_EFFECTS_DELAY milliseconds, and this is the message's only unexplained field - the same correspondence argument the containers slice used. No dump instance is nonzero (the tutorial plays no delayed effects), so the delay reading is positional.
   optional EFFECT_SOURCE source = 3;                      // inferred/high; selects which effect-opacity option applies
 }
 
@@ -6686,7 +6686,7 @@ message MinimapMarkerFileContent {
   repeated MinimapMarker field1 = 1;                      // UNRESOLVED
 }
 
-// A missile flying from one field to another.
+// A missile flying from one field to another. The missile id rides in the enclosing AppearanceInstance's appearance_id - the tutorial dump's one missile carries id 37 there.
 // area: effects
 // extension 105 of AppearanceInstance
 message MissileEffectAppearanceInstance {
@@ -7094,7 +7094,7 @@ message SkillInfo {
 message SoundEffectAppearanceInstance {
   optional Coordinate position = 1;                       // inferred/high
   optional uint32 sound_id = 2;                           // inferred/med
-  optional SOUND_TRIGGER_TYPE trigger_type = 3;           // inferred/high
+  optional MISSILE_EFFECT_KIND kind = 3;                  // inferred/med; was trigger_type (SOUND_TRIGGER_TYPE), but that reading would label the tutorial dump's 23 positional numeric sound effects with 0 = AMBIENCE_STREAM, contradicting SoundTrigger's own settled arm mapping (numeric = field 4 = type 2). MISSILE_EFFECT_KIND fits the same 0..2 range instead: 0 = NONE on every dump instance (all standalone main sounds), and the legacy secondary-sound entry writes exactly 1 = MISSILE_HIT in this slot - the byte the legacy parser reads and discards. This also gives the otherwise-orphaned MISSILE_EFFECT_KIND enum its consumer.
   optional EFFECT_SOURCE source = 4;                      // inferred/high; selects the volume category
 }
 

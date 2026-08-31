@@ -4302,9 +4302,18 @@ void ProtocolGame::sendCreatureIcon(const std::shared_ptr<Creature> &creature) {
 }
 
 void ProtocolGame::sendWorldLight(const LightInfo &lightInfo) {
-	NetworkMessage msg;
-	AddWorldLight(msg, lightInfo);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		AddWorldLight(msg, lightInfo);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageAmbientLight message;
+	message.set_intensity(lightInfo.level);
+	message.set_color(lightInfo.color);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_AMBIENTE, proto::GameserverMessageExtensions::ambient_light, message));
 }
 
 void ProtocolGame::sendTibiaTime(int32_t time) {
@@ -8322,23 +8331,30 @@ void ProtocolGame::sendDistanceShoot(const Position &from, const Position &to, u
 	if (oldProtocol && type > 0xFF) {
 		return;
 	}
-	NetworkMessage msg;
 	if (oldProtocol) {
+		NetworkMessage msg;
 		msg.addByte(0x85);
 		msg.addPosition(from);
 		msg.addPosition(to);
 		msg.addByte(static_cast<uint8_t>(type));
-	} else {
-		msg.addByte(0x83);
-		msg.addPosition(from);
-		msg.addByte(MAGIC_EFFECTS_CREATE_DISTANCEEFFECT);
-		msg.add<uint16_t>(type);
-		msg.addByte(static_cast<uint8_t>(static_cast<int8_t>(static_cast<int32_t>(to.x) - static_cast<int32_t>(from.x))));
-		msg.addByte(static_cast<uint8_t>(static_cast<int8_t>(static_cast<int32_t>(to.y) - static_cast<int32_t>(from.y))));
-		msg.addByte(static_cast<uint8_t>(source));
-		msg.addByte(MAGIC_EFFECTS_END_LOOP);
+		writeToOutputBuffer(msg);
+		return;
 	}
-	writeToOutputBuffer(msg);
+
+	// The missile id rides in AppearanceInstance.appearance_id and the endpoints are
+	// absolute coordinates - recorded official traffic carries missiles exactly this way,
+	// and omits the source field when it is GLOBAL.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageGraphicalEffects message;
+	auto* instance = message.add_effects();
+	instance->set_appearance_id(type);
+	auto* missile = instance->MutableExtension(proto::AppearanceInstanceExtensions::missile_effect);
+	setCoordinate(missile->mutable_from(), from);
+	setCoordinate(missile->mutable_to(), to);
+	if (source != SourceEffect_t::GLOBAL) {
+		missile->set_source(static_cast<proto::EFFECT_SOURCE>(source));
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_GRAPHICALEFFECTS, proto::GameserverMessageExtensions::graphical_effects, message));
 }
 
 void ProtocolGame::sendRestingStatus(uint8_t protection) {
@@ -8391,20 +8407,29 @@ void ProtocolGame::sendMagicEffect(const Position &pos, uint16_t type, SourceEff
 		return;
 	}
 
-	NetworkMessage msg;
 	if (oldProtocol) {
+		NetworkMessage msg;
 		msg.addByte(0x83);
 		msg.addPosition(pos);
 		msg.addByte(static_cast<uint8_t>(type));
-	} else {
-		msg.addByte(0x83);
-		msg.addPosition(pos);
-		msg.addByte(MAGIC_EFFECTS_CREATE_EFFECT);
-		msg.add<uint16_t>(type);
-		msg.addByte(static_cast<uint8_t>(source));
-		msg.addByte(MAGIC_EFFECTS_END_LOOP);
+		writeToOutputBuffer(msg);
+		return;
 	}
-	writeToOutputBuffer(msg);
+
+	// The effect id rides in AppearanceInstance.appearance_id - recorded official traffic
+	// carries every graphical effect that way, always writes delay_ms (0 = play now), and
+	// omits the source field when it is GLOBAL.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageGraphicalEffects message;
+	auto* instance = message.add_effects();
+	instance->set_appearance_id(type);
+	auto* graphical = instance->MutableExtension(proto::AppearanceInstanceExtensions::graphical_effect);
+	setCoordinate(graphical->mutable_position(), pos);
+	graphical->set_delay_ms(0);
+	if (source != SourceEffect_t::GLOBAL) {
+		graphical->set_source(static_cast<proto::EFFECT_SOURCE>(source));
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_GRAPHICALEFFECTS, proto::GameserverMessageExtensions::graphical_effects, message));
 }
 
 void ProtocolGame::sendMagicEffects(const std::vector<MagicEffectEntry> &effects, SourceEffect_t source) {
@@ -8421,93 +8446,56 @@ void ProtocolGame::sendMagicEffects(const std::vector<MagicEffectEntry> &effects
 		return;
 	}
 
-	std::vector<const MagicEffectEntry*> visible;
-	visible.reserve(effects.size());
+	// The envelope carries absolute coordinates, so the legacy anchor/delta machinery -
+	// the north-west corner hunt, the row-of-18 offsets, the same-floor and reach
+	// restrictions - has no equivalent here and went with the framing. Per-entry timing
+	// rides delay_ms, the protobuf home of the legacy MAGIC_EFFECTS_DELAY.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageGraphicalEffects message;
 	for (const auto &effect : effects) {
-		if (canSee(effect.position)) {
-			visible.emplace_back(&effect);
-		}
-	}
-
-	if (visible.empty()) {
-		return;
-	}
-
-	// The anchor is the packet's own position and the deltas only ever add, so it has to be
-	// the north-west corner of what is left after the visibility filter - which is why this
-	// is worked out per player rather than once by the caller.
-	const uint8_t floor = visible.front()->position.z;
-	Position anchor = visible.front()->position;
-	for (const auto* effect : visible) {
-		anchor.x = std::min<uint16_t>(anchor.x, effect->position.x);
-		anchor.y = std::min<uint16_t>(anchor.y, effect->position.y);
-	}
-
-	std::vector<std::pair<uint32_t, const MagicEffectEntry*>> ordered;
-	ordered.reserve(visible.size());
-	for (const auto* effect : visible) {
-		const auto &pos = effect->position;
-		const uint32_t offsetX = pos.x - anchor.x;
-		if (pos.z != floor || offsetX >= MAGIC_EFFECTS_DELTA_ROW_WIDTH) {
-			g_logger().warn("[ProtocolGame::sendMagicEffects] effect {} at {} is out of reach of anchor {}, dropping it.", effect->type, pos.toString(), anchor.toString());
+		if (!canSee(effect.position)) {
 			continue;
 		}
 
-		ordered.emplace_back(static_cast<uint32_t>(pos.y - anchor.y) * MAGIC_EFFECTS_DELTA_ROW_WIDTH + offsetX, effect);
+		auto* instance = message.add_effects();
+		instance->set_appearance_id(effect.type);
+		auto* graphical = instance->MutableExtension(proto::AppearanceInstanceExtensions::graphical_effect);
+		setCoordinate(graphical->mutable_position(), effect.position);
+		graphical->set_delay_ms(effect.delayMs);
+		if (source != SourceEffect_t::GLOBAL) {
+			graphical->set_source(static_cast<proto::EFFECT_SOURCE>(source));
+		}
 	}
 
-	if (ordered.empty()) {
+	if (message.effects_size() == 0) {
 		return;
 	}
 
-	std::ranges::sort(ordered, [](const auto &lhs, const auto &rhs) {
-		return lhs.first < rhs.first;
-	});
-
-	NetworkMessage msg;
-	msg.addByte(0x83);
-	msg.addPosition(anchor);
-
-	uint32_t cursor = 0;
-	for (const auto &[offset, effect] : ordered) {
-		// A delta carries a single byte, so a longer step takes several of them. Entries
-		// sharing a tile need none at all, which is why they are sorted rather than deduped.
-		while (cursor < offset) {
-			const uint32_t step = std::min<uint32_t>(offset - cursor, 0xFF);
-			msg.addByte(MAGIC_EFFECTS_DELTA);
-			msg.addByte(static_cast<uint8_t>(step));
-			cursor += step;
-		}
-
-		// The client consumes a pending delay with the next effect it creates and clears it,
-		// so one goes out per delayed entry rather than once for the packet.
-		if (effect->delayMs > 0) {
-			msg.addByte(MAGIC_EFFECTS_DELAY);
-			msg.add<uint16_t>(effect->delayMs);
-		}
-
-		msg.addByte(MAGIC_EFFECTS_CREATE_EFFECT);
-		msg.add<uint16_t>(effect->type);
-		msg.addByte(static_cast<uint8_t>(source));
-	}
-
-	msg.addByte(MAGIC_EFFECTS_END_LOOP);
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_GRAPHICALEFFECTS, proto::GameserverMessageExtensions::graphical_effects, message));
 }
 
 void ProtocolGame::removeMagicEffect(const Position &pos, uint16_t type) {
 	if (oldProtocol && type > 0xFF) {
 		return;
 	}
-	NetworkMessage msg;
-	msg.addByte(0x84);
-	msg.addPosition(pos);
 	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x84);
+		msg.addPosition(pos);
 		msg.addByte(static_cast<uint8_t>(type));
-	} else {
-		msg.add<uint16_t>(type);
+		writeToOutputBuffer(msg);
+		return;
 	}
-	writeToOutputBuffer(msg);
+
+	// No recorded official traffic carries this message, so the instance is encoded the
+	// same way GraphicalEffects encodes a one-shot effect: the id in appearance_id, the
+	// field in the graphical_effect extension's position.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageRemoveGraphicalEffect message;
+	auto* instance = message.mutable_effect();
+	instance->set_appearance_id(type);
+	setCoordinate(instance->MutableExtension(proto::AppearanceInstanceExtensions::graphical_effect)->mutable_position(), pos);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_REMOVEGRAPHICALEFFECT, proto::GameserverMessageExtensions::remove_graphical_effect, message));
 }
 
 void ProtocolGame::sendCreatureHealth(const std::shared_ptr<Creature> &creature) {
@@ -11682,20 +11670,23 @@ void ProtocolGame::sendSingleSoundEffect(const Position &pos, SoundEffect_t id, 
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x83);
-	msg.addPosition(pos);
-	msg.addByte(MAGIC_EFFECTS_CREATE_SOUND_MAIN_EFFECT); // Sound effect type
-	msg.addByte(static_cast<uint8_t>(source)); // Sound source type
-	msg.add<uint16_t>(static_cast<uint16_t>(id)); // Sound id
-	msg.addByte(0x00); // Breaking the effects loop
+	// A sound instance carries no appearance_id, and recorded official traffic always
+	// writes all four extension fields - kind is NONE for a standalone main sound, and
+	// the source (the volume category) goes out even when it is 0.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageGraphicalEffects message;
+	auto* sound = message.add_effects()->MutableExtension(proto::AppearanceInstanceExtensions::sound_effect);
+	setCoordinate(sound->mutable_position(), pos);
+	sound->set_sound_id(static_cast<uint32_t>(id));
+	sound->set_kind(proto::NONE);
+	sound->set_source(static_cast<proto::EFFECT_SOURCE>(source));
 	if (player) {
 		SoundParityTrace::instance().soundEffect(
 			player->getID(), player->getName(), pos.x, pos.y, pos.z,
 			static_cast<uint16_t>(id), static_cast<uint8_t>(source)
 		);
 	}
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_GRAPHICALEFFECTS, proto::GameserverMessageExtensions::graphical_effects, message));
 }
 
 void ProtocolGame::sendDoubleSoundEffect(
@@ -11709,22 +11700,23 @@ void ProtocolGame::sendDoubleSoundEffect(
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x83);
-	msg.addPosition(pos);
+	// Two sound instances in one envelope. The secondary's kind is MISSILE_HIT - the very
+	// value the legacy framing wrote as its leading enum byte.
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageGraphicalEffects message;
 
-	// Primary sound
-	msg.addByte(MAGIC_EFFECTS_CREATE_SOUND_MAIN_EFFECT); // Sound effect type
-	msg.addByte(static_cast<uint8_t>(mainSource)); // Sound source type
-	msg.add<uint16_t>(static_cast<uint16_t>(mainSoundId)); // Sound id
+	auto* mainSound = message.add_effects()->MutableExtension(proto::AppearanceInstanceExtensions::sound_effect);
+	setCoordinate(mainSound->mutable_position(), pos);
+	mainSound->set_sound_id(static_cast<uint32_t>(mainSoundId));
+	mainSound->set_kind(proto::NONE);
+	mainSound->set_source(static_cast<proto::EFFECT_SOURCE>(mainSource));
 
-	// Secondary sound (Can be an array too, but not necessary here)
-	msg.addByte(MAGIC_EFFECTS_CREATE_SOUND_SECONDARY_EFFECT); // Multiple effect type
-	msg.addByte(0x01); // Useless ENUM (So far)
-	msg.addByte(static_cast<uint8_t>(secondarySource)); // Sound source type
-	msg.add<uint16_t>(static_cast<uint16_t>(secondarySoundId)); // Sound id
+	auto* secondarySound = message.add_effects()->MutableExtension(proto::AppearanceInstanceExtensions::sound_effect);
+	setCoordinate(secondarySound->mutable_position(), pos);
+	secondarySound->set_sound_id(static_cast<uint32_t>(secondarySoundId));
+	secondarySound->set_kind(proto::MISSILE_HIT);
+	secondarySound->set_source(static_cast<proto::EFFECT_SOURCE>(secondarySource));
 
-	msg.addByte(0x00); // Breaking the effects loop
 	if (player) {
 		SoundParityTrace::instance().soundEffect(
 			player->getID(), player->getName(), pos.x, pos.y, pos.z,
@@ -11732,7 +11724,7 @@ void ProtocolGame::sendDoubleSoundEffect(
 			static_cast<uint16_t>(secondarySoundId), static_cast<uint8_t>(secondarySource)
 		);
 	}
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_GRAPHICALEFFECTS, proto::GameserverMessageExtensions::graphical_effects, message));
 }
 
 void ProtocolGame::sendAmbientSoundEffect(const SoundAmbientEffect_t id) {
@@ -11740,14 +11732,14 @@ void ProtocolGame::sendAmbientSoundEffect(const SoundAmbientEffect_t id) {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x85);
-	msg.addByte(0x00);
-	msg.add<uint16_t>(id);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageSoundTrigger message;
+	message.set_trigger_type(proto::SOUND_TRIGGER_TYPE_AMBIENCE_STREAM);
+	message.set_ambience_stream_id(static_cast<uint32_t>(id));
 	if (player) {
 		SoundParityTrace::instance().anthem(player->getID(), player->getName(), "ambience", static_cast<uint16_t>(id));
 	}
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SOUNDTRIGGER, proto::GameserverMessageExtensions::sound_trigger, message));
 }
 
 void ProtocolGame::sendMusicSoundEffect(const SoundMusicEffect_t id) {
@@ -11755,14 +11747,14 @@ void ProtocolGame::sendMusicSoundEffect(const SoundMusicEffect_t id) {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x85);
-	msg.addByte(0x01);
-	msg.add<uint16_t>(id);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageSoundTrigger message;
+	message.set_trigger_type(proto::SOUND_TRIGGER_TYPE_MUSIC_TEMPLATE);
+	message.set_music_template_id(static_cast<uint32_t>(id));
 	if (player) {
 		SoundParityTrace::instance().anthem(player->getID(), player->getName(), "music", static_cast<uint16_t>(id));
 	}
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SOUNDTRIGGER, proto::GameserverMessageExtensions::sound_trigger, message));
 }
 
 void ProtocolGame::parseOpenWheel(NetworkMessage &msg) {

@@ -136,30 +136,6 @@ enum CyclopediaCharacterInfo_OutfitType_t : uint8_t {
 	CYCLOPEDIA_CHARACTERINFO_OUTFITTYPE_STORE = 2
 };
 
-enum MagicEffectsType_t : uint8_t {
-	// ends magic effect loop
-	MAGIC_EFFECTS_END_LOOP = 0,
-	// needs uint8_t delta after type to adjust position
-	MAGIC_EFFECTS_DELTA = 1,
-	// needs uint16_t delay after type to delay in miliseconds effect display
-	MAGIC_EFFECTS_DELAY = 2,
-	// needs uint16_t effectid and uint8_t actor after type
-	MAGIC_EFFECTS_CREATE_EFFECT = 3,
-	// needs uint16_t effectid, deltaX(int8_t), deltaY(int8_t) and uint8_t actor after type
-	MAGIC_EFFECTS_CREATE_DISTANCEEFFECT = 4,
-	// needs uint16_t effectid, deltaX(int8_t), deltaY(int8_t) and uint8_t actor after type
-	MAGIC_EFFECTS_CREATE_DISTANCEEFFECT_REVERSED = 5,
-	// needs uint8_t soundSourceType and uint16_t soundId after type
-	MAGIC_EFFECTS_CREATE_SOUND_MAIN_EFFECT = 6,
-	// needs uint8_t soundSourceType, uint16_t soundId after type
-	MAGIC_EFFECTS_CREATE_SOUND_SECONDARY_EFFECT = 7,
-};
-
-// MAGIC_EFFECTS_DELTA is a running total the client decodes as (total % 18, total / 18) tiles
-// from the position the packet opened with, so a batch can only address the 18-wide band at or
-// south-east of its anchor.
-static constexpr uint32_t MAGIC_EFFECTS_DELTA_ROW_WIDTH = 18;
-
 enum ImpactAnalyzerAndTracker_t : uint8_t {
 	ANALYZER_HEAL = 0,
 	ANALYZER_DAMAGE_DEALT = 1,
