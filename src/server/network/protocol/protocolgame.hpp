@@ -174,6 +174,8 @@ private:
 	void sendDepotItems(const ItemsTierCountList &itemMap, uint16_t count);
 	void sendCloseDepotSearch();
 	void sendDepotSearchResultDetail(uint16_t itemId, uint8_t tier, uint32_t depotCount, const ItemVector &depotItems, uint32_t inboxCount, const ItemVector &inboxItems, uint32_t stashCount);
+	// PHASE2-LEGACY(depotsearch): the five parse* declarations below go with their
+	// definitions at the end of phase 2; the bridge feeds the same game entry points.
 	void parseOpenDepotSearch();
 	void parseCloseDepotSearch();
 	void parseDepotSearchItemRequest(NetworkMessage &msg);

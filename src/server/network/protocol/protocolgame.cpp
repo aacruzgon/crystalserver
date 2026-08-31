@@ -1438,6 +1438,10 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 			parseStashWithdraw(msg);
 			break;
 		case 0x29:
+			// PHASE2-LEGACY(depotsearch): the bridge carries DEPOTSEARCHRETRIEVE (41).
+			// No supported client sends this framing (the crystal client has no depot
+			// search, and the old protocol never had it); delete the whole case at the
+			// end of phase 2.
 			parseRetrieveDepotSearch(msg);
 			break;
 		case 0x2A:
@@ -1604,6 +1608,11 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 		case 0x91:
 			parseQuickLootBlackWhitelist(msg);
 			break;
+		// PHASE2-LEGACY(depotsearch): the bridge carries OPENDEPOTSEARCH (146),
+		// CLOSEDEPOTSEARCH (147), DEPOTSEARCHTYPET (148) and OPENPARENTCONTAINER (149).
+		// No supported client sends this framing (the crystal client has no depot search,
+		// and the old protocol never had it); delete these four cases at the end of
+		// phase 2.
 		case 0x92:
 			parseOpenDepotSearch();
 			break;
@@ -10983,26 +10992,27 @@ void ProtocolGame::sendCreatureHelpers(uint32_t creatureId, uint16_t helpers) {
 	writeToOutputBuffer(msg);
 }
 
-void ProtocolGame::sendDepotItems(const ItemsTierCountList &itemMap, uint16_t count) {
+void ProtocolGame::sendDepotItems(const ItemsTierCountList &itemMap, uint16_t /* count - the repeated field carries its own size */) {
 	if (!player || oldProtocol) {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x94);
-
-	msg.add<uint16_t>(count); // List size
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageDepotSearchResult message;
 	for (const auto &itemMap_it : itemMap) {
 		for (const auto &[itemTier, itemCount] : itemMap_it.second) {
-			msg.add<uint16_t>(itemMap_it.first); // Item ID
+			auto* entry = message.add_items();
+			entry->mutable_identifier()->set_object_type_id(itemMap_it.first);
 			if (itemTier > 0) {
-				msg.addByte(itemTier - 1);
+				// The map keys upgradeable items as tier + 1 so 0 can mean untiered;
+				// the wire carries the real tier.
+				entry->mutable_identifier()->set_tier(itemTier - 1);
 			}
-			msg.add<uint16_t>(static_cast<uint16_t>(itemCount));
+			entry->set_count(itemCount);
 		}
 	}
 
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_DEPOTSEARCHRESULT, proto::GameserverMessageExtensions::depot_search_result, message));
 }
 
 void ProtocolGame::sendCloseDepotSearch() {
@@ -11010,9 +11020,8 @@ void ProtocolGame::sendCloseDepotSearch() {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x9A);
-	writeToOutputBuffer(msg);
+	namespace proto = tibia::protobuf::protocol;
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CLOSEDEPOTSEARCH, proto::GameserverMessageExtensions::close_depot_search, proto::GameserverMessageCloseDepotSearch()));
 }
 
 void ProtocolGame::sendDepotSearchResultDetail(uint16_t itemId, uint8_t tier, uint32_t depotCount, const ItemVector &depotItems, uint32_t inboxCount, const ItemVector &inboxItems, uint32_t stashCount) {
@@ -11020,34 +11029,37 @@ void ProtocolGame::sendDepotSearchResultDetail(uint16_t itemId, uint8_t tier, ui
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x99);
-	msg.add<uint16_t>(itemId);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageDepotSearchDetailList message;
+	message.mutable_identifier()->set_object_type_id(itemId);
 	if (Item::items[itemId].upgradeClassification > 0) {
-		msg.addByte(tier);
+		message.mutable_identifier()->set_tier(tier);
 	}
 
-	msg.add<uint32_t>(depotCount);
-	msg.addByte(static_cast<uint8_t>(depotItems.size()));
+	message.set_depot_count(depotCount);
 	for (const auto &item : depotItems) {
-		AddItem(msg, item);
+		addAppearanceInstance(message.add_depot_items(), item);
 	}
 
-	msg.add<uint32_t>(inboxCount);
-	msg.addByte(static_cast<uint8_t>(inboxItems.size()));
+	message.set_inbox_count(inboxCount);
 	for (const auto &item : inboxItems) {
-		AddItem(msg, item);
+		addAppearanceInstance(message.add_inbox_items(), item);
 	}
 
-	msg.addByte(stashCount > 0 ? 0x01 : 0x00);
+	// The legacy framing sent a presence byte plus {itemId, count}; the id now rides in
+	// the entry itself.
 	if (stashCount > 0) {
-		msg.add<uint16_t>(itemId);
-		msg.add<uint32_t>(stashCount);
+		auto* stashEntry = message.add_stash_items();
+		stashEntry->set_object_type_id(itemId);
+		stashEntry->set_count(stashCount);
 	}
 
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_DEPOTSEARCHDETAILLIST, proto::GameserverMessageExtensions::depot_search_detail_list, message));
 }
 
+// PHASE2-LEGACY(depotsearch): these five parsers read the legacy framing of opcodes
+// 0x29 and 0x92-0x95. The bridge cases in parseProtobufBridge feed the same game entry
+// points; delete the functions and their declarations at the end of phase 2.
 void ProtocolGame::parseOpenDepotSearch() {
 	if (oldProtocol) {
 		return;
@@ -12551,6 +12563,36 @@ void ProtocolGame::parseProtobufBridge(NetworkMessage &msg) {
 				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::stash_action);
 				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
 				handleStashAction(static_cast<uint8_t>(message.action()), pos, static_cast<uint16_t>(message.identifier().object_type_id()), stackpos, message.count(), static_cast<uint8_t>(message.retrieve_source()));
+			}
+			break;
+
+		// Depot search (phase 2 slice 4). The client of this stack does not implement
+		// depot search at all (phase 1 slice 4 finding), so these are accepted the way
+		// Greet is - for schema parity - feeding the same game entry points the legacy
+		// opcodes do. OpenParentContainer is the containers-area message 149, but its
+		// only consumer is the depot search results view, so it rides with this slice.
+		case proto::GAMECLIENT_MESSAGE_TYPE_OPENDEPOTSEARCH:
+			g_game().playerRequestDepotItems(player->getID());
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_CLOSEDEPOTSEARCH:
+			g_game().playerRequestCloseDepotSearch(player->getID());
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_DEPOTSEARCHTYPET:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::depot_search_type)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::depot_search_type);
+				g_game().playerRequestDepotSearchItem(player->getID(), static_cast<uint16_t>(message.identifier().object_type_id()), static_cast<uint8_t>(message.identifier().tier()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_DEPOTSEARCHRETRIEVE:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::depot_search_retrieve)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::depot_search_retrieve);
+				g_game().playerRequestDepotSearchRetrieve(player->getID(), static_cast<uint16_t>(message.identifier().object_type_id()), static_cast<uint8_t>(message.identifier().tier()), static_cast<uint8_t>(message.source()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_OPENPARENTCONTAINER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::open_parent_container)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::open_parent_container);
+				g_game().playerRequestOpenContainerFromDepotSearch(player->getID(), legacyObjectPositionOf(message.position(), proto::ObjectIdentifier()).first);
 			}
 			break;
 
