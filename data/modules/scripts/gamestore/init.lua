@@ -38,6 +38,10 @@ GameStore.OfferTypes = {
 	OFFER_TYPE_WEEKLYTASKEXPANSION = 28,
 }
 
+-- CipSoft's STORE_OFFER_DEEPLINK for 0-13; these double as the store offer ids of the
+-- offers they deeplink to. HEART used to sit at 10 and BLOOD at 9, swapped against the
+-- official values, and 11 carried the custom all-PvE bundle where CipSoft has death
+-- redemption. 14+ are this stack's own extensions, outside the official enum.
 GameStore.SubActions = {
 	PREY_THIRDSLOT_REAL = 0,
 	PREY_WILDCARD = 1,
@@ -48,28 +52,69 @@ GameStore.SubActions = {
 	BLESSING_SUNS = 6,
 	BLESSING_SPIRITUAL = 7,
 	BLESSING_EMBRACE = 8,
-	BLESSING_BLOOD = 9,
-	BLESSING_HEART = 10,
-	BLESSING_ALL_PVE = 11,
+	BLESSING_HEART = 9,
+	BLESSING_BLOOD = 10,
+	DEATH_REDEMPTION = 11,
 	BLESSING_TWIST = 12,
 	TASKHUNTING_THIRDSLOT = 13,
 	BLESSING_ALL_PVP = 14,
 	PREY_THIRDSLOT_REDIRECT = 15,
 	WEEKLY_TASK_EXPANSION = 16,
+	BLESSING_ALL_PVE = 17,
 }
 
+-- CipSoft's STORE (deeplink kind), value for value. 1 carries a CategoryDeeplinks byte
+-- and 3 a SubActions byte - the old names OPEN_PREMIUM_BOOST and OPEN_USEFUL_THINGS
+-- described one instance of each arm, not its meaning.
 GameStore.ActionType = {
 	OPEN_HOME = 0,
-	OPEN_PREMIUM_BOOST = 1,
+	OPEN_CATEGORY_DEEPLINK = 1,
 	OPEN_CATEGORY = 2,
-	OPEN_USEFUL_THINGS = 3,
+	OPEN_OFFER_DEEPLINK = 3,
 	OPEN_OFFER = 4,
 	OPEN_SEARCH = 5,
 }
 
+-- CipSoft's STORE_CATEGORY_DEEPLINK: the byte after ActionType.OPEN_CATEGORY_DEEPLINK.
+GameStore.CategoryDeeplinks = {
+	PREMIUM_TIME = 0,
+	XP_BOOST = 1,
+	BLESSINGS = 2,
+	POTIONS = 3,
+	RUNES = 4,
+	OUTFITS = 5,
+	MOUNTS = 6,
+	HOUSE_EXTRA_SERVICES = 7,
+}
+
+-- CipSoft's STORE_CURRENCY: 0 is plain tibia coins, 1 their "trusted" (transferable)
+-- coins; the official 2, tournament coins, has no counterpart here.
 GameStore.CoinType = {
 	Coin = 0,
 	Transferable = 1,
+}
+
+-- CipSoft's STORE_TRY_ON: whether the client may preview an offer on the player or on
+-- a hireling. Hireling offers keep DISABLED - this client has no try-on UI at all.
+GameStore.TryOnTypes = {
+	DISABLED = 0,
+	PLAYER_OUTFIT = 1,
+	HIRELING_OUTFIT = 2,
+}
+
+-- CipSoft's STORE_SUCCESS: what a completed store operation was.
+GameStore.SuccessTypes = {
+	PURCHASE = 0,
+	TRANSFER = 1,
+}
+
+-- CipSoft's STORE_SORT_ORDER. Sent in the offer list (always NO_CHANGE - sorting is
+-- client-side) and received in requests, where it is currently not applied.
+GameStore.SortOrder = {
+	NO_CHANGE = 0,
+	POPULARITY = 1,
+	NAME = 2,
+	NEWEST = 3,
 }
 
 GameStore.Storages = {
@@ -125,18 +170,27 @@ function useOfferConfigure(type)
 	return types[type]
 end
 
+-- CipSoft's PURCHASE_DATA_TYPE. 2, 4 and 6 are declared for completeness; nothing
+-- produces them yet - world transfers, main-character changes and the generic
+-- confirmation flow are unimplemented. Official 5 is unused.
 GameStore.ClientOfferTypes = {
 	CLIENT_STORE_OFFER_OTHER = 0,
 	CLIENT_STORE_OFFER_NAMECHANGE = 1,
+	CLIENT_STORE_OFFER_WORLD_TRANSFER = 2,
 	CLIENT_STORE_OFFER_HIRELING = 3,
+	CLIENT_STORE_OFFER_MAIN_CHARACTER = 4,
+	CLIENT_STORE_OFFER_CONFIRMATION = 6,
 }
 
+-- CipSoft's HISTORY_TYPE, value for value. 0 used to be named HISTORY_TYPE_NONE,
+-- but it is the type every ordinary purchase carries, not the absence of one.
 GameStore.HistoryTypes = {
-	HISTORY_TYPE_NONE = 0,
+	HISTORY_TYPE_PURCHASE_OR_CHANGE = 0,
 	HISTORY_TYPE_GIFT = 1,
 	HISTORY_TYPE_REFUND = 2,
 }
 
+-- CipSoft's STORE_OFFER_STATE, value for value.
 GameStore.States = {
 	STATE_NONE = 0,
 	STATE_NEW = 1,
@@ -144,6 +198,7 @@ GameStore.States = {
 	STATE_TIMED = 3,
 }
 
+-- CipSoft's STORE_ERROR, value for value (their 1 is PURCHASE_ERROR, spelled NETWORK here).
 GameStore.StoreErrors = {
 	STORE_ERROR_PURCHASE = 0,
 	STORE_ERROR_NETWORK = 1,
@@ -255,6 +310,8 @@ function onRecvbyte(player, msg, byte)
 	end
 
 	if byte == GameStore.RecivedPackets.C_StoreEvent then
+		-- CipSoft's StoreEvent: UI telemetry (offer viewed, filter or sort used, store
+		-- closed). Deliberately dropped; CrystalOTC does not send it either.
 	elseif byte == GameStore.RecivedPackets.C_TransferCoins then
 		parseTransferableCoins(player:getId(), msg)
 	elseif byte == GameStore.RecivedPackets.C_OpenStore then
@@ -303,11 +360,11 @@ function parseTransferableCoins(playerId, msg)
 
 	db.query("UPDATE `accounts` SET `coins_transferable` = `coins_transferable` + " .. amount .. " WHERE `id` = " .. accountId)
 	player:removeTransferableCoinsBalance(amount)
-	addPlayerEvent(sendStorePurchaseSuccessful, 550, playerId, "You have transfered " .. amount .. " coins to " .. reciver .. " successfully")
+	addPlayerEvent(sendStorePurchaseSuccessful, 550, playerId, "You have transfered " .. amount .. " coins to " .. reciver .. " successfully", GameStore.SuccessTypes.TRANSFER)
 
 	-- Adding history for both receiver/sender
-	GameStore.insertHistory(accountId, GameStore.HistoryTypes.HISTORY_TYPE_NONE, player:getName() .. " transferred you this amount.", amount, GameStore.CoinType.Transferable)
-	GameStore.insertHistory(player:getAccountId(), GameStore.HistoryTypes.HISTORY_TYPE_NONE, "You transferred this amount to " .. reciver, -1 * amount, GameStore.CoinType.Transferable)
+	GameStore.insertHistory(accountId, GameStore.HistoryTypes.HISTORY_TYPE_PURCHASE_OR_CHANGE, player:getName() .. " transferred you this amount.", amount, GameStore.CoinType.Transferable)
+	GameStore.insertHistory(player:getAccountId(), GameStore.HistoryTypes.HISTORY_TYPE_PURCHASE_OR_CHANGE, "You transferred this amount to " .. reciver, -1 * amount, GameStore.CoinType.Transferable)
 	openStore(playerId)
 	local exhausted = configManager.getNumber(configKeys.UI_ACTIONS_DELAY_INTERVAL)
 	player:setNextExAction(exhausted)
@@ -348,36 +405,43 @@ function parseRequestStoreOffers(playerId, msg)
 		if category then
 			addPlayerEvent(sendShowStoreOffers, 50, playerId, "Home Offers")
 		end
-	elseif actionType == GameStore.ActionType.OPEN_PREMIUM_BOOST then
-		local subAction = msg:getByte()
-		local category = nil
+	elseif actionType == GameStore.ActionType.OPEN_CATEGORY_DEEPLINK then
+		local categoryDeeplink = msg:getByte()
 
 		local premiumCategoryName = "Premium Time"
 		if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) then
 			premiumCategoryName = "VIP Shop"
 		end
-		if subAction == 0 then
-			category = GameStore.getCategoryByName(premiumCategoryName)
-		else
-			category = GameStore.getCategoryByName("Boosts")
-		end
 
+		local deeplinkCategoryNames = {
+			[GameStore.CategoryDeeplinks.PREMIUM_TIME] = premiumCategoryName,
+			[GameStore.CategoryDeeplinks.XP_BOOST] = "Boosts",
+			[GameStore.CategoryDeeplinks.BLESSINGS] = "Blessings",
+			[GameStore.CategoryDeeplinks.POTIONS] = "Potions",
+			[GameStore.CategoryDeeplinks.RUNES] = "Runes",
+			[GameStore.CategoryDeeplinks.OUTFITS] = "Outfits",
+			[GameStore.CategoryDeeplinks.MOUNTS] = "Mounts",
+			[GameStore.CategoryDeeplinks.HOUSE_EXTRA_SERVICES] = "Extra Services",
+		}
+
+		local category = GameStore.getCategoryByName(deeplinkCategoryNames[categoryDeeplink] or "Boosts")
 		if category then
 			addPlayerEvent(sendShowStoreOffers, 50, playerId, category)
 		end
-	elseif actionType == GameStore.ActionType.OPEN_USEFUL_THINGS then
+	elseif actionType == GameStore.ActionType.OPEN_OFFER_DEEPLINK then
 		local subAction = msg:getByte()
 		local offerId = subAction
 		local category = nil
 		if subAction == GameStore.SubActions.PREY_THIRDSLOT_REAL then
 			offerId = GameStore.SubActions.PREY_THIRDSLOT_REDIRECT
 		elseif subAction == GameStore.SubActions.TASKHUNTING_THIRDSLOT then
-			offerId = GameStore.SubActions.WEEKLY_TASK_EXPANSION
-		elseif subAction == GameStore.SubActions.WEEKLY_TASK_EXPANSION then
+			-- this stack has no permanent hunting task slot offer; the official deeplink
+			-- for it lands on the weekly task expansion instead
 			offerId = GameStore.SubActions.WEEKLY_TASK_EXPANSION
 		end
 
-		if offerId >= GameStore.SubActions.BLESSING_TWIST and offerId <= GameStore.SubActions.BLESSING_ALL_PVP then
+		local blessingDeeplink = offerId >= GameStore.SubActions.BLESSING_SOLITUDE and offerId <= GameStore.SubActions.BLESSING_TWIST or offerId == GameStore.SubActions.BLESSING_ALL_PVP or offerId == GameStore.SubActions.BLESSING_ALL_PVE
+		if blessingDeeplink then
 			category = GameStore.getCategoryByName("Blessings")
 		else
 			category = GameStore.getCategoryByName("Useful Things")
@@ -872,9 +936,9 @@ function sendShowStoreOffers(playerId, category, redirectId)
 
 	if not oldProtocol then
 		msg:addU32(redirectId or 0)
-		msg:addByte(0) -- Window Type
-		msg:addByte(0) -- Collections Size
-		msg:addU16(0) -- Collection Name
+		msg:addByte(GameStore.SortOrder.NO_CHANGE) -- sort order applied by the server; sorting stays client-side
+		msg:addByte(0) -- filter names shown in the drop-down (count, then strings)
+		msg:addU16(0) -- unresolved text field between the filters and the disable reasons
 	end
 
 	if not category.offers then
@@ -982,7 +1046,7 @@ function sendShowStoreOffers(playerId, category, redirectId)
 				end
 			end
 
-			local tryOnType = 0
+			local tryOnType = GameStore.TryOnTypes.DISABLED
 			local type = convertType(offer.type)
 
 			msg:addByte(type)
@@ -992,7 +1056,7 @@ function sendShowStoreOffers(playerId, category, redirectId)
 				local mount = Mount(offer.id)
 				msg:addU16(mount:getClientId())
 
-				tryOnType = 1
+				tryOnType = GameStore.TryOnTypes.PLAYER_OUTFIT
 			elseif type == GameStore.ConverType.SHOW_ITEM then
 				msg:addU16(offer.itemtype)
 			elseif type == GameStore.ConverType.SHOW_OUTFIT then
@@ -1003,7 +1067,7 @@ function sendShowStoreOffers(playerId, category, redirectId)
 				msg:addByte(outfit.lookLegs)
 				msg:addByte(outfit.lookFeet)
 
-				tryOnType = 1
+				tryOnType = GameStore.TryOnTypes.PLAYER_OUTFIT
 			elseif type == GameStore.ConverType.SHOW_HIRELING then
 				if player:getSex() == PLAYERSEX_MALE then
 					msg:addByte(1)
@@ -1186,7 +1250,7 @@ function sendStoreTransactionHistory(playerId, page, entriesPerPage)
 	msg:sendToPlayer(player)
 end
 
-function sendStorePurchaseSuccessful(playerId, message)
+function sendStorePurchaseSuccessful(playerId, message, successType)
 	local player = Player(playerId)
 	if not player then
 		return false
@@ -1198,7 +1262,7 @@ function sendStorePurchaseSuccessful(playerId, message)
 	local totalCoins = GameStore.getStorePurchasableCoins(player)
 	local msg = NetworkMessage()
 	msg:addByte(GameStore.SendingPackets.S_CompletePurchase)
-	msg:addByte(0x00)
+	msg:addByte(successType or GameStore.SuccessTypes.PURCHASE)
 	msg:addString(message, "sendStorePurchaseSuccessful - message")
 	if oldProtocol then
 		-- Send all coins can be used for buy store offers
@@ -1248,10 +1312,16 @@ function sendUpdatedStoreBalances(playerId)
 	local transferableCoins = player:getTransferableCoins()
 	local regularCoins = player:getTibiaCoins()
 	local totalCoins = GameStore.getStorePurchasableCoins(player)
-	local msg = NetworkMessage()
-	msg:addByte(GameStore.SendingPackets.S_CoinBalanceUpdating)
-	msg:addByte(0x01)
 
+	-- Two messages, not one: UpdatingShopBalance(updating) then CreditBalance(balances).
+	-- They used to be written into a single NetworkMessage, which is byte-identical on
+	-- the wire but wrong about where the message boundary sits.
+	local updatingMsg = NetworkMessage()
+	updatingMsg:addByte(GameStore.SendingPackets.S_CoinBalanceUpdating)
+	updatingMsg:addByte(0x01)
+	updatingMsg:sendToPlayer(player)
+
+	local msg = NetworkMessage()
 	msg:addByte(GameStore.SendingPackets.S_CoinBalance)
 	msg:addByte(0x01)
 
@@ -2171,7 +2241,7 @@ function Player.makeCoinTransaction(self, offer, desc)
 
 	-- When the transaction is successful add to the history
 	if op then
-		GameStore.insertHistory(self:getAccountId(), GameStore.HistoryTypes.HISTORY_TYPE_NONE, desc, offer.price * -1, getStoreHistoryCoinType(offer))
+		GameStore.insertHistory(self:getAccountId(), GameStore.HistoryTypes.HISTORY_TYPE_PURCHASE_OR_CHANGE, desc, offer.price * -1, getStoreHistoryCoinType(offer))
 	end
 
 	return op
@@ -2260,9 +2330,9 @@ function sendHomePage(playerId)
 
 	msg:addString("Home", "sendHomePage - Home")
 	msg:addU32(0x0) -- Redirect ID (not used here)
-	msg:addByte(0x0) -- Window Type
-	msg:addByte(0x0) -- Collections Size
-	msg:addU16(0x00) -- Collection Name
+	msg:addByte(GameStore.SortOrder.NO_CHANGE) -- sort order applied by the server; sorting stays client-side
+	msg:addByte(0x0) -- filter names shown in the drop-down (count, then strings)
+	msg:addU16(0x00) -- unresolved text field between the filters and the disable reasons
 
 	local disableReasons = {}
 	local homeOffers = getHomeOffers(player:getId())
