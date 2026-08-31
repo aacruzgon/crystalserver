@@ -46,6 +46,7 @@
 
 #include <protocol.pb.h>
 #include "enums/player_icons.hpp"
+#include "game/object_position.hpp"
 #include "game/game.hpp"
 #include "game/cyclopedia_map/cyclopedia_map.hpp"
 #include "kv/kv.hpp"
@@ -313,30 +314,6 @@ namespace {
 	 *
 	 * @param msg The network message to send the category to.
 	 */
-	template <typename T>
-	// CipSoft's GameserverMessageContainer.filter_options: the dropdown offered for this
-	// container, as {id, name} pairs. The count has to be the number actually written - it
-	// used to be categories.size() while the loop skipped All, so a list containing All
-	// declared one entry more than it sent and the client read past the end of the message.
-	void sendContainerCategory(NetworkMessage &msg, const std::vector<T> &categories = {}, uint8_t categoryType = 0) {
-		std::vector<T> sendable;
-		sendable.reserve(categories.size());
-		for (auto value : categories) {
-			if (value != T::All) {
-				sendable.push_back(value);
-			}
-		}
-
-		msg.addByte(categoryType);
-		g_logger().debug("Sendding category type '{}', categories total size '{}'", categoryType, sendable.size());
-		msg.addByte(static_cast<uint8_t>(sendable.size()));
-		for (auto value : sendable) {
-			g_logger().debug("Sendding category number '{}', category name '{}'", static_cast<uint8_t>(value), magic_enum::enum_name(value).data());
-			msg.addByte(static_cast<uint8_t>(value));
-			msg.addString(toStartCaseWithSpace(magic_enum::enum_name(value).data()));
-		}
-	}
-
 	/**
 	 * @brief Calculates and adds the values for different skills based on the player's equipped items and other factors.
 	 *
@@ -406,6 +383,47 @@ namespace {
 			msg.addDouble(0.00); // Event Bonus
 		} else if (skill == SKILL_CRITICAL_HIT_CHANCE || skill == SKILL_CRITICAL_HIT_DAMAGE) {
 			msg.addDouble(concoctionBonus / 10000.); // Concoction Bonus
+		}
+	}
+
+	// Official envelope shape, as observed on the wire: field 1 is the type id, and the
+	// message rides as the extension whose field number equals that id.
+	template <typename ExtensionId, typename Message>
+	std::string gameserverEnvelopeOf(tibia::protobuf::protocol::GAMESERVER_MESSAGE_TYPE type, const ExtensionId &extension, const Message &message) {
+		tibia::protobuf::protocol::GameserverMessage envelope;
+		envelope.set_type(type);
+		*envelope.MutableExtension(extension) = message;
+		return envelope.SerializeAsString();
+	}
+
+	// Rebuild the legacy Position triple and trailing stack byte from a bridge
+	// ObjectPosition, so envelope handlers can feed the same g_game() entry points the
+	// legacy parsers do. Inverse of the client's writer; the arm-to-triple encoding is the
+	// one written down in game/object_position.hpp.
+	//
+	// The identifier rides along because the bare-bool "any" arm has no payload of its own:
+	// its load-bearing trailing byte (the fluid subtype a hotkey use needs - see the phase 1
+	// containers notes) travels in ObjectIdentifier.tier_or_subtype instead.
+	std::pair<Position, uint8_t> legacyObjectPositionOf(const tibia::protobuf::protocol::ObjectPosition &position, const tibia::protobuf::protocol::ObjectIdentifier &identifier) {
+		namespace proto = tibia::protobuf::protocol;
+		switch (position.location_case()) {
+			case proto::ObjectPosition::kWorldmap: {
+				const auto &coordinate = position.worldmap().position();
+				return { Position(static_cast<uint16_t>(coordinate.x()), static_cast<uint16_t>(coordinate.y()), static_cast<uint8_t>(coordinate.z())), static_cast<uint8_t>(position.worldmap().stack_position()) };
+			}
+			case proto::ObjectPosition::kInventory:
+				return { Position(ObjectPosition::LEGACY_NON_MAP_X, static_cast<uint16_t>(position.inventory().slot()), 0), 0 };
+			case proto::ObjectPosition::kContainer: {
+				const auto row = static_cast<uint8_t>(position.container().slot_index());
+				return { Position(ObjectPosition::LEGACY_NON_MAP_X, static_cast<uint16_t>(ObjectPosition::LEGACY_CONTAINER_FLAG | (position.container().container_id() & ObjectPosition::LEGACY_CONTAINER_ID_MASK)), row), row };
+			}
+			case proto::ObjectPosition::kDepotSearchDepot:
+				return { Position(ObjectPosition::LEGACY_NON_MAP_X, ObjectPosition::LEGACY_DEPOT_SEARCH_DEPOT_Y, 0), 0 };
+			case proto::ObjectPosition::kDepotSearchInbox:
+				return { Position(ObjectPosition::LEGACY_NON_MAP_X, ObjectPosition::LEGACY_DEPOT_SEARCH_INBOX_Y, 0), 0 };
+			case proto::ObjectPosition::kField6:
+			default:
+				return { Position(ObjectPosition::LEGACY_NON_MAP_X, 0, 0), static_cast<uint8_t>(identifier.tier_or_subtype()) };
 		}
 	}
 } // namespace
@@ -619,6 +637,200 @@ void ProtocolGame::AddItem(NetworkMessage &msg, const std::shared_ptr<Item> &ite
 	// OTCR Features
 	if (isOTCR) {
 		msg.addString(item->getShader()); // g_game.enableFeature(GameItemShader)
+	}
+}
+
+void ProtocolGame::addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, uint16_t id, uint8_t count, uint8_t tier) const {
+	// Bridge mirror of AddItem(msg, id, count, tier): an item built from a bare type id.
+	// Same conditions, same values - only the encoding changes, from positional bytes to
+	// the extension whose presence says which variant data the item carries.
+	namespace proto = tibia::protobuf::protocol;
+	const ItemType &it = Item::items[id];
+
+	out->set_appearance_id(it.id);
+
+	if (it.stackable) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::cumulative)->set_amount(count);
+	} else if (it.isSplash() || it.isFluidContainer()) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::liquid)->set_fluid_type(count);
+	}
+
+	if (it.isContainer()) {
+		// CONTAINER_SPECIAL_DATA_NONE, with no flag payloads - the legacy path writes the
+		// bare 0x00 type byte here.
+		out->MutableExtension(proto::AppearanceInstanceExtensions::container)->set_field1(0);
+	}
+
+	if (it.isPodium) {
+		auto* socket = out->MutableExtension(proto::AppearanceInstanceExtensions::show_off_socket);
+		socket->mutable_outfit()->set_look_type(0);
+		socket->mutable_mount()->set_look_type(0);
+		socket->set_direction(static_cast<proto::CREATURE_DIRECTION>(2));
+		socket->set_field4(true); // visible - the legacy path hardcodes 0x01
+	}
+
+	if (it.upgradeClassification > 0) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::upgradeable)->set_tier(tier);
+	}
+
+	if (it.expire || it.expireStop || it.clockExpire) {
+		auto* expire = out->MutableExtension(proto::AppearanceInstanceExtensions::expire);
+		expire->set_seconds_left(it.decayTime);
+		expire->set_field2(true); // brand-new
+	}
+
+	if (it.wearOut) {
+		auto* wearout = out->MutableExtension(proto::AppearanceInstanceExtensions::wearout);
+		wearout->set_charges(it.charges);
+		wearout->set_field2(true); // brand-new
+	}
+
+	if (it.isWrapKit) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::deco_item_kit)->set_field1(0);
+	}
+}
+
+void ProtocolGame::addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, const std::shared_ptr<Item> &item) {
+	// Bridge mirror of AddItem(msg, item), field for field. The isOTCR shader string has no
+	// home in the official schema and rides only on the legacy path - nothing in the data
+	// scripts calls item:setShader, so the string is always empty in practice.
+	if (!item) {
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	const ItemType &it = Item::items[item->getID()];
+
+	out->set_appearance_id(it.id);
+
+	if (it.stackable) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::cumulative)->set_amount(std::min<uint16_t>(std::numeric_limits<uint8_t>::max(), item->getItemCount()));
+	} else if (it.isSplash() || it.isFluidContainer()) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::liquid)->set_fluid_type(item->getAttribute<uint8_t>(ItemAttribute_t::FLUIDTYPE));
+	}
+
+	const auto &container = item->getContainer();
+	if (it.isContainer() && container) {
+		// ContainerObject's four fields line up with the legacy special-container payloads:
+		// field 1 is the CONTAINER_SPECIAL_DATA flag set (the legacy type byte - Manager 9 is
+		// LOOTCONTAINER|OBTAINCONTAINER, QuiverLoot 11 adds CONTENTCOUNT), field 2 the loot
+		// category flags, field 3 the ammo total, field 4 the obtain category flags. The
+		// tutorial session dump's sentinel 0x80000000 on fields 2/4 matches the legacy
+		// unassigned flag values.
+		auto* containerData = out->MutableExtension(proto::AppearanceInstanceExtensions::container);
+		ContainerSpecial_t containerType = container->getSpecialCategory(player);
+		containerData->set_field1(enumToValue(containerType));
+		switch (containerType) {
+			case ContainerSpecial_t::LootHighlight:
+				break;
+			case ContainerSpecial_t::Manager: {
+				auto [lootFlags, obtainFlags] = container->getObjectCategoryFlags(player);
+				containerData->set_field2(lootFlags);
+				containerData->set_field4(obtainFlags);
+				break;
+			}
+			case ContainerSpecial_t::ContentCounter: {
+				containerData->set_field3(container->getAmmoAmount(player));
+				break;
+			}
+			case ContainerSpecial_t::QuiverLoot: {
+				auto [lootFlags, obtainFlags] = container->getObjectCategoryFlags(player);
+				containerData->set_field2(lootFlags);
+				containerData->set_field3(container->getAmmoAmount(player));
+				containerData->set_field4(obtainFlags);
+				break;
+			}
+			default:
+				break;
+		}
+	}
+
+	if (it.isPodium) {
+		auto* socket = out->MutableExtension(proto::AppearanceInstanceExtensions::show_off_socket);
+		const auto podiumVisible = item->getCustomAttribute("PodiumVisible");
+		const auto lookType = item->getCustomAttribute("LookType");
+		const auto lookTypeAttribute = item->getCustomAttribute("LookTypeEx");
+		const auto lookMount = item->getCustomAttribute("LookMount");
+		const auto lookDirection = item->getCustomAttribute("LookDirection");
+
+		const auto fillOutfit = [&item](proto::Outfit* outfit, const CustomAttribute* attribute, const char* head, const char* body, const char* legs, const char* feet, const char* addons) {
+			const auto look = attribute->getAttribute<uint16_t>();
+			outfit->set_look_type(look);
+			if (look == 0) {
+				return;
+			}
+			auto* colors = outfit->mutable_colors();
+			const auto lookHead = item->getCustomAttribute(head);
+			const auto lookBody = item->getCustomAttribute(body);
+			const auto lookLegs = item->getCustomAttribute(legs);
+			const auto lookFeet = item->getCustomAttribute(feet);
+			colors->set_head(lookHead ? lookHead->getAttribute<uint8_t>() : 0);
+			colors->set_body(lookBody ? lookBody->getAttribute<uint8_t>() : 0);
+			colors->set_legs(lookLegs ? lookLegs->getAttribute<uint8_t>() : 0);
+			colors->set_feet(lookFeet ? lookFeet->getAttribute<uint8_t>() : 0);
+			if (addons) {
+				const auto lookAddons = item->getCustomAttribute(addons);
+				outfit->set_addons(lookAddons ? lookAddons->getAttribute<uint8_t>() : 0);
+			}
+		};
+
+		if (lookType && lookType->getAttribute<uint16_t>() != 0) {
+			fillOutfit(socket->mutable_outfit(), lookType, "LookHead", "LookBody", "LookLegs", "LookFeet", "LookAddons");
+		} else if (lookTypeAttribute) {
+			auto lookTypeEx = lookTypeAttribute->getAttribute<uint16_t>();
+			// "Tantugly's Head" boss have to send other looktype to the podium
+			if (lookTypeEx == 35105) {
+				lookTypeEx = 39003;
+			}
+			auto* outfit = socket->mutable_outfit();
+			outfit->set_look_type(0);
+			outfit->set_look_item(lookTypeEx);
+		} else {
+			socket->mutable_outfit()->set_look_type(0);
+		}
+
+		if (lookMount) {
+			fillOutfit(socket->mutable_mount(), lookMount, "LookMountHead", "LookMountBody", "LookMountLegs", "LookMountFeet", nullptr);
+		} else {
+			socket->mutable_mount()->set_look_type(0);
+		}
+
+		socket->set_direction(static_cast<proto::CREATURE_DIRECTION>(lookDirection ? lookDirection->getAttribute<uint8_t>() : 2));
+		socket->set_field4((podiumVisible ? podiumVisible->getAttribute<uint8_t>() : 0x01) != 0);
+	}
+
+	if (item->getClassification() > 0) {
+		out->MutableExtension(proto::AppearanceInstanceExtensions::upgradeable)->set_tier(item->getTier());
+	}
+
+	// Timer
+	if (it.expire || it.expireStop || it.clockExpire) {
+		auto* expire = out->MutableExtension(proto::AppearanceInstanceExtensions::expire);
+		if (item->hasAttribute(ItemAttribute_t::DURATION)) {
+			const auto secondsLeft = static_cast<uint32_t>(item->getDuration() / 1000);
+			expire->set_seconds_left(secondsLeft);
+			expire->set_field2(secondsLeft == it.decayTime); // brand-new
+		} else {
+			expire->set_seconds_left(it.decayTime);
+			expire->set_field2(true); // brand-new
+		}
+	}
+
+	// Charge
+	if (it.wearOut) {
+		auto* wearout = out->MutableExtension(proto::AppearanceInstanceExtensions::wearout);
+		if (item->getSubType() == 0) {
+			wearout->set_charges(it.charges);
+			wearout->set_field2(true); // brand-new
+		} else {
+			wearout->set_charges(static_cast<uint32_t>(item->getSubType()));
+			wearout->set_field2(item->getSubType() == it.charges); // brand-new
+		}
+	}
+
+	if (it.isWrapKit) {
+		const uint16_t unWrapId = item->getCustomAttribute("unWrapId") ? static_cast<uint16_t>(item->getCustomAttribute("unWrapId")->getInteger()) : 0;
+		out->MutableExtension(proto::AppearanceInstanceExtensions::deco_item_kit)->set_field1(unWrapId);
 	}
 }
 
@@ -2114,24 +2326,28 @@ void ProtocolGame::parseQuickLoot(NetworkMessage &msg) {
 		return;
 	}
 
-	const auto lootMode = static_cast<QuickLootMode_t>(msg.getByte());
-	if (lootMode == QUICK_LOOT_MODE_AREA_AT_PLAYER) {
+	const uint8_t lootMode = msg.getByte();
+	if (static_cast<QuickLootMode_t>(lootMode) == QUICK_LOOT_MODE_AREA_AT_PLAYER) {
 		const Position clickedPos = msg.getPosition();
-		auto itemId = 0;
-		uint8_t stackpos = 0;
-		bool lootAllCorpses = true;
-		bool autoLoot = false;
-		g_logger().debug("[{}] lootMode {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(lootMode), clickedPos.toString(), itemId, stackpos);
-		const auto playerPos = player->getPosition();
-		g_game().playerQuickLoot(player->getID(), playerPos, itemId, stackpos, nullptr, lootAllCorpses, autoLoot);
+		handleQuickLoot(lootMode, clickedPos, 0, 0);
 	} else {
 		const Position clickedPos = msg.getPosition();
 		auto itemId = msg.get<uint16_t>();
 		uint8_t stackpos = msg.getByte();
-		bool lootAllCorpses = lootMode == QUICK_LOOT_MODE_AREA_AT_CORPSE;
-		bool autoLoot = false;
-		g_logger().debug("[{}] lootMode {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(lootMode), clickedPos.toString(), itemId, stackpos);
-		g_game().playerQuickLoot(player->getID(), clickedPos, itemId, stackpos, nullptr, lootAllCorpses, autoLoot);
+		handleQuickLoot(lootMode, clickedPos, itemId, stackpos);
+	}
+}
+
+void ProtocolGame::handleQuickLoot(uint8_t mode, const Position &pos, uint16_t itemId, uint8_t stackpos) {
+	const auto lootMode = static_cast<QuickLootMode_t>(mode);
+	g_logger().debug("[{}] lootMode {}, clickedPos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(lootMode), pos.toString(), itemId, stackpos);
+	if (lootMode == QUICK_LOOT_MODE_AREA_AT_PLAYER) {
+		// AREA_AT_PLAYER names no object: the loot area is centred on the player, whatever
+		// tile was clicked.
+		g_game().playerQuickLoot(player->getID(), player->getPosition(), 0, 0, nullptr, true, false);
+	} else {
+		const bool lootAllCorpses = lootMode == QUICK_LOOT_MODE_AREA_AT_CORPSE;
+		g_game().playerQuickLoot(player->getID(), pos, itemId, stackpos, nullptr, lootAllCorpses, false);
 	}
 }
 
@@ -2142,35 +2358,28 @@ void ProtocolGame::parseLootContainer(NetworkMessage &msg) {
 
 	// The loot half is 0..3 and the obtain half 4..7, so each pair differs only in which
 	// set of containers it addresses.
-	const auto action = static_cast<ManagedContainerAction_t>(msg.getByte());
-	switch (action) {
+	const uint8_t action = msg.getByte();
+	switch (static_cast<ManagedContainerAction_t>(action)) {
 		case LOOT_CONTAINER_SELECT:
 		case OBTAIN_CONTAINER_SELECT: {
-			const bool isLootContainer = action == LOOT_CONTAINER_SELECT;
-			auto category = static_cast<ObjectCategory_t>(msg.getByte());
+			auto category = msg.getByte();
 			Position pos = msg.getPosition();
 			auto itemId = msg.get<uint16_t>();
 			uint8_t stackpos = msg.getByte();
-			g_logger().debug("[{}] action {}, category {}, pos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(action), fmt::underlying(category), pos.toString(), itemId, stackpos);
-			g_game().playerSetManagedContainer(player->getID(), category, pos, itemId, stackpos, isLootContainer);
+			handleManagedContainerAction(action, category, pos, itemId, stackpos, false);
 			break;
 		}
 		case LOOT_CONTAINER_CLEAR:
-		case OBTAIN_CONTAINER_CLEAR: {
-			auto category = static_cast<ObjectCategory_t>(msg.getByte());
-			g_game().playerClearManagedContainer(player->getID(), category, action == LOOT_CONTAINER_CLEAR);
-			break;
-		}
+		case OBTAIN_CONTAINER_CLEAR:
 		case LOOT_CONTAINER_OPEN:
 		case OBTAIN_CONTAINER_OPEN: {
-			auto category = static_cast<ObjectCategory_t>(msg.getByte());
-			g_game().playerOpenManagedContainer(player->getID(), category, action == LOOT_CONTAINER_OPEN);
+			auto category = msg.getByte();
+			handleManagedContainerAction(action, category, {}, 0, 0, false);
 			break;
 		}
 		case LOOT_CONTAINER_FALLBACK: {
 			// This arm carries a bool, not a category: "use the main backpack as fallback".
-			bool useMainAsFallback = msg.getByte() == 1;
-			g_game().playerSetQuickLootFallback(player->getID(), useMainAsFallback);
+			handleManagedContainerAction(action, 0, {}, 0, 0, msg.getByte() == 1);
 			break;
 		}
 		case OBTAIN_CONTAINER_FALLBACK:
@@ -2179,8 +2388,32 @@ void ProtocolGame::parseLootContainer(NetworkMessage &msg) {
 			// add one, because that would change the wire contract.
 			break;
 	}
+}
 
-	g_logger().debug("[{}] action type {}", __FUNCTION__, fmt::underlying(action));
+void ProtocolGame::handleManagedContainerAction(uint8_t rawAction, uint8_t rawCategory, const Position &pos, uint16_t itemId, uint8_t stackpos, bool useMainAsFallback) {
+	const auto action = static_cast<ManagedContainerAction_t>(rawAction);
+	const auto category = static_cast<ObjectCategory_t>(rawCategory);
+	g_logger().debug("[{}] action {}, category {}, pos {}, itemId {}, stackPos {}", __FUNCTION__, fmt::underlying(action), fmt::underlying(category), pos.toString(), itemId, stackpos);
+	switch (action) {
+		case LOOT_CONTAINER_SELECT:
+		case OBTAIN_CONTAINER_SELECT:
+			g_game().playerSetManagedContainer(player->getID(), category, pos, itemId, stackpos, action == LOOT_CONTAINER_SELECT);
+			break;
+		case LOOT_CONTAINER_CLEAR:
+		case OBTAIN_CONTAINER_CLEAR:
+			g_game().playerClearManagedContainer(player->getID(), category, action == LOOT_CONTAINER_CLEAR);
+			break;
+		case LOOT_CONTAINER_OPEN:
+		case OBTAIN_CONTAINER_OPEN:
+			g_game().playerOpenManagedContainer(player->getID(), category, action == LOOT_CONTAINER_OPEN);
+			break;
+		case LOOT_CONTAINER_FALLBACK:
+			g_game().playerSetQuickLootFallback(player->getID(), useMainAsFallback);
+			break;
+		case OBTAIN_CONTAINER_FALLBACK:
+		default:
+			break;
+	}
 }
 
 void ProtocolGame::parseQuickLootBlackWhitelist(NetworkMessage &msg) {
@@ -5773,42 +6006,14 @@ void ProtocolGame::sendContainer(uint8_t cid, const std::shared_ptr<Container> &
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6E);
-
-	msg.addByte(cid);
-
-	if (container->getID() == ITEM_BROWSEFIELD) {
-		AddItem(msg, ITEM_BAG, 1, container->getTier());
-		msg.addString("Browse Field");
-	} else {
-		AddItem(msg, container);
-		msg.addString(container->getName());
-	}
-
 	const auto itemsStoreInboxToSend = container->getStoreInboxFilteredItems();
-
-	msg.addByte(container->capacity());
-
-	msg.addByte(hasParent ? 0x01 : 0x00);
-
-	// Depot search
-	if (!oldProtocol) {
-		msg.addByte((player->isDepotSearchAvailable() && container->isInsideDepot(true)) ? 0x01 : 0x00);
-	}
-
-	msg.addByte(container->isUnlocked() ? 0x01 : 0x00); // Drag and drop
-	msg.addByte(container->hasPagination() ? 0x01 : 0x00); // Pagination
 
 	uint32_t containerSize = container->size();
 	if (!itemsStoreInboxToSend.empty()) {
 		containerSize = itemsStoreInboxToSend.size();
 	}
-	msg.add<uint16_t>(containerSize);
-	msg.add<uint16_t>(firstIndex);
 
 	uint32_t maxItemsToSend;
-
 	if (container->hasPagination() && firstIndex > 0) {
 		maxItemsToSend = std::min<uint32_t>(container->capacity(), containerSize - firstIndex);
 	} else {
@@ -5816,28 +6021,94 @@ void ProtocolGame::sendContainer(uint8_t cid, const std::shared_ptr<Container> &
 	}
 
 	const ItemDeque &itemList = container->getItemList();
-	if (firstIndex >= containerSize) {
-		msg.addByte(0x00);
-	} else if (container->getID() == ITEM_STORE_INBOX && !itemsStoreInboxToSend.empty()) {
-		msg.addByte(std::min<uint32_t>(maxItemsToSend, containerSize));
-		for (const auto &item : itemsStoreInboxToSend) {
-			AddItem(msg, item);
-		}
-	} else {
-		msg.addByte(std::min<uint32_t>(maxItemsToSend, containerSize));
 
-		uint32_t i = 0;
-		for (auto it = itemList.begin() + firstIndex, end = itemList.end(); i < maxItemsToSend && it != end; ++it, ++i) {
-			AddItem(msg, *it);
-		}
-	}
-
-	// From here on down is for version 13.21+
+	// Legacy framing stays for legacy-version clients - it is a version-compat path, not a
+	// bridge leftover, so it is not in the phase 2 legacy ledger.
 	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6E);
+
+		msg.addByte(cid);
+
+		if (container->getID() == ITEM_BROWSEFIELD) {
+			AddItem(msg, ITEM_BAG, 1, container->getTier());
+			msg.addString("Browse Field");
+		} else {
+			AddItem(msg, container);
+			msg.addString(container->getName());
+		}
+
+		msg.addByte(container->capacity());
+
+		msg.addByte(hasParent ? 0x01 : 0x00);
+
+		msg.addByte(container->isUnlocked() ? 0x01 : 0x00); // Drag and drop
+		msg.addByte(container->hasPagination() ? 0x01 : 0x00); // Pagination
+
+		msg.add<uint16_t>(containerSize);
+		msg.add<uint16_t>(firstIndex);
+
+		if (firstIndex >= containerSize) {
+			msg.addByte(0x00);
+		} else if (container->getID() == ITEM_STORE_INBOX && !itemsStoreInboxToSend.empty()) {
+			msg.addByte(std::min<uint32_t>(maxItemsToSend, containerSize));
+			for (const auto &item : itemsStoreInboxToSend) {
+				AddItem(msg, item);
+			}
+		} else {
+			msg.addByte(std::min<uint32_t>(maxItemsToSend, containerSize));
+
+			uint32_t i = 0;
+			for (auto it = itemList.begin() + firstIndex, end = itemList.end(); i < maxItemsToSend && it != end; ++it, ++i) {
+				AddItem(msg, *it);
+			}
+		}
+
 		writeToOutputBuffer(msg);
 		return;
 	}
 
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageContainer message;
+	message.set_container_id(cid);
+
+	if (container->getID() == ITEM_BROWSEFIELD) {
+		addAppearanceInstance(message.mutable_container_object(), ITEM_BAG, 1, container->getTier());
+		message.set_name("Browse Field");
+	} else {
+		addAppearanceInstance(message.mutable_container_object(), container);
+		message.set_name(container->getName());
+	}
+
+	message.set_capacity(container->capacity());
+	message.set_has_parent(hasParent);
+	message.set_show_depot_search(player->isDepotSearchAvailable() && container->isInsideDepot(true));
+	message.set_is_unlocked(container->isUnlocked()); // Drag and drop
+	message.set_has_pages(container->hasPagination()); // Pagination
+	message.set_total_size(containerSize);
+	message.set_first_index(firstIndex);
+
+	if (firstIndex < containerSize) {
+		if (container->getID() == ITEM_STORE_INBOX && !itemsStoreInboxToSend.empty()) {
+			uint32_t i = 0;
+			for (const auto &item : itemsStoreInboxToSend) {
+				if (i++ >= std::min<uint32_t>(maxItemsToSend, containerSize)) {
+					break;
+				}
+				addAppearanceInstance(message.add_items(), item);
+			}
+		} else {
+			uint32_t i = 0;
+			for (auto it = itemList.begin() + firstIndex, end = itemList.end(); i < maxItemsToSend && it != end; ++it, ++i) {
+				addAppearanceInstance(message.add_items(), *it);
+			}
+		}
+	}
+
+	// Field 12 stays UNRESOLVED in the spec (the selected filter is the candidate reading);
+	// the legacy path always wrote the byte, and the official tutorial dump carries the
+	// field on every container, so it is always set here too.
+	uint8_t selectedCategory = 0;
 	if (container->isStoreInbox()) {
 		const auto &categories = container->getStoreInboxValidCategories();
 		const auto enumName = container->getAttribute<std::string>(ItemAttribute_t::STORE_INBOX_CATEGORY);
@@ -5853,36 +6124,34 @@ void ProtocolGame::sendContainer(uint8_t cid, const std::shared_ptr<Container> &
 			}
 
 			if (!toSendCategory) {
-				std::shared_ptr<Container> container = player->getContainerByID(cid);
-				if (container) {
-					container->removeAttribute(ItemAttribute_t::STORE_INBOX_CATEGORY);
+				std::shared_ptr<Container> inboxContainer = player->getContainerByID(cid);
+				if (inboxContainer) {
+					inboxContainer->removeAttribute(ItemAttribute_t::STORE_INBOX_CATEGORY);
 				}
 			}
-			sendContainerCategory<ContainerCategory_t>(msg, categories, static_cast<uint8_t>(category.value()));
-		} else {
-			sendContainerCategory<ContainerCategory_t>(msg, categories);
+			selectedCategory = static_cast<uint8_t>(category.value());
 		}
-	} else {
-		msg.addByte(0x00);
-		msg.addByte(0x00);
-	}
 
-	// GameserverMessageContainer is_movable and is_holding - both readings confirmed
-	// against the official tutorial session dump (movability matches the appearance
-	// unmove flag 3/3; is_holding true only for the container the player holds).
-	if (container->isMovable()) {
-		msg.addByte(1);
-	} else {
-		msg.addByte(0);
+		// Same list the legacy sendContainerCategory writes: every valid category except
+		// All, as {id, name} pairs.
+		for (const auto value : categories) {
+			if (value == ContainerCategory_t::All) {
+				continue;
+			}
+			auto* option = message.add_filter_options();
+			option->set_id(static_cast<uint32_t>(value));
+			option->set_name(toStartCaseWithSpace(magic_enum::enum_name(value).data()));
+		}
 	}
+	message.set_field12(selectedCategory);
 
-	if (container->getHoldingPlayer()) {
-		msg.addByte(1);
-	} else {
-		msg.addByte(0);
-	}
+	// is_movable and is_holding - both readings confirmed against the official tutorial
+	// session dump (movability matches the appearance unmove flag 3/3; is_holding true only
+	// for the container the player holds).
+	message.set_is_movable(container->isMovable());
+	message.set_is_holding(container->getHoldingPlayer() != nullptr);
 
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CONTAINER, proto::GameserverMessageExtensions::container, message));
 }
 
 void ProtocolGame::sendEmptyContainer(uint8_t cid) {
@@ -5890,33 +6159,26 @@ void ProtocolGame::sendEmptyContainer(uint8_t cid) {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x6E);
-	msg.addByte(cid);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageContainer message;
+	message.set_container_id(cid);
 
 	// Item placeholder (a simple bag)
-	AddItem(msg, ITEM_BAG, 1, 0);
-	msg.addString("Placeholder");
+	addAppearanceInstance(message.mutable_container_object(), ITEM_BAG, 1, 0);
+	message.set_name("Placeholder");
 
-	msg.addByte(8); // container capacity (number of slots)
-	msg.addByte(0x00); // hasParent = false
-	msg.addByte(0x00); // depot search disabled
-	msg.addByte(0x01); // unlocked (drag & drop enabled)
-	msg.addByte(0x00); // no pagination
+	message.set_capacity(8); // container capacity (number of slots)
+	message.set_has_parent(false);
+	message.set_show_depot_search(false);
+	message.set_is_unlocked(true); // drag & drop enabled
+	message.set_has_pages(false);
+	message.set_total_size(0);
+	message.set_first_index(0);
+	message.set_field12(0); // no selected filter, no filter options
+	message.set_is_movable(false);
+	message.set_is_holding(false);
 
-	msg.add<uint16_t>(0); // containerSize = 0
-	msg.add<uint16_t>(0); // firstIndex = 0
-	msg.addByte(0x00); // number of items = 0
-
-	// categories (2 zero bytes)
-	msg.addByte(0x00);
-	msg.addByte(0x00);
-
-	// extra options (movable and holdingPlayer)
-	msg.addByte(0x00);
-	msg.addByte(0x00);
-
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CONTAINER, proto::GameserverMessageExtensions::container, message));
 }
 
 void ProtocolGame::sendLootContainers() {
@@ -5924,9 +6186,12 @@ void ProtocolGame::sendLootContainers() {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0xC0);
-	msg.addByte(player->quickLootFallbackToMainContainer ? 1 : 0);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageUpdateManagedContainers message;
+	// Field 1 stays UNRESOLVED in the spec; "quick loot fallback to main backpack" is the
+	// candidate reading, strengthened by the tutorial dump, and it is what the legacy byte
+	// has always carried here.
+	message.set_field1(player->quickLootFallbackToMainContainer);
 
 	std::map<ObjectCategory_t, std::pair<std::shared_ptr<Container>, std::shared_ptr<Container>>> managedContainersMap;
 	for (const auto &[category, containersPair] : player->m_managedContainers) {
@@ -5938,24 +6203,17 @@ void ProtocolGame::sendLootContainers() {
 		}
 	}
 
-	auto msgPosition = msg.getBufferPosition();
-	msg.skipBytes(1);
-	uint8_t containers = 0;
 	for (const auto &[category, containersPair] : managedContainersMap) {
 		if (!isValidObjectCategory(category)) {
 			continue;
 		}
-		containers++;
-		msg.addByte(category);
-		uint16_t lootContainerId = containersPair.first ? containersPair.first->getID() : 0;
-		uint16_t obtainContainerId = containersPair.second ? containersPair.second->getID() : 0;
-		msg.add<uint16_t>(lootContainerId);
-		msg.add<uint16_t>(obtainContainerId);
+		auto* assignment = message.add_assignments();
+		assignment->set_category(static_cast<proto::CATEGORY>(category));
+		assignment->set_loot_container_id(containersPair.first ? containersPair.first->getID() : 0);
+		assignment->set_obtain_container_id(containersPair.second ? containersPair.second->getID() : 0);
 	}
-	msg.setBufferPosition(msgPosition);
-	msg.addByte(containers);
 
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_UPDATE_MANAGED_CONTAINERS, proto::GameserverMessageExtensions::update_managed_containers, message));
 }
 
 void ProtocolGame::sendLootStats(const std::shared_ptr<Item> &item, uint8_t count) {
@@ -7650,10 +7908,18 @@ void ProtocolGame::sendCloseTrade() {
 }
 
 void ProtocolGame::sendCloseContainer(uint8_t cid) {
-	NetworkMessage msg;
-	msg.addByte(0x6F);
-	msg.addByte(cid);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x6F);
+		msg.addByte(cid);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageCloseContainer message;
+	message.set_container_id(cid);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CLOSECONTAINER, proto::GameserverMessageExtensions::close_container, message));
 }
 
 void ProtocolGame::sendCreatureTurn(const std::shared_ptr<Creature> &creature, uint32_t stackPos) {
@@ -8531,86 +8797,166 @@ void ProtocolGame::sendMoveCreature(const std::shared_ptr<Creature> &creature, c
 }
 
 void ProtocolGame::sendInventoryItem(Slots_t slot, const std::shared_ptr<Item> &item) {
-	NetworkMessage msg;
-	if (item) {
-		msg.addByte(0x78);
-		msg.addByte(slot);
-		AddItem(msg, item);
-	} else {
-		msg.addByte(0x79);
-		msg.addByte(slot);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		if (item) {
+			msg.addByte(0x78);
+			msg.addByte(slot);
+			AddItem(msg, item);
+		} else {
+			msg.addByte(0x79);
+			msg.addByte(slot);
+		}
+		writeToOutputBuffer(msg);
+		return;
 	}
-	writeToOutputBuffer(msg);
+
+	namespace proto = tibia::protobuf::protocol;
+	// The legacy pair 0x78/0x79 is SetInventory/DeleteInventory - the Slots_t values line
+	// up with INVENTORY_POSITION one for one.
+	if (item) {
+		proto::GameserverMessageSetInventory message;
+		message.set_slot(static_cast<proto::INVENTORY_POSITION>(slot));
+		addAppearanceInstance(message.mutable_object(), item);
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SETINVENTORY, proto::GameserverMessageExtensions::set_inventory, message));
+	} else {
+		proto::GameserverMessageDeleteInventory message;
+		message.set_slot(static_cast<proto::INVENTORY_POSITION>(slot));
+		sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_DELETEINVENTORY, proto::GameserverMessageExtensions::delete_inventory, message));
+	}
 }
 
 void ProtocolGame::sendInventoryIds() {
 	ItemsTierCountList items = player->getInventoryItemsId();
 
-	NetworkMessage msg;
-	msg.addByte(0xF5);
-	auto countPosition = msg.getBufferPosition();
-	msg.skipBytes(2); // Total items count
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0xF5);
+		auto countPosition = msg.getBufferPosition();
+		msg.skipBytes(2); // Total items count
 
-	for (uint16_t i = 1; i <= 11; i++) {
-		msg.add<uint16_t>(i);
-		msg.addByte(0x00);
-		msg.addByte(0x01);
+		for (uint16_t i = 1; i <= 11; i++) {
+			msg.add<uint16_t>(i);
+			msg.addByte(0x00);
+			msg.addByte(0x01);
+		}
+
+		uint16_t totalItemsCount = 0;
+		for (const auto &[itemId, item] : items) {
+			for (const auto [tier, count] : item) {
+				msg.add<uint16_t>(itemId);
+				msg.addByte(tier);
+				if (count < 0x40) {
+					msg.addByte(count);
+				} else if (count < 0x4000) {
+					msg.addByte((count >> 8) + 64);
+					msg.addByte(count & 0xFF);
+				} else {
+					msg.addByte(0x80);
+					msg.addByte((count >> 16) & 0xFF);
+					msg.addByte((count >> 8) & 0xFF);
+					msg.addByte(count & 0xFF);
+				}
+				totalItemsCount++;
+			}
+		}
+
+		msg.setBufferPosition(countPosition);
+		msg.add<uint16_t>(totalItemsCount + 11);
+		writeToOutputBuffer(msg);
+		return;
 	}
 
-	uint16_t totalItemsCount = 0;
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessagePlayerInventory message;
+
+	// The eleven placeholder rows (type ids 1..11, one each) precede the real items on the
+	// legacy wire; the client's aggregation tolerates them, so they are kept for parity
+	// between the two framings. The legacy per-item byte is the tier when the type has an
+	// upgrade classification, which is ObjectIdentifier.tier_or_subtype. The packed
+	// 1/2/4-byte count encoding is just a varint's job here.
+	for (uint16_t i = 1; i <= 11; i++) {
+		auto* entry = message.add_items();
+		entry->mutable_identifier()->set_object_type_id(i);
+		entry->mutable_identifier()->set_tier_or_subtype(0);
+		entry->set_count(1);
+	}
+
 	for (const auto &[itemId, item] : items) {
 		for (const auto [tier, count] : item) {
-			msg.add<uint16_t>(itemId);
-			msg.addByte(tier);
-			if (count < 0x40) {
-				msg.addByte(count);
-			} else if (count < 0x4000) {
-				msg.addByte((count >> 8) + 64);
-				msg.addByte(count & 0xFF);
-			} else {
-				msg.addByte(0x80);
-				msg.addByte((count >> 16) & 0xFF);
-				msg.addByte((count >> 8) & 0xFF);
-				msg.addByte(count & 0xFF);
-			}
-			totalItemsCount++;
+			auto* entry = message.add_items();
+			entry->mutable_identifier()->set_object_type_id(itemId);
+			entry->mutable_identifier()->set_tier_or_subtype(tier);
+			entry->set_count(count);
 		}
 	}
 
-	msg.setBufferPosition(countPosition);
-	msg.add<uint16_t>(totalItemsCount + 11);
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_PLAYERINVENTORY, proto::GameserverMessageExtensions::player_inventory, message));
 }
 
 void ProtocolGame::sendAddContainerItem(uint8_t cid, uint16_t slot, const std::shared_ptr<Item> &item) {
-	NetworkMessage msg;
-	msg.addByte(0x70);
-	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
-	AddItem(msg, item);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x70);
+		msg.addByte(cid);
+		msg.add<uint16_t>(slot);
+		AddItem(msg, item);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageCreateInContainer message;
+	message.set_container_id(cid);
+	message.set_slot_index(slot);
+	addAppearanceInstance(message.mutable_object(), item);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CREATEINCONTAINER, proto::GameserverMessageExtensions::create_in_container, message));
 }
 
 void ProtocolGame::sendUpdateContainerItem(uint8_t cid, uint16_t slot, const std::shared_ptr<Item> &item) {
-	NetworkMessage msg;
-	msg.addByte(0x71);
-	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
-	AddItem(msg, item);
-	writeToOutputBuffer(msg);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x71);
+		msg.addByte(cid);
+		msg.add<uint16_t>(slot);
+		AddItem(msg, item);
+		writeToOutputBuffer(msg);
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageChangeInContainer message;
+	message.set_container_id(cid);
+	message.set_slot_index(slot);
+	addAppearanceInstance(message.mutable_object(), item);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_CHANGEINCONTAINER, proto::GameserverMessageExtensions::change_in_container, message));
 }
 
 void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint16_t slot, const std::shared_ptr<Item> &lastItem) {
-	NetworkMessage msg;
-	msg.addByte(0x72);
-	msg.addByte(cid);
-	msg.add<uint16_t>(slot);
-	if (lastItem) {
-		AddItem(msg, lastItem);
-	} else {
-		msg.add<uint16_t>(0x00);
+	if (oldProtocol) {
+		NetworkMessage msg;
+		msg.addByte(0x72);
+		msg.addByte(cid);
+		msg.add<uint16_t>(slot);
+		if (lastItem) {
+			AddItem(msg, lastItem);
+		} else {
+			msg.add<uint16_t>(0x00);
+		}
+		writeToOutputBuffer(msg);
+		return;
 	}
-	writeToOutputBuffer(msg);
+
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageDeleteInContainer message;
+	message.set_container_id(cid);
+	message.set_slot_index(slot);
+	// The legacy id 0 for "no item slides into the freed slot" is simply an absent object
+	// field here - proto2 presence carries that distinction.
+	if (lastItem) {
+		addAppearanceInstance(message.mutable_object(), lastItem);
+	}
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_DELETEINCONTAINER, proto::GameserverMessageExtensions::delete_in_container, message));
 }
 
 void ProtocolGame::sendTextWindow(uint32_t windowTextId, const std::shared_ptr<Item> &item, uint16_t maxlen, bool canWrite) {
@@ -9873,15 +10219,13 @@ void ProtocolGame::sendSpecialContainersAvailable() {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x2A);
-	msg.addByte(player->isStashMenuAvailable() ? 0x01 : 0x00);
-	if (g_configManager().getBoolean(ENABLE_MARKET)) {
-		msg.addByte(player->isMarketMenuAvailable() ? 0x01 : 0x00);
-	} else {
-		msg.addByte(0x00);
-	}
-	writeToOutputBuffer(msg);
+	namespace proto = tibia::protobuf::protocol;
+	// Fields 1 and 2 stay UNRESOLVED in the spec; the legacy byte order - supply stash
+	// availability, then market availability - is what positions them here.
+	proto::GameserverMessageSpecialContainersAvailable message;
+	message.set_field1(player->isStashMenuAvailable());
+	message.set_field2(g_configManager().getBoolean(ENABLE_MARKET) && player->isMarketMenuAvailable());
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SPECIALCONTAINERSAVAILABLE, proto::GameserverMessageExtensions::special_containers_available, message));
 }
 
 void ProtocolGame::updatePartyTrackerAnalyzer(const std::shared_ptr<Party> &party) {
@@ -10339,16 +10683,14 @@ void ProtocolGame::sendOpenStash() {
 		return;
 	}
 
-	NetworkMessage msg;
-	msg.addByte(0x29);
-	const auto &list = player->getStashItems();
-	msg.add<uint16_t>(list.size());
-	for (const auto &[itemId, itemCount] : list) {
-		msg.add<uint16_t>(itemId);
-		msg.add<uint32_t>(itemCount);
+	namespace proto = tibia::protobuf::protocol;
+	proto::GameserverMessageStash message;
+	for (const auto &[itemId, itemCount] : player->getStashItems()) {
+		auto* entry = message.add_items();
+		entry->set_object_type_id(itemId);
+		entry->set_count(itemCount);
 	}
-
-	writeToOutputBuffer(msg);
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_STASH, proto::GameserverMessageExtensions::stash, message));
 }
 
 void ProtocolGame::parseStashWithdraw(NetworkMessage &msg) {
@@ -10356,6 +10698,39 @@ void ProtocolGame::parseStashWithdraw(NetworkMessage &msg) {
 		return;
 	}
 
+	const uint8_t action = msg.getByte();
+	switch (static_cast<Stash_Actions_t>(action)) {
+		case STASH_ACTION_STOW_ITEM: {
+			Position pos = msg.getPosition();
+			auto itemId = msg.get<uint16_t>();
+			uint8_t stackpos = msg.getByte();
+			uint32_t count = msg.getByte();
+			handleStashAction(action, pos, itemId, stackpos, count, 0);
+			break;
+		}
+		case STASH_ACTION_STOW_CONTAINER:
+		case STASH_ACTION_STOW_STACK: {
+			Position pos = msg.getPosition();
+			auto itemId = msg.get<uint16_t>();
+			uint8_t stackpos = msg.getByte();
+			handleStashAction(action, pos, itemId, stackpos, 0, 0);
+			break;
+		}
+		case STASH_ACTION_WITHDRAW: {
+			auto itemId = msg.get<uint16_t>();
+			auto count = msg.get<uint32_t>();
+			// CipSoft calls this byte STASH_RETRIEVE_SOURCE, not a stack position.
+			const auto source = msg.getByte();
+			handleStashAction(action, {}, itemId, 0, count, source);
+			break;
+		}
+		default:
+			g_logger().error("Unknown 'supply stash' action switch: {}", action);
+			break;
+	}
+}
+
+void ProtocolGame::handleStashAction(uint8_t rawAction, const Position &pos, uint16_t itemId, uint8_t stackpos, uint32_t count, uint8_t source) {
 	if (!player->isStashMenuAvailable()) {
 		player->sendCancelMessage("You can't use supply stash right now.");
 		return;
@@ -10366,39 +10741,22 @@ void ProtocolGame::parseStashWithdraw(NetworkMessage &msg) {
 		return;
 	}
 
-	auto action = static_cast<Stash_Actions_t>(msg.getByte());
+	const auto action = static_cast<Stash_Actions_t>(rawAction);
 	switch (action) {
-		case STASH_ACTION_STOW_ITEM: {
-			Position pos = msg.getPosition();
-			auto itemId = msg.get<uint16_t>();
-			uint8_t stackpos = msg.getByte();
-			uint32_t count = msg.getByte();
+		case STASH_ACTION_STOW_ITEM:
 			g_game().playerStowItem(player->getID(), pos, itemId, stackpos, count, false);
 			break;
-		}
-		case STASH_ACTION_STOW_CONTAINER: {
-			Position pos = msg.getPosition();
-			auto itemId = msg.get<uint16_t>();
-			uint8_t stackpos = msg.getByte();
+		case STASH_ACTION_STOW_CONTAINER:
 			g_game().playerStowItem(player->getID(), pos, itemId, stackpos, 0, false);
 			break;
-		}
-		case STASH_ACTION_STOW_STACK: {
-			Position pos = msg.getPosition();
-			auto itemId = msg.get<uint16_t>();
-			uint8_t stackpos = msg.getByte();
+		case STASH_ACTION_STOW_STACK:
 			g_game().playerStowItem(player->getID(), pos, itemId, stackpos, 0, true);
 			break;
-		}
-		case STASH_ACTION_WITHDRAW: {
-			auto itemId = msg.get<uint16_t>();
-			auto count = msg.get<uint32_t>();
-			// CipSoft calls this byte STASH_RETRIEVE_SOURCE, not a stack position.
-			// playerStashWithdraw discards it and always retrieves from the stash.
-			const auto source = static_cast<StashRetrieveSource_t>(msg.getByte());
-			g_game().playerStashWithdraw(player->getID(), itemId, count, source);
+		case STASH_ACTION_WITHDRAW:
+			// playerStashWithdraw discards the retrieve source and always retrieves from
+			// the stash.
+			g_game().playerStashWithdraw(player->getID(), itemId, count, static_cast<StashRetrieveSource_t>(source));
 			break;
-		}
 		default:
 			g_logger().error("Unknown 'supply stash' action switch: {}", fmt::underlying(action));
 			break;
@@ -11777,6 +12135,135 @@ void ProtocolGame::parseProtobufBridge(NetworkMessage &msg) {
 				handleWeaponProficiencyCommand(envelope.GetExtension(proto::GameclientMessageExtensions::weapon_proficiency_command));
 			}
 			break;
+
+		// Containers (phase 2 slice 2). Each case rebuilds the legacy arguments -
+		// legacyObjectPositionOf inverts the client's ObjectPosition writer - and feeds the
+		// same g_game() entry point its legacy parser does.
+		case proto::GAMECLIENT_MESSAGE_TYPE_USEOBJECT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::use_object)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::use_object);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				g_game().playerUseItem(player->getID(), pos, stackpos, static_cast<uint8_t>(message.container_id()), static_cast<uint16_t>(message.identifier().object_type_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_USETWOOBJECTS:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::use_two_objects)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::use_two_objects);
+				const auto [fromPos, fromStackpos] = legacyObjectPositionOf(message.from(), message.from_identifier());
+				const auto [toPos, toStackpos] = legacyObjectPositionOf(message.to(), message.to_identifier());
+				g_game().playerUseItemEx(player->getID(), fromPos, fromStackpos, static_cast<uint16_t>(message.from_identifier().object_type_id()), toPos, toStackpos, static_cast<uint16_t>(message.to_identifier().object_type_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_USEONCREATURE:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::use_on_creature)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::use_on_creature);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				g_game().playerUseWithCreature(player->getID(), pos, stackpos, message.creature_id(), static_cast<uint16_t>(message.identifier().object_type_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_MOVEOBJECT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::move_object)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::move_object);
+				const auto [fromPos, fromStackpos] = legacyObjectPositionOf(message.from(), message.identifier());
+				const auto [toPos, toStackpos] = legacyObjectPositionOf(message.to(), proto::ObjectIdentifier::default_instance());
+				if (toPos != fromPos) {
+					g_game().playerMoveThing(player->getID(), fromPos, static_cast<uint16_t>(message.identifier().object_type_id()), fromStackpos, toPos, static_cast<uint8_t>(message.count()));
+				}
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_LOOK:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::look)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::look);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				g_game().playerLookAt(player->getID(), static_cast<uint16_t>(message.identifier().object_type_id()), pos, stackpos);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_TURNOBJECT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::turn_object)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::turn_object);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				const auto itemId = static_cast<uint16_t>(message.identifier().object_type_id());
+				if (Item::items[itemId].isPodium) {
+					g_game().playerRotatePodium(player->getID(), pos, stackpos, itemId);
+				} else {
+					g_game().playerRotateItem(player->getID(), pos, stackpos, itemId);
+				}
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_TOGGLEWRAPSTATE:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::toggle_wrap_state)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::toggle_wrap_state);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				g_game().playerWrapableItem(player->getID(), pos, stackpos, static_cast<uint16_t>(message.identifier().object_type_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_EQUIPOBJECT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::equip_object)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::equip_object);
+				const auto itemId = static_cast<uint16_t>(message.identifier().object_type_id());
+				// Same reading as parseHotkeyEquip: the second identifier field is the tier
+				// when the type has an upgrade classification.
+				const bool hasTier = Item::items[itemId].upgradeClassification > 0;
+				g_game().playerEquipItem(player->getID(), itemId, hasTier, hasTier ? static_cast<uint8_t>(message.identifier().tier_or_subtype()) : 0);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_CLOSECONTAINER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::close_container)) {
+				g_game().playerCloseContainer(player->getID(), static_cast<uint8_t>(envelope.GetExtension(proto::GameclientMessageExtensions::close_container).container_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_UPCONTAINER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::up_container)) {
+				g_game().playerMoveUpContainer(player->getID(), static_cast<uint8_t>(envelope.GetExtension(proto::GameclientMessageExtensions::up_container).container_id()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_SEEKINCONTAINER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::seek_in_container)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::seek_in_container);
+				g_game().playerSeekInContainer(player->getID(), static_cast<uint8_t>(message.container_id()), static_cast<uint16_t>(message.index()), static_cast<uint8_t>(message.field3()));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_BROWSEFIELD:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::browse_field)) {
+				const auto &coordinate = envelope.GetExtension(proto::GameclientMessageExtensions::browse_field).position();
+				g_game().playerBrowseField(player->getID(), Position(static_cast<uint16_t>(coordinate.x()), static_cast<uint16_t>(coordinate.y()), static_cast<uint8_t>(coordinate.z())));
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_QUICKLOOT:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::quick_loot)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::quick_loot);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.target().position(), message.target().identifier());
+				handleQuickLoot(static_cast<uint8_t>(message.mode()), pos, static_cast<uint16_t>(message.target().identifier().object_type_id()), stackpos);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_MANAGED_CONTAINER:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::managed_container)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::managed_container);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				// Field 5 stays UNRESOLVED in the spec; it is where the FALLBACK arm's bool
+				// travels, matching the legacy payload position.
+				handleManagedContainerAction(static_cast<uint8_t>(message.action()), static_cast<uint8_t>(message.category()), pos, static_cast<uint16_t>(message.identifier().object_type_id()), stackpos, message.field5());
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_QUICKLOOTBLACKWHITELIST:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::quick_loot_black_white_list)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::quick_loot_black_white_list);
+				std::vector<uint16_t> listedItems;
+				listedItems.reserve(message.object_type_ids_size());
+				for (const auto typeId : message.object_type_ids()) {
+					listedItems.push_back(static_cast<uint16_t>(typeId));
+				}
+				g_game().playerQuickLootBlackWhitelist(player->getID(), static_cast<QuickLootFilter_t>(message.list_type()), listedItems);
+			}
+			break;
+		case proto::GAMECLIENT_MESSAGE_TYPE_STASHACTION:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::stash_action)) {
+				const auto &message = envelope.GetExtension(proto::GameclientMessageExtensions::stash_action);
+				const auto [pos, stackpos] = legacyObjectPositionOf(message.position(), message.identifier());
+				handleStashAction(static_cast<uint8_t>(message.action()), pos, static_cast<uint16_t>(message.identifier().object_type_id()), stackpos, message.count(), static_cast<uint8_t>(message.retrieve_source()));
+			}
+			break;
+
 		default:
 			g_logger().debug("[{}] {} sent an unhandled GameclientMessage type {}", __FUNCTION__, player->getName(), static_cast<int>(envelope.type()));
 			break;
@@ -11925,17 +12412,6 @@ void ProtocolGame::sendProtobufBridge(const std::string &envelope) {
 	writeToOutputBuffer(msg);
 }
 
-namespace {
-	// Official envelope shape, as observed on the wire: field 1 is the type id, and the
-	// message rides as the extension whose field number equals that id.
-	template <typename ExtensionId, typename Message>
-	std::string gameserverEnvelopeOf(tibia::protobuf::protocol::GAMESERVER_MESSAGE_TYPE type, const ExtensionId &extension, const Message &message) {
-		tibia::protobuf::protocol::GameserverMessage envelope;
-		envelope.set_type(type);
-		*envelope.MutableExtension(extension) = message;
-		return envelope.SerializeAsString();
-	}
-}
 
 void ProtocolGame::sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t experience) {
 	if (oldProtocol || !player) {

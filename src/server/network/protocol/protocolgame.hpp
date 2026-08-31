@@ -27,6 +27,7 @@
 #include "utils/utils_definitions.hpp"
 
 namespace tibia::protobuf::protocol {
+	class AppearanceInstance;
 	class GameclientMessageWeaponProficiencyCommand;
 }
 
@@ -595,6 +596,15 @@ private:
 	// uint16 length, raw bytes. Kept non-template and string-taking so the protobuf headers
 	// stay out of this header.
 	void sendProtobufBridge(const std::string &envelope);
+
+	// Phase 2 slice 2 (containers): the bridge mirrors of AddItem - one AppearanceInstance
+	// with the extension set naming what variant data the item carries.
+	void addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, const std::shared_ptr<Item> &item);
+	void addAppearanceInstance(tibia::protobuf::protocol::AppearanceInstance* out, uint16_t id, uint8_t count, uint8_t tier) const;
+	// Shared by the legacy parsers and the bridge dispatch - both framings feed these.
+	void handleQuickLoot(uint8_t mode, const Position &pos, uint16_t itemId, uint8_t stackpos);
+	void handleManagedContainerAction(uint8_t rawAction, uint8_t rawCategory, const Position &pos, uint16_t itemId, uint8_t stackpos, bool useMainAsFallback);
+	void handleStashAction(uint8_t rawAction, const Position &pos, uint16_t itemId, uint8_t stackpos, uint32_t count, uint8_t source);
 
 	friend class Player;
 	friend class PlayerWheel;
