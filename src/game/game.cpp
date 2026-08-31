@@ -1594,8 +1594,14 @@ FILELOADER_ERRORS Game::loadAppearanceProtobuf(const std::string &file) {
 
 	fileStream.close();
 
-	// Disposing allocated objects.
-	google::protobuf::ShutdownProtobufLibrary();
+	// This used to call google::protobuf::ShutdownProtobufLibrary() "to dispose allocated
+	// objects" - a canary inheritance from when this one-shot load was the process's only
+	// protobuf use. Shutdown destroys ALL protobuf global state, including the generated
+	// extension registry the 0x50 bridge envelopes depend on, so every envelope parsed
+	// after it was a use-after-free: an intermittent SIGSEGV in FindRegisteredExtension
+	// when the freed block got reused, and silent HasExtension misses (containers that
+	// would not open) when it survived. The library may only be shut down at process exit,
+	// where the OS reclaims everything anyway.
 
 	return ERROR_NONE;
 }
