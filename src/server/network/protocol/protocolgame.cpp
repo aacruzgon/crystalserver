@@ -5828,14 +5828,16 @@ void ProtocolGame::sendContainer(uint8_t cid, const std::shared_ptr<Container> &
 		msg.addByte(0x00);
 	}
 
-	// New container menu options
-	if (container->isMovable()) { // Pickupable/Moveable (?)
+	// GameserverMessageContainer is_movable and is_holding - both readings confirmed
+	// against the official tutorial session dump (movability matches the appearance
+	// unmove flag 3/3; is_holding true only for the container the player holds).
+	if (container->isMovable()) {
 		msg.addByte(1);
 	} else {
 		msg.addByte(0);
 	}
 
-	if (container->getHoldingPlayer()) { // Player holding the item (?)
+	if (container->getHoldingPlayer()) {
 		msg.addByte(1);
 	} else {
 		msg.addByte(0);
