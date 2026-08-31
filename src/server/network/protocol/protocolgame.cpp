@@ -44,7 +44,7 @@
 #include "creatures/players/vip/player_vip.hpp"
 #include "creatures/players/wheel/player_wheel.hpp"
 
-#include <proficiency.pb.h>
+#include <protocol.pb.h>
 #include "enums/player_icons.hpp"
 #include "game/game.hpp"
 #include "game/cyclopedia_map/cyclopedia_map.hpp"
@@ -1240,6 +1240,9 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 		case 0x38:
 			parsePlayerTyping(msg); // player are typing or not
 			break;
+		case 0x50:
+			parseProtobufBridge(msg); // phase 2 bridge: { u16 length, GameclientMessage }
+			break;
 		case 0x5F: // Winter Update 2025 — Task Board
 			parseBountyTaskAction(msg);
 			break;
@@ -1471,6 +1474,8 @@ void ProtocolGame::parsePacketFromDispatcher(NetworkMessage &msg, uint8_t recvby
 			parseImbuementWindow(msg);
 			break;
 		case 0xB3:
+			// PHASE2-LEGACY(proficiency): the client emits 0x50 bridge envelopes instead.
+			// Delete this case at the end of phase 2.
 			parseWeaponProficiency(msg);
 			break;
 		case 0xBA:
@@ -11746,6 +11751,38 @@ void ProtocolGame::parseImbuementWindow(NetworkMessage &msg) {
 	}
 }
 
+void ProtocolGame::parseProtobufBridge(NetworkMessage &msg) {
+	if (oldProtocol || !player) {
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
+
+	// Opcode 0x50 - { uint16 length, serialised GameclientMessage }. The envelope is the
+	// official design: field 1 is the type id, and the payload rides as the extension whose
+	// field number equals that id. Dispatch on the type, then hand the extension to the
+	// same handler the legacy opcode feeds.
+	const uint16_t payloadSize = msg.get<uint16_t>();
+	const std::string payload = msg.getBytes(payloadSize);
+
+	proto::GameclientMessage envelope;
+	if (!envelope.ParseFromString(payload)) {
+		g_logger().debug("[{}] {} sent an unparseable bridge envelope", __FUNCTION__, player->getName());
+		return;
+	}
+
+	switch (envelope.type()) {
+		case proto::GAMECLIENT_MESSAGE_TYPE_WEAPONPROFICIENCYCOMMAND:
+			if (envelope.HasExtension(proto::GameclientMessageExtensions::weapon_proficiency_command)) {
+				handleWeaponProficiencyCommand(envelope.GetExtension(proto::GameclientMessageExtensions::weapon_proficiency_command));
+			}
+			break;
+		default:
+			g_logger().debug("[{}] {} sent an unhandled GameclientMessage type {}", __FUNCTION__, player->getName(), static_cast<int>(envelope.type()));
+			break;
+	}
+}
+
 void ProtocolGame::parseWeaponProficiency(NetworkMessage &msg) {
 	if (oldProtocol || !player) {
 		return;
@@ -11753,6 +11790,10 @@ void ProtocolGame::parseWeaponProficiency(NetworkMessage &msg) {
 
 	namespace proto = tibia::protobuf::protocol;
 
+	// PHASE2-LEGACY(proficiency): legacy framing (0xB3, bare
+	// GameclientMessageWeaponProficiencyCommand). The bridge feeds
+	// handleWeaponProficiencyCommand directly; delete this wrapper (and its declaration)
+	// at the end of phase 2.
 	const uint16_t payloadSize = msg.get<uint16_t>();
 	const std::string payload = msg.getBytes(payloadSize);
 
@@ -11761,6 +11802,16 @@ void ProtocolGame::parseWeaponProficiency(NetworkMessage &msg) {
 		g_logger().debug("[{}] {} sent an unparseable weapon proficiency command", __FUNCTION__, player->getName());
 		return;
 	}
+
+	handleWeaponProficiencyCommand(command);
+}
+
+void ProtocolGame::handleWeaponProficiencyCommand(const tibia::protobuf::protocol::GameclientMessageWeaponProficiencyCommand &command) {
+	if (!player) {
+		return;
+	}
+
+	namespace proto = tibia::protobuf::protocol;
 
 	const uint16_t itemId = static_cast<uint16_t>(command.object_type_id());
 
@@ -11859,17 +11910,31 @@ void ProtocolGame::parseWeaponProficiency(NetworkMessage &msg) {
 	sendWeaponProficiencyInfo(itemId);
 }
 
-void ProtocolGame::sendProficiencyPayload(const uint8_t opcode, const std::string &payload) {
-	if (payload.size() > std::numeric_limits<uint16_t>::max()) {
-		g_logger().error("[{}] proficiency payload of {} bytes does not fit its length prefix", __FUNCTION__, payload.size());
+void ProtocolGame::sendProtobufBridge(const std::string &envelope) {
+	if (envelope.size() > std::numeric_limits<uint16_t>::max()) {
+		g_logger().error("[{}] bridge envelope of {} bytes does not fit its length prefix", __FUNCTION__, envelope.size());
 		return;
 	}
 
+	// Opcode 0x50, then { uint16 length, serialised GameserverMessage }. The envelope's
+	// type field and extension say what it carries; this function only frames it.
 	NetworkMessage msg;
-	msg.addByte(opcode);
-	msg.add<uint16_t>(static_cast<uint16_t>(payload.size()));
-	msg.addBytes(payload.data(), payload.size());
+	msg.addByte(0x50);
+	msg.add<uint16_t>(static_cast<uint16_t>(envelope.size()));
+	msg.addBytes(envelope.data(), envelope.size());
 	writeToOutputBuffer(msg);
+}
+
+namespace {
+	// Official envelope shape, as observed on the wire: field 1 is the type id, and the
+	// message rides as the extension whose field number equals that id.
+	template <typename ExtensionId, typename Message>
+	std::string gameserverEnvelopeOf(tibia::protobuf::protocol::GAMESERVER_MESSAGE_TYPE type, const ExtensionId &extension, const Message &message) {
+		tibia::protobuf::protocol::GameserverMessage envelope;
+		envelope.set_type(type);
+		*envelope.MutableExtension(extension) = message;
+		return envelope.SerializeAsString();
+	}
 }
 
 void ProtocolGame::sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t experience) {
@@ -11884,7 +11949,8 @@ void ProtocolGame::sendWeaponProficiencyExperience(const uint16_t itemId, const 
 	// always on. Report the real answer instead.
 	message.set_has_unused_perk(player->hasUnusedWeaponProficiencyPerk(itemId));
 
-	sendProficiencyPayload(0x5C, message.SerializeAsString());
+	namespace proto = tibia::protobuf::protocol;
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_WEAPONPROFICIENCYNOTIFICATION, proto::GameserverMessageExtensions::weapon_proficiency_notification, message));
 }
 
 void ProtocolGame::sendWeaponProficiencyReshapeOffers() {
@@ -11913,7 +11979,8 @@ void ProtocolGame::sendWeaponProficiencyReshapeOffers() {
 		offer->set_rank(refineLevel);
 	}
 
-	sendProficiencyPayload(0xBB, message.SerializeAsString());
+	namespace proto = tibia::protobuf::protocol;
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_SHAPEDPERKRESHAPEOFFERS, proto::GameserverMessageExtensions::shaped_perk_reshape_offers, message));
 }
 
 void ProtocolGame::sendWeaponProficiencyInfo(const uint16_t itemId) {
@@ -11946,7 +12013,8 @@ void ProtocolGame::sendWeaponProficiencyInfo(const uint16_t itemId) {
 		entry->set_rank(shaped.refineLevel);
 	}
 
-	sendProficiencyPayload(0xC4, message.SerializeAsString());
+	namespace proto = tibia::protobuf::protocol;
+	sendProtobufBridge(gameserverEnvelopeOf(proto::GAMESERVER_MESSAGE_TYPE_WEAPONPROFICIENCY, proto::GameserverMessageExtensions::weapon_proficiency, message));
 }
 
 void ProtocolGame::parseExivaRestrictions(NetworkMessage &msg) {

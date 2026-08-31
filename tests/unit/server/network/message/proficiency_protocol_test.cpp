@@ -6,7 +6,7 @@
 
 #include "server/network/message/networkmessage.hpp"
 
-#include <proficiency.pb.h>
+#include <protocol.pb.h>
 
 using namespace boost::ut;
 namespace proto = tibia::protobuf::protocol;
@@ -20,7 +20,7 @@ suite<"networkmessage"> proficiencyProtocolTest = [] {
 
 	// These numbers are not ours to choose: they were transcribed from the official client's
 	// parse tables so the schema stays diffable against a future client version, and the
-	// CrystalOTC copy of proficiency.proto has to agree with this one field for field.
+	// CrystalOTC copy of protocol.proto has to agree with this one field for field.
 	// Renumbering anything here silently breaks the pair, so pin it.
 	test("field numbers match the official schema") = [] {
 		expect(eq(1, proto::WeaponProficiencyPerkPick::kLevelFieldNumber));
@@ -50,6 +50,25 @@ suite<"networkmessage"> proficiencyProtocolTest = [] {
 		expect(eq(4, proto::GameclientMessageWeaponProficiencyCommand::kArgumentFieldNumber));
 	};
 
+	// The extension field number IS the message type value - that identity held for all 341
+	// frames of the recorded official traffic, and it is what makes the 0x50 bridge
+	// envelope self-describing. These are plain generated constants, safe to read even in
+	// boost::ut's after-main run where constructing a protobuf message is not.
+	test("envelope numbers match the official schema") = [] {
+		expect(eq(1, proto::GameserverMessage::kTypeFieldNumber));
+		expect(eq(1, proto::GameclientMessage::kTypeFieldNumber));
+
+		expect(eq(92, proto::GameserverMessageExtensions::kWeaponProficiencyNotificationFieldNumber));
+		expect(eq(187, proto::GameserverMessageExtensions::kShapedPerkReshapeOffersFieldNumber));
+		expect(eq(196, proto::GameserverMessageExtensions::kWeaponProficiencyFieldNumber));
+		expect(eq(179, proto::GameclientMessageExtensions::kWeaponProficiencyCommandFieldNumber));
+
+		expect(eq(92, proto::GAMESERVER_MESSAGE_TYPE_WEAPONPROFICIENCYNOTIFICATION));
+		expect(eq(187, proto::GAMESERVER_MESSAGE_TYPE_SHAPEDPERKRESHAPEOFFERS));
+		expect(eq(196, proto::GAMESERVER_MESSAGE_TYPE_WEAPONPROFICIENCY));
+		expect(eq(179, proto::GAMECLIENT_MESSAGE_TYPE_WEAPONPROFICIENCYCOMMAND));
+	};
+
 	test("command values match the official enum") = [] {
 		expect(eq(0, proto::WEAPON_PROFICIENCY_COMMAND_GET_PROFICIENCY));
 		expect(eq(1, proto::WEAPON_PROFICIENCY_COMMAND_GET_ALL_PROFICIENCIES));
@@ -64,7 +83,8 @@ suite<"networkmessage"> proficiencyProtocolTest = [] {
 	};
 
 
-	// The framing the two ends agree on is { opcode, uint16 length, raw bytes }. getString()
+	// The framing the two ends agree on is { opcode, uint16 length, raw bytes } - since the
+	// phase 2 cutover, opcode 0x50 carrying a GameserverMessage envelope. getString()
 	// transcodes ISO-8859-1 <-> UTF-8 and would corrupt a serialised message, which is the
 	// whole reason getBytes() exists - so pin that a payload survives byte for byte,
 	// embedded NULs and high bytes included.
@@ -82,12 +102,12 @@ suite<"networkmessage"> proficiencyProtocolTest = [] {
 		expect(payload.find('\0') != std::string::npos);
 
 		NetworkMessage msg;
-		msg.addByte(0xC4);
+		msg.addByte(0x50);
 		msg.add<uint16_t>(static_cast<uint16_t>(payload.size()));
 		msg.addBytes(payload.data(), payload.size());
 
 		msg.setBufferPosition(NetworkMessage::INITIAL_BUFFER_POSITION);
-		expect(eq(0xC4, static_cast<int>(msg.getByte())));
+		expect(eq(0x50, static_cast<int>(msg.getByte())));
 
 		const uint16_t size = msg.get<uint16_t>();
 		expect(eq(payload.size(), static_cast<size_t>(size)));

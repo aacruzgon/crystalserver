@@ -26,6 +26,10 @@
 #include "game/movement/position.hpp"
 #include "utils/utils_definitions.hpp"
 
+namespace tibia::protobuf::protocol {
+	class GameclientMessageWeaponProficiencyCommand;
+}
+
 enum class PlayerIcon : uint8_t;
 enum class IconBakragore : uint8_t;
 enum class ForgeAction_t : uint8_t;
@@ -577,13 +581,20 @@ private:
 	void parseSelectSpellAimProtocol(NetworkMessage &msg);
 
 	void parseImbuementWindow(NetworkMessage &msg);
+	// Phase 2 bridge (0x50): parses the GameclientMessage envelope and dispatches on its
+	// type field. Both it and the legacy opcode feed handleWeaponProficiencyCommand.
+	void parseProtobufBridge(NetworkMessage &msg);
+	// PHASE2-LEGACY(proficiency): legacy framing (0xB3, bare message); goes with its
+	// dispatcher case at the end of phase 2. handleWeaponProficiencyCommand stays.
 	void parseWeaponProficiency(NetworkMessage &msg);
+	void handleWeaponProficiencyCommand(const tibia::protobuf::protocol::GameclientMessageWeaponProficiencyCommand &command);
 	void sendWeaponProficiencyExperience(const uint16_t itemId, const uint32_t experience);
 	void sendWeaponProficiencyInfo(const uint16_t itemId);
 	void sendWeaponProficiencyReshapeOffers();
-	// Frames one serialised proficiency protobuf: opcode, uint16 length, raw bytes. Kept
-	// non-template and string-taking so the protobuf headers stay out of this header.
-	void sendProficiencyPayload(uint8_t opcode, const std::string &payload);
+	// Frames one serialised GameserverMessage envelope as the 0x50 bridge packet: opcode,
+	// uint16 length, raw bytes. Kept non-template and string-taking so the protobuf headers
+	// stay out of this header.
+	void sendProtobufBridge(const std::string &envelope);
 
 	friend class Player;
 	friend class PlayerWheel;
